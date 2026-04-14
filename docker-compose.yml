@@ -1,20 +1,17 @@
 services:
   n8n:
-    build:
-      context: .
-      dockerfile_inline: |
-        FROM node:lts-alpine
-        RUN apk add --no-cache poppler-utils
-        RUN npm install -g n8n --loglevel=error
-        RUN mkdir -p /home/node/.n8n && chown -R node:node /home/node
-        USER node
-        EXPOSE 5678
-        CMD ["n8n", "start"]
+    image: n8nio/n8n:latest
     container_name: n8n
     ports:
       - "5678:5678"
     volumes:
       - n8n_data:/home/node/.n8n
+
+  stirling-pdf:
+    image: stirlingtools/stirling-pdf:latest
+    container_name: stirling-pdf
+    ports:
+      - "8080:8080"
 
 volumes:
   n8n_data:
