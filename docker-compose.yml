@@ -18,5 +18,12 @@ services:
     environment:
       SECURITY_ENABLELOGIN: "false"
 
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    volumes:
+      - ollama_data:/root/.ollama
+
 volumes:
   n8n_data:
+  ollama_data:
