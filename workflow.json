@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-04-15T10:55:25.151Z",
+    "updatedAt": "2026-04-17T11:14:29.647Z",
     "createdAt": "2026-04-15T07:27:20.311Z",
     "id": "jRt9vIy3bcnOSxi5",
     "name": "D2V",
@@ -84,7 +84,7 @@
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4.4,
         "position": [
-          416,
+          208,
           0
         ],
         "id": "84b326b7-6576-43c6-b1b9-053bd65a4e14",
@@ -97,7 +97,7 @@
         "type": "n8n-nodes-base.compression",
         "typeVersion": 1.1,
         "position": [
-          624,
+          400,
           0
         ],
         "id": "f42b6a78-2b52-4e24-b7b3-a4ebf7bf4f15",
@@ -167,6 +167,48 @@
         ],
         "id": "66abb90b-83e9-45fa-82c8-cd16126890d8",
         "name": "Read/Write Files from Disk"
+      },
+      {
+        "parameters": {
+          "resource": "image",
+          "modelId": {
+            "__rl": true,
+            "value": "llama3.2-vision:latest",
+            "mode": "list",
+            "cachedResultName": "llama3.2-vision:latest"
+          },
+          "text": "Transcribe this image as if you were reading it to a blind person, and include descriptions of graphs, charts, images, or other visual elements. Do not summarize, shorten, change, add, or remove anything, the image must be transcribed exactly as is.",
+          "binaryPropertyName": "={{Object.keys($binary)[0]}}",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.ollama",
+        "typeVersion": 1,
+        "position": [
+          816,
+          0
+        ],
+        "id": "b217d9a0-54c7-4fae-ab3e-79b6381b1bbe",
+        "name": "Analyze image",
+        "credentials": {
+          "ollamaApi": {
+            "id": "UOwdg63342FuQgng",
+            "name": "Ollama account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "fieldToSplitOut": "$binary",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.splitOut",
+        "typeVersion": 1,
+        "position": [
+          608,
+          0
+        ],
+        "id": "b36aed9d-02bc-41d6-a124-a065d2ff067b",
+        "name": "Split Out"
       }
     ],
     "connections": {
@@ -224,6 +266,28 @@
             }
           ]
         ]
+      },
+      "Compression": {
+        "main": [
+          [
+            {
+              "node": "Split Out",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Split Out": {
+        "main": [
+          [
+            {
+              "node": "Analyze image",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       }
     },
     "settings": {
@@ -239,9 +303,9 @@
       "templateCredsSetupCompleted": true
     },
     "pinData": {},
-    "versionId": "b0614b3d-d3c9-4ffd-8d0f-b63979f8e1ed",
+    "versionId": "0b05c303-a865-4234-9a52-0980d71a8883",
     "activeVersionId": "83557275-f01f-4ef3-a970-8c4de212127b",
-    "versionCounter": 100,
+    "versionCounter": 220,
     "triggerCount": 1,
     "shared": [
       {
