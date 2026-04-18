@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-04-17T11:14:29.647Z",
+    "updatedAt": "2026-04-18T11:51:40.016Z",
     "createdAt": "2026-04-15T07:27:20.311Z",
     "id": "jRt9vIy3bcnOSxi5",
     "name": "D2V",
@@ -209,6 +209,27 @@
         ],
         "id": "b36aed9d-02bc-41d6-a124-a065d2ff067b",
         "name": "Split Out"
+      },
+      {
+        "parameters": {
+          "resource": "audio",
+          "input": "={{ $json.content }}",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.openAi",
+        "typeVersion": 2.1,
+        "position": [
+          1024,
+          0
+        ],
+        "id": "9dd8ad93-fa09-4792-85cb-88b275f249f7",
+        "name": "Generate audio",
+        "credentials": {
+          "openAiApi": {
+            "id": "HhKNejPUCukPHiVp",
+            "name": "Kokoro-FastAPI"
+          }
+        }
       }
     ],
     "connections": {
@@ -288,6 +309,17 @@
             }
           ]
         ]
+      },
+      "Analyze image": {
+        "main": [
+          [
+            {
+              "node": "Generate audio",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       }
     },
     "settings": {
@@ -303,9 +335,9 @@
       "templateCredsSetupCompleted": true
     },
     "pinData": {},
-    "versionId": "0b05c303-a865-4234-9a52-0980d71a8883",
+    "versionId": "16f42716-b73d-464d-b446-ad725ed1434b",
     "activeVersionId": "83557275-f01f-4ef3-a970-8c4de212127b",
-    "versionCounter": 220,
+    "versionCounter": 233,
     "triggerCount": 1,
     "shared": [
       {
