@@ -19,5 +19,14 @@ services:
     environment:
       SECURITY_ENABLELOGIN: "false"
 
+  kokoro-tts:
+    image: ghcr.io/remsky/kokoro-fastapi-cpu:latest
+    container_name: kokoro-tts
+    ports:
+      - "8880:8880"
+    volumes:
+      - kokoro_models:/app/models
+
 volumes:
   n8n_data:
+  kokoro_models:
