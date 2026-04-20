@@ -1,12 +1,6 @@
 [
   {
-    "updatedAt": "2026-04-20T16:01:50.703Z",
-    "createdAt": "2026-04-15T07:27:20.311Z",
-    "id": "jRt9vIy3bcnOSxi5",
     "name": "D2V Main",
-    "description": null,
-    "active": true,
-    "isArchived": false,
     "nodes": [
       {
         "parameters": {
@@ -47,6 +41,7 @@
       {
         "parameters": {
           "operation": "toJson",
+          "binaryPropertyName": "=data",
           "options": {
             "format": true,
             "encoding": "utf8"
@@ -55,7 +50,7 @@
         "type": "n8n-nodes-base.convertToFile",
         "typeVersion": 1.1,
         "position": [
-          432,
+          656,
           224
         ],
         "id": "cd6a1dbb-c2ad-40fb-8ab5-0cdc663a3d9c",
@@ -65,12 +60,14 @@
         "parameters": {
           "operation": "write",
           "fileName": "/home/node/project/workflow-main.json",
-          "options": {}
+          "options": {
+            "append": false
+          }
         },
         "type": "n8n-nodes-base.readWriteFile",
         "typeVersion": 1.1,
         "position": [
-          656,
+          880,
           224
         ],
         "id": "66abb90b-83e9-45fa-82c8-cd16126890d8",
@@ -261,7 +258,7 @@
         "type": "n8n-nodes-base.httpRequest",
         "typeVersion": 4.4,
         "position": [
-          1760,
+          1776,
           0
         ],
         "id": "e843f88f-54d4-4479-831a-b91eeaf339ba",
@@ -292,131 +289,87 @@
             "name": "n8n account"
           }
         }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "ca39cb62-5853-462b-b52b-1027a0691bee",
+                "name": "name",
+                "value": "={{ $json.name }}",
+                "type": "string"
+              },
+              {
+                "id": "8b58689b-2c51-4e04-abfb-25b78b168642",
+                "name": "nodes",
+                "value": "={{ $json.nodes }}",
+                "type": "array"
+              },
+              {
+                "id": "72f918c2-5a65-4e5d-a9ad-e5d89e8b4a16",
+                "name": "pinData",
+                "value": "={{ $json.pinData }}",
+                "type": "object"
+              },
+              {
+                "id": "1a4600bf-ab17-4b3a-a841-49f8a713a37a",
+                "name": "active",
+                "value": "={{ $json.active }}",
+                "type": "boolean"
+              },
+              {
+                "id": "97ce13d7-d2dd-4e2e-8dcd-c50b9925c936",
+                "name": "settings",
+                "value": "={{ $json.settings }}",
+                "type": "object"
+              },
+              {
+                "id": "01329e55-00c8-45e1-a056-e12d5b2543cb",
+                "name": "versionId",
+                "value": "={{ $json.versionId }}",
+                "type": "string"
+              },
+              {
+                "id": "9647e477-1a6a-4076-a3ea-cdc9d4357541",
+                "name": "meta",
+                "value": "={{ $json.meta }}",
+                "type": "object"
+              },
+              {
+                "id": "408e0837-1bd4-4a16-8d99-1276f3747d83",
+                "name": "id",
+                "value": "={{ $json.id }}",
+                "type": "string"
+              },
+              {
+                "id": "03e5689f-0616-469f-acde-319e6a5f8a14",
+                "name": "tags",
+                "value": "={{ $json.tags }}",
+                "type": "array"
+              },
+              {
+                "id": "240727e3-d4c3-4796-9497-7ae9f86426e1",
+                "name": "connections",
+                "value": "={{ $json.connections }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          432,
+          224
+        ],
+        "id": "eebe97a4-bad7-49cf-a5d2-0d19782cdc3c",
+        "name": "Remove Superflous Fields"
       }
     ],
-    "connections": {
-      "On form submission": {
-        "main": [
-          [
-            {
-              "node": "Extract Images from PDF",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "When clicking ‘Execute workflow’": {
-        "main": [
-          [
-            {
-              "node": "Get a workflow",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Convert to File": {
-        "main": [
-          [
-            {
-              "node": "Read/Write Files from Disk",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Analyze image": {
-        "main": [
-          [
-            {
-              "node": "Generate audio",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Extract Images from PDF": {
-        "main": [
-          [
-            {
-              "node": "Unzip Images",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Unzip Images": {
-        "main": [
-          [
-            {
-              "node": "Send Images One by One",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Send Images One by One": {
-        "main": [
-          [
-            {
-              "node": "Create Temporary Image File on Disk",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Generate audio": {
-        "main": [
-          [
-            {
-              "node": "Create Temporary Audio File on Disk",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Create Temporary Audio File on Disk": {
-        "main": [
-          [
-            {
-              "node": "FFMPEG Assemble Clip",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Create Temporary Image File on Disk": {
-        "main": [
-          [
-            {
-              "node": "Analyze image",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Get a workflow": {
-        "main": [
-          [
-            {
-              "node": "Convert to File",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      }
-    },
+    "pinData": {},
+    "active": true,
     "settings": {
       "executionOrder": "v1",
       "binaryMode": "separate",
@@ -425,175 +378,12 @@
       "callerPolicy": "workflowsFromSameOwner",
       "availableInMCP": false
     },
-    "staticData": null,
+    "versionId": "022d1873-7e1e-4985-afca-bf58f0982047",
     "meta": {
       "templateCredsSetupCompleted": true
     },
-    "pinData": {},
-    "versionId": "e08b06a0-0959-406e-a017-fc9c1622341f",
-    "activeVersionId": "83557275-f01f-4ef3-a970-8c4de212127b",
-    "versionCounter": 393,
-    "triggerCount": 1,
-    "shared": [
-      {
-        "updatedAt": "2026-04-15T07:27:20.313Z",
-        "createdAt": "2026-04-15T07:27:20.313Z",
-        "role": "workflow:owner",
-        "workflowId": "jRt9vIy3bcnOSxi5",
-        "projectId": "9eByvo09tFamDneF",
-        "project": {
-          "updatedAt": "2026-04-15T07:19:15.286Z",
-          "createdAt": "2026-04-15T06:44:57.590Z",
-          "id": "9eByvo09tFamDneF",
-          "name": "Otto Wretling <otto.wretling@gmail.com>",
-          "type": "personal",
-          "icon": null,
-          "description": null,
-          "creatorId": "8317f8f2-5352-45d5-b001-7cf8d3dc153f"
-        }
-      }
-    ],
+    "id": "jRt9vIy3bcnOSxi5",
     "tags": [],
-    "activeVersion": {
-      "updatedAt": "2026-04-15T10:23:52.000Z",
-      "createdAt": "2026-04-15T10:16:42.725Z",
-      "versionId": "83557275-f01f-4ef3-a970-8c4de212127b",
-      "workflowId": "jRt9vIy3bcnOSxi5",
-      "nodes": [
-        {
-          "parameters": {
-            "formTitle": "Upload PDF",
-            "formFields": {
-              "values": [
-                {
-                  "fieldLabel": "Choose PDF File",
-                  "fieldType": "file",
-                  "acceptFileTypes": ".pdf, .PDF",
-                  "requiredField": true
-                }
-              ]
-            },
-            "options": {}
-          },
-          "type": "n8n-nodes-base.formTrigger",
-          "typeVersion": 2.5,
-          "position": [
-            0,
-            0
-          ],
-          "id": "be8ca210-425e-490c-be77-96a81b8c87d9",
-          "name": "On form submission",
-          "webhookId": "28f64fba-2cb7-4472-b632-f7124c51fe0b"
-        },
-        {
-          "parameters": {
-            "method": "POST",
-            "url": "http://stirling-pdf:8080/api/v1/convert/pdf/img",
-            "sendQuery": true,
-            "queryParameters": {
-              "parameters": [
-                {
-                  "name": "imageFormat",
-                  "value": "png"
-                },
-                {
-                  "name": "dpi",
-                  "value": "300"
-                },
-                {
-                  "name": "colorType",
-                  "value": "color"
-                },
-                {
-                  "name": "singleOrMultiple",
-                  "value": "multiple"
-                },
-                {
-                  "name": "pageNumbers",
-                  "value": "all"
-                }
-              ]
-            },
-            "sendBody": true,
-            "contentType": "multipart-form-data",
-            "bodyParameters": {
-              "parameters": [
-                {
-                  "parameterType": "formBinaryData",
-                  "name": "fileInput",
-                  "inputDataFieldName": "Choose_PDF_File"
-                }
-              ]
-            },
-            "options": {
-              "response": {
-                "response": {
-                  "responseFormat": "file"
-                }
-              }
-            }
-          },
-          "type": "n8n-nodes-base.httpRequest",
-          "typeVersion": 4.4,
-          "position": [
-            416,
-            0
-          ],
-          "id": "84b326b7-6576-43c6-b1b9-053bd65a4e14",
-          "name": "HTTP Request"
-        },
-        {
-          "parameters": {
-            "outputPrefix": "page"
-          },
-          "type": "n8n-nodes-base.compression",
-          "typeVersion": 1.1,
-          "position": [
-            624,
-            0
-          ],
-          "id": "f42b6a78-2b52-4e24-b7b3-a4ebf7bf4f15",
-          "name": "Compression"
-        }
-      ],
-      "connections": {
-        "On form submission": {
-          "main": [
-            [
-              {
-                "node": "HTTP Request",
-                "type": "main",
-                "index": 0
-              }
-            ]
-          ]
-        },
-        "HTTP Request": {
-          "main": [
-            [
-              {
-                "node": "Compression",
-                "type": "main",
-                "index": 0
-              }
-            ]
-          ]
-        }
-      },
-      "authors": "Otto Wretling",
-      "name": "Version 83557275",
-      "description": "I got PDF to image working",
-      "autosaved": true,
-      "workflowPublishHistory": [
-        {
-          "createdAt": "2026-04-15T10:23:52.113Z",
-          "id": 1,
-          "workflowId": "jRt9vIy3bcnOSxi5",
-          "versionId": "83557275-f01f-4ef3-a970-8c4de212127b",
-          "event": "activated",
-          "userId": "8317f8f2-5352-45d5-b001-7cf8d3dc153f"
-        }
-      ]
-    }
+    "connections": "{\"On form submission\":{\"main\":[[{\"node\":\"Extract Images from PDF\",\"type\":\"main\",\"index\":0}]]},\"When clicking ‘Execute workflow’\":{\"main\":[[{\"node\":\"Get a workflow\",\"type\":\"main\",\"index\":0}]]},\"Convert to File\":{\"main\":[[{\"node\":\"Read/Write Files from Disk\",\"type\":\"main\",\"index\":0}]]},\"Analyze image\":{\"main\":[[{\"node\":\"Generate audio\",\"type\":\"main\",\"index\":0}]]},\"Extract Images from PDF\":{\"main\":[[{\"node\":\"Unzip Images\",\"type\":\"main\",\"index\":0}]]},\"Unzip Images\":{\"main\":[[{\"node\":\"Send Images One by One\",\"type\":\"main\",\"index\":0}]]},\"Send Images One by One\":{\"main\":[[{\"node\":\"Create Temporary Image File on Disk\",\"type\":\"main\",\"index\":0}]]},\"Generate audio\":{\"main\":[[{\"node\":\"Create Temporary Audio File on Disk\",\"type\":\"main\",\"index\":0}]]},\"Create Temporary Audio File on Disk\":{\"main\":[[{\"node\":\"FFMPEG Assemble Clip\",\"type\":\"main\",\"index\":0}]]},\"Create Temporary Image File on Disk\":{\"main\":[[{\"node\":\"Analyze image\",\"type\":\"main\",\"index\":0}]]},\"Get a workflow\":{\"main\":[[{\"node\":\"Remove Superflous Fields\",\"type\":\"main\",\"index\":0}]]},\"Remove Superflous Fields\":{\"main\":[[{\"node\":\"Convert to File\",\"type\":\"main\",\"index\":0}]]},\"Read/Write Files from Disk\":{\"main\":[[]]}}"
   }
 ]
