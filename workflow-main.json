@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-04-20T15:36:23.025Z",
+    "updatedAt": "2026-04-20T16:01:50.703Z",
     "createdAt": "2026-04-15T07:27:20.311Z",
     "id": "jRt9vIy3bcnOSxi5",
     "name": "D2V Main",
@@ -213,28 +213,6 @@
       },
       {
         "parameters": {
-          "url": "http://localhost:5678/api/v1/workflows/jRt9vIy3bcnOSxi5",
-          "authentication": "genericCredentialType",
-          "genericAuthType": "httpHeaderAuth",
-          "options": {}
-        },
-        "type": "n8n-nodes-base.httpRequest",
-        "typeVersion": 4.4,
-        "position": [
-          208,
-          224
-        ],
-        "id": "cdb64328-ef08-4891-bcb3-e13f8182eeed",
-        "name": "Get n8n Workflow JSON",
-        "credentials": {
-          "httpHeaderAuth": {
-            "id": "5Uupffk9MFnol5IE",
-            "name": "n8n Get Workflow"
-          }
-        }
-      },
-      {
-        "parameters": {
           "operation": "write",
           "fileName": "=/home/node/project/temp/{{ $itemIndex}}_audio.mp3",
           "dataPropertyName": "audio",
@@ -288,6 +266,32 @@
         ],
         "id": "e843f88f-54d4-4479-831a-b91eeaf339ba",
         "name": "FFMPEG Assemble Clip"
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "workflowId": {
+            "__rl": true,
+            "value": "jRt9vIy3bcnOSxi5",
+            "mode": "list",
+            "cachedResultName": "D2V Main (#jRt9vIy3bcnOSxi5)"
+          },
+          "requestOptions": {}
+        },
+        "type": "n8n-nodes-base.n8n",
+        "typeVersion": 1,
+        "position": [
+          208,
+          224
+        ],
+        "id": "bdad51c6-c31a-43d1-88b8-c9da226ba349",
+        "name": "Get a workflow",
+        "credentials": {
+          "n8nApi": {
+            "id": "zjrAQnA2B3Rr3A2k",
+            "name": "n8n account"
+          }
+        }
       }
     ],
     "connections": {
@@ -306,7 +310,7 @@
         "main": [
           [
             {
-              "node": "Get n8n Workflow JSON",
+              "node": "Get a workflow",
               "type": "main",
               "index": 0
             }
@@ -368,17 +372,6 @@
           ]
         ]
       },
-      "Get n8n Workflow JSON": {
-        "main": [
-          [
-            {
-              "node": "Convert to File",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
       "Generate audio": {
         "main": [
           [
@@ -411,6 +404,17 @@
             }
           ]
         ]
+      },
+      "Get a workflow": {
+        "main": [
+          [
+            {
+              "node": "Convert to File",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       }
     },
     "settings": {
@@ -426,9 +430,9 @@
       "templateCredsSetupCompleted": true
     },
     "pinData": {},
-    "versionId": "d01757ae-b876-46e2-8b7c-2a9d45772d57",
+    "versionId": "e08b06a0-0959-406e-a017-fc9c1622341f",
     "activeVersionId": "83557275-f01f-4ef3-a970-8c4de212127b",
-    "versionCounter": 390,
+    "versionCounter": 393,
     "triggerCount": 1,
     "shared": [
       {
