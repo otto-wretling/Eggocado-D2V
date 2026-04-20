@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-04-20T12:08:25.405Z",
+    "updatedAt": "2026-04-20T15:28:57.883Z",
     "createdAt": "2026-04-15T07:27:20.311Z",
     "id": "jRt9vIy3bcnOSxi5",
     "name": "D2V",
@@ -64,7 +64,7 @@
       {
         "parameters": {
           "operation": "write",
-          "fileName": "/home/node/project/workflow.json",
+          "fileName": "/home/node/project/workflow-main.json",
           "options": {}
         },
         "type": "n8n-nodes-base.readWriteFile",
@@ -235,37 +235,6 @@
       },
       {
         "parameters": {
-          "method": "POST",
-          "url": "http://ffmpeg-video-assembler:8090/clip",
-          "sendBody": true,
-          "contentType": "multipart-form-data",
-          "bodyParameters": {
-            "parameters": [
-              {
-                "parameterType": "formBinaryData",
-                "name": "image",
-                "inputDataFieldName": "image"
-              },
-              {
-                "parameterType": "formBinaryData",
-                "name": "audio",
-                "inputDataFieldName": "audio"
-              }
-            ]
-          },
-          "options": {}
-        },
-        "type": "n8n-nodes-base.httpRequest",
-        "typeVersion": 4.4,
-        "position": [
-          1776,
-          0
-        ],
-        "id": "45f0882e-91d0-4e64-9c1f-f75c424cb752",
-        "name": "Assemble Video Clip"
-      },
-      {
-        "parameters": {
           "operation": "write",
           "fileName": "=/home/node/project/temp/{{ $itemIndex}}_audio.mp3",
           "dataPropertyName": "audio",
@@ -295,6 +264,30 @@
         ],
         "id": "328a7f2b-8c49-4e62-9e7a-afb3139239ad",
         "name": "Create Temporary Image File on Disk"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "http://host.docker.internal:5679/webhook/clip",
+          "sendBody": true,
+          "bodyParameters": {
+            "parameters": [
+              {
+                "name": "index",
+                "value": "={{$itemIndex}}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          1760,
+          0
+        ],
+        "id": "e843f88f-54d4-4479-831a-b91eeaf339ba",
+        "name": "FFMPEG Assemble Clip"
       }
     ],
     "connections": {
@@ -401,7 +394,7 @@
         "main": [
           [
             {
-              "node": "Assemble Video Clip",
+              "node": "FFMPEG Assemble Clip",
               "type": "main",
               "index": 0
             }
@@ -433,9 +426,9 @@
       "templateCredsSetupCompleted": true
     },
     "pinData": {},
-    "versionId": "577d7bfc-6724-498a-b4fb-ae0525949bae",
+    "versionId": "d01757ae-b876-46e2-8b7c-2a9d45772d57",
     "activeVersionId": "83557275-f01f-4ef3-a970-8c4de212127b",
-    "versionCounter": 353,
+    "versionCounter": 389,
     "triggerCount": 1,
     "shared": [
       {
