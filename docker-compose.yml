@@ -19,12 +19,6 @@ services:
     environment:
       SECURITY_ENABLELOGIN: "false"
 
-  ffmpeg-video-assembler:
-    build: ./ffmpeg-video-assembler
-    container_name: ffmpeg-video-assembler
-    ports:
-      - "8090:8090"
-
   kokoro-tts:
     image: ghcr.io/remsky/kokoro-fastapi-cpu:latest
     container_name: kokoro-tts
