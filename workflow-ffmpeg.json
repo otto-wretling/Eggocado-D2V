@@ -19,7 +19,7 @@
     },
     {
       "parameters": {
-        "command": "= ffmpeg -y -loop 1 -i temp/{{$json.body.index}}_image.png -i temp/{{$json.body.index}}_audio.mp3 -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest temp/{{$json.body.index}}_clip.mp4"
+        "command": "=ffmpeg -y -loop 1 -i temp/{{$json.body.index}}_image.png -i temp/{{$json.body.index}}_audio.mp3 -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest temp/{{$json.body.index}}_clip.mp4"
       },
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
@@ -75,7 +75,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "1232b32b-686e-4a29-bba1-9b63ae95f092",
+  "versionId": "664ac9e8-f1fb-4e29-97d1-e3af90f121bb",
   "meta": {
     "instanceId": "ed1f09f33a1c588a9b788156ad40bc434be9b1b6114805fd77608f02e470ebf4"
   },
