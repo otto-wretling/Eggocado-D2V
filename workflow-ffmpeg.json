@@ -19,7 +19,7 @@
     },
     {
       "parameters": {
-        "command": "=ffmpeg -y -loop 1 -i temp/{{$json.body.index}}_image.png -i temp/{{$json.body.index}}_audio.mp3 -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest temp/{{$json.body.index}}_clip.mp4"
+        "command": "=PATH=/opt/homebrew/bin:/usr/local/bin:$PATH ffmpeg -y -loop 1 -i temp/{{ $json.body.index }}_image.png -i temp/{{ $json.body.index }}_audio.mp3 -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest temp/{{ $json.body.index }}_clip.mp4"
       },
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
@@ -46,7 +46,33 @@
       "name": "Respond to Webhook"
     }
   ],
-  "pinData": {},
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "accept": "application/json,text/html,application/xhtml+xml,application/xml,text/*;q=0.9, image/*;q=0.8, */*;q=0.7",
+            "content-type": "application/json",
+            "user-agent": "axios/1.13.5",
+            "content-length": "11",
+            "accept-encoding": "gzip, compress, deflate, br",
+            "host": "host.docker.internal:5679",
+            "connection": "close"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "index": 0
+          },
+          "webhookUrl": "http://localhost:5679/webhook/clip",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
   "connections": {
     "Webhook": {
       "main": [
@@ -75,7 +101,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "664ac9e8-f1fb-4e29-97d1-e3af90f121bb",
+  "versionId": "df93f11d-564c-4596-8a2b-ad0a5f6d7c2c",
   "meta": {
     "instanceId": "ed1f09f33a1c588a9b788156ad40bc434be9b1b6114805fd77608f02e470ebf4"
   },
