@@ -195,7 +195,6 @@
     },
     {
       "parameters": {
-        "method": "POST",
         "url": "http://host.docker.internal:5679/webhook/clip",
         "sendBody": true,
         "bodyParameters": {
@@ -318,7 +317,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "8949312e-3d73-46c4-961c-e8f3b93eda1e",
+  "versionId": "eb9945b9-3af1-429d-8d2a-9d9e91e6a991",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "d9bf099537c822dc26871b7cc49839e5a9cbffa7c5792f2ab790432a3738bb06"
