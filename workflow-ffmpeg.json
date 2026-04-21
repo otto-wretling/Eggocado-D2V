@@ -19,7 +19,7 @@
     },
     {
       "parameters": {
-        "command": "=PATH=/opt/homebrew/bin:/usr/local/bin:$PATH ffmpeg -y -loop 1 -i temp/{{ $json.body.index }}_image.png -i temp/{{ $json.body.index }}_audio.mp3 -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest temp/{{ $json.body.index }}_clip.mp4"
+        "command": "=PATH=/opt/homebrew/bin:/usr/local/bin:$PATH ffmpeg -y -loop 1 -i temp/{{ $json.body.index }}_image.png -i temp/{{ $json.body.index }}_audio.mp3 -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest temp/{{ $json.body.index }}_clip.mp4"
       },
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
@@ -101,7 +101,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "df93f11d-564c-4596-8a2b-ad0a5f6d7c2c",
+  "versionId": "24ee239c-fe59-4a03-a6ea-e66f184c34a9",
   "meta": {
     "instanceId": "ed1f09f33a1c588a9b788156ad40bc434be9b1b6114805fd77608f02e470ebf4"
   },
