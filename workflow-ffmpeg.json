@@ -1,0 +1,84 @@
+{
+  "name": "workflow-ffmpeg",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "clip",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "8f118542-c9a7-4d7d-a778-7f9296ccc697",
+      "name": "Webhook",
+      "webhookId": "b9ac835f-0d6d-42e5-862d-bf9b9c9c81e8"
+    },
+    {
+      "parameters": {
+        "command": "= ffmpeg -y -loop 1 -i temp/{{$json.body.index}}_image.png -i temp/{{$json.body.index}}_audio.mp3 -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmtyuv420p -shortest temp/{{$json.body.index}}_clip.mp4"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "0455176c-4890-4429-afb3-b2a7fa38b26a",
+      "name": "Execute Command"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"status\": \"ok\"}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        416,
+        0
+      ],
+      "id": "0b25ca93-f35e-41db-962f-83deeabd76ff",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Execute Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "9c1673e6-5b38-4428-813c-43e16add4932",
+  "meta": {
+    "instanceId": "ed1f09f33a1c588a9b788156ad40bc434be9b1b6114805fd77608f02e470ebf4"
+  },
+  "id": "i5OkrefVqzPUXYDf",
+  "tags": []
+}
