@@ -1,0 +1,214 @@
+{
+  "name": "d2v-workflow-bare-metal-services",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "clip",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "8f118542-c9a7-4d7d-a778-7f9296ccc697",
+      "name": "Webhook",
+      "webhookId": "b9ac835f-0d6d-42e5-862d-bf9b9c9c81e8"
+    },
+    {
+      "parameters": {
+        "command": "=PATH=/opt/homebrew/bin:/usr/local/bin:$PATH ffmpeg -y -loop 1 -i temp/{{ $json.body.index }}_image.png -i temp/{{ $json.body.index }}_audio.mp3 -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest temp/{{ $json.body.index }}_clip.mp4"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "0455176c-4890-4429-afb3-b2a7fa38b26a",
+      "name": "Execute Command"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"status\": \"ok\"}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        448,
+        0
+      ],
+      "id": "0b25ca93-f35e-41db-962f-83deeabd76ff",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "transcribe",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        224
+      ],
+      "id": "4b4c66e5-fb20-4bb7-84b9-dc8920d22bf4",
+      "name": "Webhook1",
+      "webhookId": "b4feb880-5ddc-43d3-be03-42885a483ee1"
+    },
+    {
+      "parameters": {
+        "fileSelector": "=temp/{{$json.body.index}}_image.png",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        224,
+        224
+      ],
+      "id": "baf84e17-2434-4f50-a0a8-66741993b0b7",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "destinationKey": "imageBase64",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        224
+      ],
+      "id": "af2cb0fe-e5f0-4a29-8508-74e1bca19c09",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:11434/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify({model: \"gemma4:31b\", prompt: \"You are a professional documentary narrator. Look at this page visually. 1. Write a seamless spoken script that covers the main text content. 2. If there are images, charts, graphs, or diagrams, describe them naturally within the flow of the narrative. 3. Ignore page numbers, headers, and footers unless critical to the narrative. 4. Do not use Markdown formatting, bullet points, or stage directions. Just return the raw text to be spoken.\", images: [$json.imageBase64.split(',').pop()], stream: false})}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 3600000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        672,
+        224
+      ],
+      "id": "26e20e32-555e-4efc-97f8-9ca4c9d5b75d",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{JSON.stringify({text: $json.response})}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        896,
+        224
+      ],
+      "id": "18e9bbcc-2584-4912-a39e-35d25ae8098c",
+      "name": "Respond to Webhook1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Execute Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b23bb777-512b-4e2f-afee-dc364cdb48e1",
+  "meta": {
+    "instanceId": "ed1f09f33a1c588a9b788156ad40bc434be9b1b6114805fd77608f02e470ebf4"
+  },
+  "id": "i5OkrefVqzPUXYDf",
+  "tags": []
+}
