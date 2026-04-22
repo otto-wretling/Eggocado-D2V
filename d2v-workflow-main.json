@@ -1,5 +1,5 @@
 {
-  "name": "workflow-main",
+  "name": "d2v-workflow-main",
   "nodes": [
     {
       "parameters": {
@@ -19,45 +19,46 @@
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.5,
       "position": [
-        -16,
-        0
+        -880,
+        -256
       ],
-      "id": "be8ca210-425e-490c-be77-96a81b8c87d9",
+      "id": "85aa2ede-0a79-416a-997d-094d1e251472",
       "name": "On form submission",
-      "webhookId": "28f64fba-2cb7-4472-b632-f7124c51fe0b"
+      "webhookId": "3ee9998e-9813-4049-acc9-77324ef2e57e"
     },
     {
       "parameters": {
         "resource": "image",
         "modelId": {
           "__rl": true,
-          "value": "llama3.2-vision:latest",
+          "value": "gemma4:31b",
           "mode": "list",
-          "cachedResultName": "llama3.2-vision:latest"
+          "cachedResultName": "gemma4:31b"
         },
-        "text": "Transcribe this image as if you were reading it to a blind person, and include descriptions of graphs, charts, images, or other visual elements. Do not summarize, shorten, change, add, or remove anything, the image must be transcribed exactly as is.",
+        "text": "You are a professional documentary narrator. Look at this page visually.\n\n1. Write a seamless spoken script that covers the main text content.\n2. If there are images, charts, graphs, or diagrams, describe them naturally within the flow of the narrative (e.g., 'As we can see in this chart…', 'This diagram illustrates…').\n3. Ignore page numbers, headers, and footers unless they are critical to the narrative.\n4. Do not use Markdown formatting, bullet points, or stage directions. Just return the raw text to be spoken.",
         "binaryPropertyName": "={{Object.keys($binary)[0]}}",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.ollama",
       "typeVersion": 1,
       "position": [
-        1104,
-        0
+        -880,
+        -480
       ],
-      "id": "b217d9a0-54c7-4fae-ab3e-79b6381b1bbe",
+      "id": "ec9b6c2c-c0ec-4dda-b2d0-e7617293102d",
       "name": "Analyze image",
       "credentials": {
         "ollamaApi": {
           "id": "UOwdg63342FuQgng",
           "name": "Ollama account"
         }
-      }
+      },
+      "disabled": true
     },
     {
       "parameters": {
         "resource": "audio",
-        "input": "={{ $json.content }}",
+        "input": "={{$json.text}}",
         "options": {
           "binaryPropertyOutput": "audio"
         }
@@ -65,10 +66,10 @@
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 2.1,
       "position": [
-        1328,
-        0
+        464,
+        -256
       ],
-      "id": "9dd8ad93-fa09-4792-85cb-88b275f249f7",
+      "id": "907f0ce9-1a18-4e20-a07f-de62000c4d09",
       "name": "Generate audio",
       "credentials": {
         "openAiApi": {
@@ -128,10 +129,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        208,
-        0
+        -656,
+        -256
       ],
-      "id": "84b326b7-6576-43c6-b1b9-053bd65a4e14",
+      "id": "09570e17-13ee-4764-a74d-a9c02b93b70d",
       "name": "Extract Images from PDF"
     },
     {
@@ -141,10 +142,10 @@
       "type": "n8n-nodes-base.compression",
       "typeVersion": 1.1,
       "position": [
-        432,
-        0
+        -432,
+        -256
       ],
-      "id": "f42b6a78-2b52-4e24-b7b3-a4ebf7bf4f15",
+      "id": "1e3cfc4e-5ca9-4bd2-944c-9b79c4a9fb9f",
       "name": "Unzip Images"
     },
     {
@@ -155,10 +156,10 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        656,
-        0
+        -208,
+        -256
       ],
-      "id": "b36aed9d-02bc-41d6-a124-a065d2ff067b",
+      "id": "0bee4cdd-70ad-4851-b608-256f0a558d99",
       "name": "Send Images One by One"
     },
     {
@@ -171,10 +172,10 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        1552,
-        0
+        688,
+        -256
       ],
-      "id": "46c000f7-5ffe-47f8-a657-c97c0772d7f6",
+      "id": "b2927f8f-f458-47f6-84c5-56e4727b8a10",
       "name": "Create Temporary Audio File on Disk"
     },
     {
@@ -187,10 +188,10 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        880,
-        0
+        16,
+        -256
       ],
-      "id": "328a7f2b-8c49-4e62-9e7a-afb3139239ad",
+      "id": "980e6300-d045-47d4-9eec-dfcd76b82f2c",
       "name": "Create Temporary Image File on Disk"
     },
     {
@@ -210,11 +211,51 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1776,
-        0
+        912,
+        -256
       ],
-      "id": "e843f88f-54d4-4479-831a-b91eeaf339ba",
+      "id": "4e6f7069-63b2-49ae-b64e-a9b628a8a85e",
       "name": "FFMPEG Assemble Clip"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5679/webhook/transcribe",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "=index",
+              "value": "={{$itemIndex}}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 3600000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        240,
+        -256
+      ],
+      "id": "87b69236-0016-43a4-826b-12b9aa3b1c8f",
+      "name": "Transcribe Image"
     }
   ],
   "pinData": {},
@@ -224,17 +265,6 @@
         [
           {
             "node": "Extract Images from PDF",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Analyze image": {
-      "main": [
-        [
-          {
-            "node": "Generate audio",
             "type": "main",
             "index": 0
           }
@@ -300,7 +330,18 @@
       "main": [
         [
           {
-            "node": "Analyze image",
+            "node": "Transcribe Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe Image": {
+      "main": [
+        [
+          {
+            "node": "Generate audio",
             "type": "main",
             "index": 0
           }
@@ -317,7 +358,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "eb9945b9-3af1-429d-8d2a-9d9e91e6a991",
+  "versionId": "a4317c6c-6fad-4e4e-80fd-a7914b03b1d9",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "d9bf099537c822dc26871b7cc49839e5a9cbffa7c5792f2ab790432a3738bb06"
