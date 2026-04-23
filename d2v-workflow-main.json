@@ -28,35 +28,6 @@
     },
     {
       "parameters": {
-        "resource": "image",
-        "modelId": {
-          "__rl": true,
-          "value": "gemma4:31b",
-          "mode": "list",
-          "cachedResultName": "gemma4:31b"
-        },
-        "text": "You are a professional documentary narrator. Look at this page visually.\n\n1. Write a seamless spoken script that covers the main text content.\n2. If there are images, charts, graphs, or diagrams, describe them naturally within the flow of the narrative (e.g., 'As we can see in this chart…', 'This diagram illustrates…').\n3. Ignore page numbers, headers, and footers unless they are critical to the narrative.\n4. Do not use Markdown formatting, bullet points, or stage directions. Just return the raw text to be spoken.",
-        "binaryPropertyName": "={{Object.keys($binary)[0]}}",
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.ollama",
-      "typeVersion": 1,
-      "position": [
-        -880,
-        -480
-      ],
-      "id": "ec9b6c2c-c0ec-4dda-b2d0-e7617293102d",
-      "name": "Analyze image",
-      "credentials": {
-        "ollamaApi": {
-          "id": "UOwdg63342FuQgng",
-          "name": "Ollama account"
-        }
-      },
-      "disabled": true
-    },
-    {
-      "parameters": {
         "resource": "audio",
         "input": "={{$json.text}}",
         "options": {
@@ -196,29 +167,6 @@
     },
     {
       "parameters": {
-        "url": "http://host.docker.internal:5679/webhook/clip",
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "index",
-              "value": "={{$itemIndex}}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        912,
-        -256
-      ],
-      "id": "4e6f7069-63b2-49ae-b64e-a9b628a8a85e",
-      "name": "FFMPEG Assemble Clip"
-    },
-    {
-      "parameters": {
         "method": "POST",
         "url": "http://host.docker.internal:5679/webhook/transcribe",
         "sendHeaders": true,
@@ -255,7 +203,30 @@
         -256
       ],
       "id": "87b69236-0016-43a4-826b-12b9aa3b1c8f",
-      "name": "Transcribe Image"
+      "name": "Request Image Transcription"
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:5679/webhook/clip",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "index",
+              "value": "={{$itemIndex}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        912,
+        -256
+      ],
+      "id": "4e6f7069-63b2-49ae-b64e-a9b628a8a85e",
+      "name": "Request Clip Assembly"
     }
   ],
   "pinData": {},
@@ -319,7 +290,7 @@
       "main": [
         [
           {
-            "node": "FFMPEG Assemble Clip",
+            "node": "Request Clip Assembly",
             "type": "main",
             "index": 0
           }
@@ -330,14 +301,14 @@
       "main": [
         [
           {
-            "node": "Transcribe Image",
+            "node": "Request Image Transcription",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Transcribe Image": {
+    "Request Image Transcription": {
       "main": [
         [
           {
@@ -358,7 +329,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "a4317c6c-6fad-4e4e-80fd-a7914b03b1d9",
+  "versionId": "086c938c-f823-4be8-b768-3e33c19a6187",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "d9bf099537c822dc26871b7cc49839e5a9cbffa7c5792f2ab790432a3738bb06"
