@@ -7,7 +7,7 @@
         "url": "http://127.0.0.1:11434/api/generate",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{JSON.stringify({model: \"gemma4:31b\", prompt: \"You are a professional documentary narrator. Look at this page visually. 1. Write a seamless spoken script that covers the main text content. 2. If there are images, charts, graphs, or diagrams, describe them naturally within the flow of the narrative. 3. Ignore page numbers, headers, and footers unless critical to the narrative. 4. Do not use Markdown formatting, bullet points, or stage directions. Just return the raw text to be spoken.\", images: [$json.imageBase64.split(',').pop()], stream: false})}}",
+        "jsonBody": "={{JSON.stringify({model: \"gemma4:31b\", prompt: \"You are a professional documentary narrator. Look at this page visually. 1. Write a seamless spoken script that covers the main text content. 2. If there are images, charts, graphs, or diagrams, describe them naturally within the flow of the narrative. 3. Ignore page numbers, headers, and footers unless critical to the narrative. 4. Do not use Markdown formatting, bullet points, or stage directions. Just return the raw text to be spoken. 5. You are not allowed to summarize, explain, skip over, or shorten any text. All text must be transcribed from top to bottom, left to right.\", images: [$json.imageBase64.split(',').pop()], stream: false})}}",
         "options": {
           "response": {
             "response": {
@@ -205,7 +205,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "5b360203-2bd6-48ad-9b9c-3dc1dba45d83",
+  "versionId": "be3a4449-5447-482b-adde-2697176f6545",
   "meta": {
     "instanceId": "ed1f09f33a1c588a9b788156ad40bc434be9b1b6114805fd77608f02e470ebf4"
   },
