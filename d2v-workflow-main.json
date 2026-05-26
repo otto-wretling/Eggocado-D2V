@@ -28,29 +28,6 @@
     },
     {
       "parameters": {
-        "resource": "audio",
-        "input": "={{$json.text}}",
-        "options": {
-          "binaryPropertyOutput": "audio"
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.openAi",
-      "typeVersion": 2.1,
-      "position": [
-        464,
-        -256
-      ],
-      "id": "907f0ce9-1a18-4e20-a07f-de62000c4d09",
-      "name": "Generate audio",
-      "credentials": {
-        "openAiApi": {
-          "id": "HhKNejPUCukPHiVp",
-          "name": "Kokoro-FastAPI"
-        }
-      }
-    },
-    {
-      "parameters": {
         "method": "POST",
         "url": "http://stirling-pdf:8080/api/v1/convert/pdf/img",
         "sendQuery": true,
@@ -136,22 +113,6 @@
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/temp/{{ $itemIndex}}_audio.mp3",
-        "dataPropertyName": "audio",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.readWriteFile",
-      "typeVersion": 1.1,
-      "position": [
-        688,
-        -256
-      ],
-      "id": "b2927f8f-f458-47f6-84c5-56e4727b8a10",
-      "name": "Create Temporary Audio File on Disk"
-    },
-    {
-      "parameters": {
-        "operation": "write",
         "fileName": "=/home/node/project/temp/{{$itemIndex}}_image.png",
         "dataPropertyName": "={{Object.keys($binary)[0]}}",
         "options": {}
@@ -188,6 +149,11 @@
           ]
         },
         "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1
+            }
+          },
           "response": {
             "response": {
               "responseFormat": "json"
@@ -217,16 +183,97 @@
             }
           ]
         },
-        "options": {}
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1
+            }
+          }
+        }
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        912,
+        1120,
         -256
       ],
       "id": "4e6f7069-63b2-49ae-b64e-a9b628a8a85e",
       "name": "Request Clip Assembly"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://kokoro:8880/v1/audio/speech",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: \"kokoro\", voice: \"af_heart\", input: $json.text, response_format: \"wav\" }) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1
+            }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          },
+          "timeout": 3600000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        688,
+        -256
+      ],
+      "id": "ce073199-9b20-423d-b95c-e7d987ee2e08",
+      "name": "Request TTS"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://nemo-normalizer:8000/normalize",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: $json.text }) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1
+            }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 3600000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        464,
+        -256
+      ],
+      "id": "b6b8a46e-697f-4a79-abe4-68f837e852f4",
+      "name": "Request Grapheme to Phoneme Conversion"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/home/node/project/temp/{{$itemIndex}}_audio.wav",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        896,
+        -256
+      ],
+      "id": "3d3ff0c7-6ef8-4b8a-a408-04b947a4790d",
+      "name": "Create Temporary Audio File on Disk"
     }
   ],
   "pinData": {},
@@ -275,11 +322,44 @@
         ]
       ]
     },
-    "Generate audio": {
+    "Create Temporary Image File on Disk": {
+      "main": [
+        [
+          {
+            "node": "Request Image Transcription",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Request Image Transcription": {
+      "main": [
+        [
+          {
+            "node": "Request Grapheme to Phoneme Conversion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Request TTS": {
       "main": [
         [
           {
             "node": "Create Temporary Audio File on Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Request Grapheme to Phoneme Conversion": {
+      "main": [
+        [
+          {
+            "node": "Request TTS",
             "type": "main",
             "index": 0
           }
@@ -296,28 +376,6 @@
           }
         ]
       ]
-    },
-    "Create Temporary Image File on Disk": {
-      "main": [
-        [
-          {
-            "node": "Request Image Transcription",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Request Image Transcription": {
-      "main": [
-        [
-          {
-            "node": "Generate audio",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
     }
   },
   "active": true,
@@ -329,7 +387,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "086c938c-f823-4be8-b768-3e33c19a6187",
+  "versionId": "45849317-3689-4be1-a640-8c651d73f92b",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "d9bf099537c822dc26871b7cc49839e5a9cbffa7c5792f2ab790432a3738bb06"
