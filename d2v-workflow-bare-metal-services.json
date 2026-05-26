@@ -7,7 +7,7 @@
         "url": "http://127.0.0.1:11434/api/generate",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{JSON.stringify({model: \"gemma4:31b\", prompt: \"You are a professional documentary narrator. Look at this page visually. 1. Write a seamless spoken script that covers the main text content. 2. If there are images, charts, graphs, or diagrams, describe them naturally within the flow of the narrative. 3. Ignore page numbers, headers, and footers unless critical to the narrative. 4. Do not use Markdown formatting, bullet points, or stage directions. Just return the raw text to be spoken. 5. You are not allowed to summarize, explain, skip over, or shorten any text. All text must be transcribed from top to bottom, left to right.\", images: [$json.imageBase64.split(',').pop()], stream: false})}}",
+        "jsonBody": "={{JSON.stringify({model: \"gemma4:31b\", prompt: \"You are a professional documentary narrator. Look at this page visually. 1. Write a seamless spoken script that covers the main text content. 2. If there are images, charts, graphs, or diagrams, describe them naturally within the flow of the narrative. 3. Ignore page numbers, headers, and footers unless critical to the narrative. 4. Do not use Markdown formatting, bullet points, or stage directions. Just return the raw text to be spoken. 5. You are not allowed to summarize, explain, skip over, or shorten any text. All text must be transcribed from top to bottom, left to right. 6. Convert all numbers fully to spoken words. Swedish number formatting uses a space as the thousands separator and a comma as the decimal separator, so 6 870,00 means six thousand eight hundred and seventy, not six eight-hundred. For currency amounts, say the currency name, for example kronor for SEK and euro for EUR. 7. For alphanumeric codes, IBANs, order numbers, UUIDs, and invoice numbers, read each character individually, letters by their name and digits as individual numbers, for example f367ebef becomes f three six seven e b e f. 8. For percentages like 0,00%, say zero point zero zero percent. 9. For dates in ISO format like 2026-02-19, say february nineteenth twenty twenty six. 10. For abbreviations made of initials that are spelled out when spoken, say each letter individually, for example PO becomes P O and AB becomes A B. Abbreviations that are pronounced as words should remain as-is, for example SWIFT is said as swift, IBAN as eye-ban, and VAT as vat.\", images: [$json.imageBase64.split(',').pop()], stream: false})}}",
         "options": {
           "response": {
             "response": {
@@ -59,7 +59,7 @@
     },
     {
       "parameters": {
-        "command": "=PATH=/opt/homebrew/bin:/usr/local/bin:$PATH ffmpeg -y -loop 1 -i temp/{{ $json.body.index }}_image.png -i temp/{{ $json.body.index }}_audio.mp3 -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest temp/{{ $json.body.index }}_clip.mp4"
+        "command": "=PATH=/opt/homebrew/bin:/usr/local/bin:$PATH ffmpeg -y -loop 1 -i temp/{{ $json.body.index }}_image.png -i temp/{{ $json.body.index }}_audio.wav -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest temp/{{ $json.body.index }}_clip.mp4"
       },
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
@@ -205,7 +205,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "be3a4449-5447-482b-adde-2697176f6545",
+  "versionId": "1db1f1f7-c1b1-4c50-b4cf-8a18979f117f",
   "meta": {
     "instanceId": "ed1f09f33a1c588a9b788156ad40bc434be9b1b6114805fd77608f02e470ebf4"
   },
