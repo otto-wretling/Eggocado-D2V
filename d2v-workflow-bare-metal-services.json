@@ -1,0 +1,163 @@
+{
+  "name": "d2v-workflow-bare-metal-services",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "clip",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "8f118542-c9a7-4d7d-a778-7f9296ccc697",
+      "name": "Get Request for Assembling Clip",
+      "webhookId": "b9ac835f-0d6d-42e5-862d-bf9b9c9c81e8"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"status\": \"ok\"}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        448,
+        0
+      ],
+      "id": "0b25ca93-f35e-41db-962f-83deeabd76ff",
+      "name": "Return OK"
+    },
+    {
+      "parameters": {
+        "command": "={{ $json.body.command }}"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "0455176c-4890-4429-afb3-b2a7fa38b26a",
+      "name": "Run ffmpeg Command"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "prompt",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        224
+      ],
+      "id": "4b4c66e5-fb20-4bb7-84b9-dc8920d22bf4",
+      "name": "Receive Prompt",
+      "webhookId": "b4feb880-5ddc-43d3-be03-42885a483ee1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:11434/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify({model: $json.body.model, prompt: $json.body.prompt, images: [$json.body.imageBase64], stream: false})}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 3600000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        224,
+        224
+      ],
+      "id": "26e20e32-555e-4efc-97f8-9ca4c9d5b75d",
+      "name": "Run Prompt"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{JSON.stringify({text: $json.response})}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        448,
+        224
+      ],
+      "id": "18e9bbcc-2584-4912-a39e-35d25ae8098c",
+      "name": "Return Output"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get Request for Assembling Clip": {
+      "main": [
+        [
+          {
+            "node": "Run ffmpeg Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run ffmpeg Command": {
+      "main": [
+        [
+          {
+            "node": "Return OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receive Prompt": {
+      "main": [
+        [
+          {
+            "node": "Run Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Prompt": {
+      "main": [
+        [
+          {
+            "node": "Return Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "883c0a5e-5f0b-48aa-a503-bd196a5408af",
+  "meta": {
+    "instanceId": "ed1f09f33a1c588a9b788156ad40bc434be9b1b6114805fd77608f02e470ebf4"
+  },
+  "id": "i5OkrefVqzPUXYDf",
+  "tags": []
+}
