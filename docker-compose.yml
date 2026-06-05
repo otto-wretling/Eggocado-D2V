@@ -11,6 +11,14 @@ services:
       - n8n_data:/home/node/.n8n
       - .:/home/node/project
 
+  nemo-normalizer:
+    build: ./nemo-normalizer
+    platform: linux/amd64
+    container_name: nemo-normalizer
+    ports:
+      - "8765:8000"
+    restart: unless-stopped
+
   stirling-pdf:
     image: stirlingtools/stirling-pdf:latest
     container_name: stirling-pdf
@@ -19,14 +27,15 @@ services:
     environment:
       SECURITY_ENABLELOGIN: "false"
 
-  kokoro-tts:
+  kokoro:
     image: ghcr.io/remsky/kokoro-fastapi-cpu:latest
-    container_name: kokoro-tts
+    container_name: kokoro
     ports:
       - "8880:8880"
     volumes:
-      - kokoro_models:/app/models
+      - kokoro_cache:/app/.cache
+    restart: unless-stopped
 
 volumes:
   n8n_data:
-  kokoro_models:
+  kokoro_cache:
