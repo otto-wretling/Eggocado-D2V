@@ -1,0 +1,700 @@
+{
+  "name": "d2v-workflow-main",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Upload PDF",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Choose PDF File",
+              "fieldType": "file",
+              "acceptFileTypes": ".pdf, .PDF",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -880,
+        -256
+      ],
+      "id": "85aa2ede-0a79-416a-997d-094d1e251472",
+      "name": "On form submission",
+      "webhookId": "3ee9998e-9813-4049-acc9-77324ef2e57e"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://stirling-pdf:8080/api/v1/convert/pdf/img",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "imageFormat",
+              "value": "png"
+            },
+            {
+              "name": "dpi",
+              "value": "150"
+            },
+            {
+              "name": "colorType",
+              "value": "color"
+            },
+            {
+              "name": "singleOrMultiple",
+              "value": "multiple"
+            },
+            {
+              "name": "pageNumbers",
+              "value": "all"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "fileInput",
+              "inputDataFieldName": "Choose_PDF_File"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -656,
+        -256
+      ],
+      "id": "09570e17-13ee-4764-a74d-a9c02b93b70d",
+      "name": "Extract Images from PDF"
+    },
+    {
+      "parameters": {
+        "outputPrefix": "page"
+      },
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1,
+      "position": [
+        -432,
+        -256
+      ],
+      "id": "1e3cfc4e-5ca9-4bd2-944c-9b79c4a9fb9f",
+      "name": "Unzip Images"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "$binary",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        -256
+      ],
+      "id": "0bee4cdd-70ad-4851-b608-256f0a558d99",
+      "name": "Send Images One by One"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_image.png",
+        "dataPropertyName": "={{Object.keys($binary)[0]}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        -256
+      ],
+      "id": "980e6300-d045-47d4-9eec-dfcd76b82f2c",
+      "name": "Create Temporary Image File on Disk"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5679/webhook/prompt",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: \"gemma4:31b\", prompt: \"You are a professional documentary narrator. Look at this page visually. 1. Write a seamless spoken script that covers the main text content. 2. If there are images, charts, graphs, or diagrams, describe them naturally within the flow of the narrative. 3. Ignore page numbers, headers, and footers unless critical to the narrative. 4. Do not use Markdown formatting, bullet points, or stage directions. Just return the raw text to be spoken. 5. You are not allowed to summarize, explain, skip over, or shorten any text. All text must be transcribed from top to bottom, left to right. 6. Convert all numbers fully to spoken words. Swedish number formatting uses a space as the thousands separator and a comma as the decimal separator, so 6 870,00 means six thousand eight hundred and seventy, not six eight-hundred. For currency amounts, say the currency name, for example kronor for SEK and euro for EUR. 7. For alphanumeric codes, IBANs, order numbers, UUIDs, and invoice numbers, read each character individually, letters by their name and digits as individual numbers, for example f367ebef becomes f three six seven e b e f. 8. For percentages like 0,00%, say zero point zero zero percent. 9. For dates in ISO format like 2026-02-19, say february nineteenth twenty twenty six. 10. For abbreviations made of initials that are spelled out when spoken, say each letter individually, for example PO becomes P O and AB becomes A B. Abbreviations that are pronounced as words should remain as-is, for example SWIFT is said as swift, IBAN as eye-ban, and VAT as vat.\", imageBase64: $json.imageBase64 }) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1
+            }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 3600000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        688,
+        -256
+      ],
+      "id": "87b69236-0016-43a4-826b-12b9aa3b1c8f",
+      "name": "Request Image Transcription"
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:5679/webhook/clip",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "command",
+              "value": "=export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH && DUR=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_audio.wav) && ffmpeg -y -loop 1 -t \"$DUR\" -i temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_image.png -i temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_audio.wav -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_clip.mp4"
+            }
+          ]
+        },
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3376,
+        -192
+      ],
+      "id": "4e6f7069-63b2-49ae-b64e-a9b628a8a85e",
+      "name": "Request Clip Assembly"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://kokoro:8880/v1/audio/speech",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: \"kokoro\", voice: \"af_heart\", input: $json.text, response_format: \"wav\" }) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1
+            }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          },
+          "timeout": 3600000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2928,
+        -256
+      ],
+      "id": "ce073199-9b20-423d-b95c-e7d987ee2e08",
+      "name": "Request TTS"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://nemo-normalizer:8000/normalize",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: $json.text }) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1
+            }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 3600000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1808,
+        -256
+      ],
+      "id": "b6b8a46e-697f-4a79-abe4-68f837e852f4",
+      "name": "Request Grapheme to Phoneme Conversion"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_audio.wav",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        3152,
+        -256
+      ],
+      "id": "3d3ff0c7-6ef8-4b8a-a408-04b947a4790d",
+      "name": "Create Temporary Audio File on Disk"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        16,
+        -256
+      ],
+      "id": "1d46cee4-c0ac-48f0-9959-954fbef62aea",
+      "name": "Process Pages One by One"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "text",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        912,
+        -256
+      ],
+      "id": "1412f3cf-9d70-41e6-a004-0a42d495b765",
+      "name": "Convert Transcription to Text File"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_transcription.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        1136,
+        -256
+      ],
+      "id": "da4e04b4-8430-4347-85fc-7aa90bb76a68",
+      "name": "Create Temporary Text File on Disk"
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_transcription.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        1360,
+        -256
+      ],
+      "id": "b94f6e4c-4f80-4e8f-b754-94f5e37d1e09",
+      "name": "Read Temporary Text File from Disk"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "destinationKey": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        1584,
+        -256
+      ],
+      "id": "e86ecbe5-d3fb-4a98-a270-164483ddc16d",
+      "name": "Extract Transcription from Text File"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_transcription_normalized.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        2256,
+        -256
+      ],
+      "id": "396c4060-2848-41f9-bd7a-faef19ca6c13",
+      "name": "Update Temporary Text File on Disk"
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_transcription_normalized.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        2480,
+        -256
+      ],
+      "id": "b41dfb5c-9e4e-45bc-b5d4-b325a26a6349",
+      "name": "Read Updated Temporary Text File from Disk"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "destinationKey": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        2704,
+        -256
+      ],
+      "id": "b0ac6456-6662-4671-8525-bf6cd81c3b86",
+      "name": "Extract Updated Transcription from Text File"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "text",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        2032,
+        -256
+      ],
+      "id": "c5e0033b-e602-4bb8-bf58-c997a5b00452",
+      "name": "Convert Updated Transcription to Text File"
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:5679/webhook/clip",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "command",
+              "value": "=export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH && mkdir -p output && find temp -name \"*_clip.mp4\" | sort -V | sed \"s|.*|file '$PWD/&'|\" > temp/concat_list.txt && ffmpeg -y -f concat -safe 0 -i temp/concat_list.txt -c copy output/final_video.mp4"
+            }
+          ]
+        },
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        240,
+        -448
+      ],
+      "id": "e6ef0983-f72d-4599-be75-ba1e68d11412",
+      "name": "Request Final Video Assembly"
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "binaryPropertyName": "={{Object.keys($binary)[0]}}",
+        "destinationKey": "imageBase64",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        464,
+        -256
+      ],
+      "id": "c7c3622e-21d9-4cf2-bc89-37d8a265bf21",
+      "name": "Extract from File"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Extract Images from PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Images from PDF": {
+      "main": [
+        [
+          {
+            "node": "Unzip Images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unzip Images": {
+      "main": [
+        [
+          {
+            "node": "Send Images One by One",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Images One by One": {
+      "main": [
+        [
+          {
+            "node": "Process Pages One by One",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Temporary Image File on Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Request Image Transcription": {
+      "main": [
+        [
+          {
+            "node": "Convert Transcription to Text File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Request TTS": {
+      "main": [
+        [
+          {
+            "node": "Create Temporary Audio File on Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Request Grapheme to Phoneme Conversion": {
+      "main": [
+        [
+          {
+            "node": "Convert Updated Transcription to Text File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Temporary Audio File on Disk": {
+      "main": [
+        [
+          {
+            "node": "Request Clip Assembly",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Pages One by One": {
+      "main": [
+        [
+          {
+            "node": "Request Final Video Assembly",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Temporary Image File on Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Request Clip Assembly": {
+      "main": [
+        [
+          {
+            "node": "Process Pages One by One",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Transcription to Text File": {
+      "main": [
+        [
+          {
+            "node": "Create Temporary Text File on Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Temporary Text File on Disk": {
+      "main": [
+        [
+          {
+            "node": "Read Temporary Text File from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Temporary Text File from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract Transcription from Text File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Transcription from Text File": {
+      "main": [
+        [
+          {
+            "node": "Request Grapheme to Phoneme Conversion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Temporary Text File on Disk": {
+      "main": [
+        [
+          {
+            "node": "Read Updated Temporary Text File from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Updated Temporary Text File from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract Updated Transcription from Text File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Updated Transcription from Text File": {
+      "main": [
+        [
+          {
+            "node": "Request TTS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Updated Transcription to Text File": {
+      "main": [
+        [
+          {
+            "node": "Update Temporary Text File on Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Request Image Transcription",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "timezone": "Europe/Stockholm",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "a6747c48-81f3-41ce-91f6-d389bb4dd352",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d9bf099537c822dc26871b7cc49839e5a9cbffa7c5792f2ab790432a3738bb06"
+  },
+  "nodeGroups": [],
+  "id": "jRt9vIy3bcnOSxi5",
+  "tags": []
+}
