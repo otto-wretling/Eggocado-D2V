@@ -3,46 +3,6 @@
   "nodes": [
     {
       "parameters": {
-        "method": "POST",
-        "url": "http://127.0.0.1:11434/api/generate",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{JSON.stringify({model: \"gemma4:31b\", prompt: \"You are a professional documentary narrator. Look at this page visually. 1. Write a seamless spoken script that covers the main text content. 2. If there are images, charts, graphs, or diagrams, describe them naturally within the flow of the narrative. 3. Ignore page numbers, headers, and footers unless critical to the narrative. 4. Do not use Markdown formatting, bullet points, or stage directions. Just return the raw text to be spoken. 5. You are not allowed to summarize, explain, skip over, or shorten any text. All text must be transcribed from top to bottom, left to right. 6. Convert all numbers fully to spoken words. Swedish number formatting uses a space as the thousands separator and a comma as the decimal separator, so 6 870,00 means six thousand eight hundred and seventy, not six eight-hundred. For currency amounts, say the currency name, for example kronor for SEK and euro for EUR. 7. For alphanumeric codes, IBANs, order numbers, UUIDs, and invoice numbers, read each character individually, letters by their name and digits as individual numbers, for example f367ebef becomes f three six seven e b e f. 8. For percentages like 0,00%, say zero point zero zero percent. 9. For dates in ISO format like 2026-02-19, say february nineteenth twenty twenty six. 10. For abbreviations made of initials that are spelled out when spoken, say each letter individually, for example PO becomes P O and AB becomes A B. Abbreviations that are pronounced as words should remain as-is, for example SWIFT is said as swift, IBAN as eye-ban, and VAT as vat.\", images: [$json.imageBase64.split(',').pop()], stream: false})}}",
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "json"
-            }
-          },
-          "timeout": 3600000
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.3,
-      "position": [
-        672,
-        224
-      ],
-      "id": "26e20e32-555e-4efc-97f8-9ca4c9d5b75d",
-      "name": "Transcribe Images"
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{JSON.stringify({text: $json.response})}}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.5,
-      "position": [
-        896,
-        224
-      ],
-      "id": "18e9bbcc-2584-4912-a39e-35d25ae8098c",
-      "name": "Return Image Transcription"
-    },
-    {
-      "parameters": {
         "path": "clip",
         "responseMode": "responseNode",
         "options": {}
@@ -56,19 +16,6 @@
       "id": "8f118542-c9a7-4d7d-a778-7f9296ccc697",
       "name": "Get Request for Assembling Clip",
       "webhookId": "b9ac835f-0d6d-42e5-862d-bf9b9c9c81e8"
-    },
-    {
-      "parameters": {
-        "command": "=PATH=/opt/homebrew/bin:/usr/local/bin:$PATH ffmpeg -y -loop 1 -i temp/{{ $json.body.index }}_image.png -i temp/{{ $json.body.index }}_audio.wav -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest temp/{{ $json.body.index }}_clip.mp4"
-      },
-      "type": "n8n-nodes-base.executeCommand",
-      "typeVersion": 1,
-      "position": [
-        224,
-        0
-      ],
-      "id": "0455176c-4890-4429-afb3-b2a7fa38b26a",
-      "name": "Assemble Clip Using ffmpeg"
     },
     {
       "parameters": {
@@ -87,8 +34,21 @@
     },
     {
       "parameters": {
+        "command": "={{ $json.body.command }}"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "0455176c-4890-4429-afb3-b2a7fa38b26a",
+      "name": "Run ffmpeg Command"
+    },
+    {
+      "parameters": {
         "httpMethod": "POST",
-        "path": "transcribe",
+        "path": "prompt",
         "responseMode": "responseNode",
         "options": {}
       },
@@ -99,64 +59,64 @@
         224
       ],
       "id": "4b4c66e5-fb20-4bb7-84b9-dc8920d22bf4",
-      "name": "Get Request for Image Transcription",
+      "name": "Receive Prompt",
       "webhookId": "b4feb880-5ddc-43d3-be03-42885a483ee1"
     },
     {
       "parameters": {
-        "fileSelector": "=temp/{{$json.body.index}}_image.png",
-        "options": {}
+        "method": "POST",
+        "url": "http://127.0.0.1:11434/api/generate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify({model: $json.body.model, prompt: $json.body.prompt, images: [$json.body.imageBase64], stream: false})}}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 3600000
+        }
       },
-      "type": "n8n-nodes-base.readWriteFile",
-      "typeVersion": 1,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
       "position": [
         224,
         224
       ],
-      "id": "baf84e17-2434-4f50-a0a8-66741993b0b7",
-      "name": "Read Images From Disk"
+      "id": "26e20e32-555e-4efc-97f8-9ca4c9d5b75d",
+      "name": "Run Prompt"
     },
     {
       "parameters": {
-        "operation": "binaryToPropery",
-        "destinationKey": "imageBase64",
+        "respondWith": "json",
+        "responseBody": "={{JSON.stringify({text: $json.response})}}",
         "options": {}
       },
-      "type": "n8n-nodes-base.extractFromFile",
-      "typeVersion": 1.1,
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
       "position": [
         448,
         224
       ],
-      "id": "af2cb0fe-e5f0-4a29-8508-74e1bca19c09",
-      "name": "Convert Image Files to Base64 String"
+      "id": "18e9bbcc-2584-4912-a39e-35d25ae8098c",
+      "name": "Return Output"
     }
   ],
   "pinData": {},
   "connections": {
-    "Transcribe Images": {
-      "main": [
-        [
-          {
-            "node": "Return Image Transcription",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Get Request for Assembling Clip": {
       "main": [
         [
           {
-            "node": "Assemble Clip Using ffmpeg",
+            "node": "Run ffmpeg Command",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Assemble Clip Using ffmpeg": {
+    "Run ffmpeg Command": {
       "main": [
         [
           {
@@ -167,33 +127,22 @@
         ]
       ]
     },
-    "Get Request for Image Transcription": {
+    "Receive Prompt": {
       "main": [
         [
           {
-            "node": "Read Images From Disk",
+            "node": "Run Prompt",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Read Images From Disk": {
+    "Run Prompt": {
       "main": [
         [
           {
-            "node": "Convert Image Files to Base64 String",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Convert Image Files to Base64 String": {
-      "main": [
-        [
-          {
-            "node": "Transcribe Images",
+            "node": "Return Output",
             "type": "main",
             "index": 0
           }
@@ -205,7 +154,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "1db1f1f7-c1b1-4c50-b4cf-8a18979f117f",
+  "versionId": "883c0a5e-5f0b-48aa-a503-bd196a5408af",
   "meta": {
     "instanceId": "ed1f09f33a1c588a9b788156ad40bc434be9b1b6114805fd77608f02e470ebf4"
   },
