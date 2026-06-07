@@ -435,7 +435,7 @@
       "typeVersion": 1.1,
       "position": [
         464,
-        -256
+        -368
       ],
       "id": "4904010e-f383-4c5e-bf24-bc30ba1fc068",
       "name": "Save PDF File to Disk"
@@ -473,7 +473,7 @@
       "typeVersion": 2.5,
       "position": [
         240,
-        -256
+        -368
       ],
       "id": "da50ce28-35d6-4d34-8abe-5b97118fc226",
       "name": "Select PDF File",
@@ -571,7 +571,7 @@
       "typeVersion": 2.5,
       "position": [
         16,
-        -176
+        -304
       ],
       "id": "e2317d5c-48b6-4f9a-b1b8-86be01821583",
       "name": "Error Message [\"No PDF File Found\"]",
@@ -610,6 +610,54 @@
       "id": "6b3cb6d6-1809-4df9-828e-2ab4ae628bbb",
       "name": "Select Mode",
       "webhookId": "55394070-91aa-42d8-a6a5-5acb40680968"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/home/node/project/temp/*_image.png",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        -128
+      ],
+      "id": "9daa517f-fd29-4c89-85cd-c1a1440690f9",
+      "name": "Verify if Images Are Extracted",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e52802f7-d5b9-4da6-a4c5-516df63d98d6",
+              "leftValue": "true",
+              "rightValue": "={{ (!!$binary && Object.keys($binary).length > 0).toString() }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        464,
+        -128
+      ],
+      "id": "425d4c37-35b7-41e7-b44f-6be25be1377d",
+      "name": "Images Are Extracted"
     }
   ],
   "pinData": {},
@@ -894,7 +942,13 @@
     },
     "Previous PDF Is Uploaded": {
       "main": [
-        [],
+        [
+          {
+            "node": "Verify if Images Are Extracted",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "Error Message [\"No PDF File Found\"]",
@@ -925,6 +979,29 @@
           }
         ]
       ]
+    },
+    "Verify if Images Are Extracted": {
+      "main": [
+        [
+          {
+            "node": "Images Are Extracted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Images Are Extracted": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Read PDF File from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -936,7 +1013,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "2883427a-ec10-474f-aef0-289aad8c3eaa",
+  "versionId": "13c2548a-48c7-4e4a-92e9-bf268536b6fb",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "d9bf099537c822dc26871b7cc49839e5a9cbffa7c5792f2ab790432a3738bb06"
