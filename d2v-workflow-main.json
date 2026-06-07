@@ -3,31 +3,6 @@
   "nodes": [
     {
       "parameters": {
-        "formTitle": "Upload PDF",
-        "formFields": {
-          "values": [
-            {
-              "fieldLabel": "Choose PDF File",
-              "fieldType": "file",
-              "acceptFileTypes": ".pdf, .PDF",
-              "requiredField": true
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.formTrigger",
-      "typeVersion": 2.5,
-      "position": [
-        -880,
-        -256
-      ],
-      "id": "85aa2ede-0a79-416a-997d-094d1e251472",
-      "name": "On form submission",
-      "webhookId": "3ee9998e-9813-4049-acc9-77324ef2e57e"
-    },
-    {
-      "parameters": {
         "method": "POST",
         "url": "http://stirling-pdf:8080/api/v1/convert/pdf/img",
         "sendQuery": true,
@@ -77,7 +52,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -240,
+        912,
         -256
       ],
       "id": "09570e17-13ee-4764-a74d-a9c02b93b70d",
@@ -90,7 +65,7 @@
       "type": "n8n-nodes-base.compression",
       "typeVersion": 1.1,
       "position": [
-        -16,
+        1136,
         -256
       ],
       "id": "1e3cfc4e-5ca9-4bd2-944c-9b79c4a9fb9f",
@@ -104,7 +79,7 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        208,
+        1360,
         -256
       ],
       "id": "0bee4cdd-70ad-4851-b608-256f0a558d99",
@@ -120,7 +95,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        656,
+        1808,
         -256
       ],
       "id": "980e6300-d045-47d4-9eec-dfcd76b82f2c",
@@ -159,7 +134,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1104,
+        2256,
         -256
       ],
       "id": "87b69236-0016-43a4-826b-12b9aa3b1c8f",
@@ -188,8 +163,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        3792,
-        -192
+        4944,
+        -176
       ],
       "id": "4e6f7069-63b2-49ae-b64e-a9b628a8a85e",
       "name": "Request Clip Assembly"
@@ -218,7 +193,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        3344,
+        4496,
         -256
       ],
       "id": "ce073199-9b20-423d-b95c-e7d987ee2e08",
@@ -248,7 +223,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        2224,
+        3376,
         -256
       ],
       "id": "b6b8a46e-697f-4a79-abe4-68f837e852f4",
@@ -263,7 +238,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        3568,
+        4720,
         -256
       ],
       "id": "3d3ff0c7-6ef8-4b8a-a408-04b947a4790d",
@@ -276,7 +251,7 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        432,
+        1584,
         -256
       ],
       "id": "1d46cee4-c0ac-48f0-9959-954fbef62aea",
@@ -293,7 +268,7 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        1328,
+        2480,
         -256
       ],
       "id": "1412f3cf-9d70-41e6-a004-0a42d495b765",
@@ -308,7 +283,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        1552,
+        2704,
         -256
       ],
       "id": "da4e04b4-8430-4347-85fc-7aa90bb76a68",
@@ -322,7 +297,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        1776,
+        2928,
         -256
       ],
       "id": "b94f6e4c-4f80-4e8f-b754-94f5e37d1e09",
@@ -337,7 +312,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        2000,
+        3152,
         -256
       ],
       "id": "e86ecbe5-d3fb-4a98-a270-164483ddc16d",
@@ -352,7 +327,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        2672,
+        3824,
         -256
       ],
       "id": "396c4060-2848-41f9-bd7a-faef19ca6c13",
@@ -366,7 +341,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        2896,
+        4048,
         -256
       ],
       "id": "b41dfb5c-9e4e-45bc-b5d4-b325a26a6349",
@@ -381,7 +356,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        3120,
+        4272,
         -256
       ],
       "id": "b0ac6456-6662-4671-8525-bf6cd81c3b86",
@@ -398,7 +373,7 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        2448,
+        3600,
         -256
       ],
       "id": "c5e0033b-e602-4bb8-bf58-c997a5b00452",
@@ -427,7 +402,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        656,
+        1808,
         -448
       ],
       "id": "e6ef0983-f72d-4599-be75-ba1e68d11412",
@@ -443,7 +418,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        880,
+        2032,
         -256
       ],
       "id": "c7c3622e-21d9-4cf2-bc89-37d8a265bf21",
@@ -459,7 +434,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -672,
+        464,
         -256
       ],
       "id": "4904010e-f383-4c5e-bf24-bc30ba1fc068",
@@ -473,26 +448,172 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -464,
+        688,
         -256
       ],
       "id": "911b3555-9a63-4583-ae58-1a90aa3af496",
       "name": "Read PDF File from Disk"
+    },
+    {
+      "parameters": {
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Select PDF File",
+              "fieldType": "file",
+              "multipleFiles": false,
+              "acceptFileTypes": ".pdf, .PDF",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        240,
+        -256
+      ],
+      "id": "da50ce28-35d6-4d34-8abe-5b97118fc226",
+      "name": "Select PDF File",
+      "webhookId": "16ff899e-2f38-4b1e-9eb1-164f02db5a03"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/home/node/project/temp/*.pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -432,
+        -176
+      ],
+      "id": "eaae3b24-1ecf-4c5e-8fa4-3e03c7501565",
+      "name": "Verify if PDF Is Uploaded",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7cc2ec9d-6638-4653-8189-14ed9eec7830",
+              "leftValue": "={{ $json[\"Select Mode\"] }}",
+              "rightValue": "Start a New Conversion",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -656,
+        -256
+      ],
+      "id": "4fdbcd4e-8dfb-4e68-81df-c4c18413f6e8",
+      "name": "Start a New Conversion"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "47b60255-9164-4e9d-8c65-cfd273c5191c",
+              "leftValue": "true",
+              "rightValue": "={{ (!!$binary && Object.keys($binary).length > 0).toString() }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -208,
+        -176
+      ],
+      "id": "07294c67-a71d-4007-ac9a-089f4137977b",
+      "name": "Previous PDF Is Uploaded"
+    },
+    {
+      "parameters": {
+        "options": {
+          "formDescription": "No PDF file was selected, please click Submit below to continue to upload a PDF and start a new conversion."
+        }
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        16,
+        -176
+      ],
+      "id": "e2317d5c-48b6-4f9a-b1b8-86be01821583",
+      "name": "Error Message [\"No PDF File Found\"]",
+      "webhookId": "289755c0-98be-4489-8f8c-6c7ab2bc8509"
+    },
+    {
+      "parameters": {
+        "formTitle": "D2V - Document to Video",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Select Mode",
+              "fieldType": "radio",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Start a New Conversion"
+                  },
+                  {
+                    "option": "Continue Previous Conversion"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -880,
+        -256
+      ],
+      "id": "6b3cb6d6-1809-4df9-828e-2ab4ae628bbb",
+      "name": "Select Mode",
+      "webhookId": "55394070-91aa-42d8-a6a5-5acb40680968"
     }
   ],
   "pinData": {},
   "connections": {
-    "On form submission": {
-      "main": [
-        [
-          {
-            "node": "Save PDF File to Disk",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Extract Images from PDF": {
       "main": [
         [
@@ -730,6 +851,80 @@
           }
         ]
       ]
+    },
+    "Select PDF File": {
+      "main": [
+        [
+          {
+            "node": "Save PDF File to Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify if PDF Is Uploaded": {
+      "main": [
+        [
+          {
+            "node": "Previous PDF Is Uploaded",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start a New Conversion": {
+      "main": [
+        [
+          {
+            "node": "Select PDF File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Verify if PDF Is Uploaded",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Previous PDF Is Uploaded": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Error Message [\"No PDF File Found\"]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Message [\"No PDF File Found\"]": {
+      "main": [
+        [
+          {
+            "node": "Select PDF File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Mode": {
+      "main": [
+        [
+          {
+            "node": "Start a New Conversion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -741,7 +936,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "50c290b2-c357-4dab-b675-98be0f8cd561",
+  "versionId": "2883427a-ec10-474f-aef0-289aad8c3eaa",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "d9bf099537c822dc26871b7cc49839e5a9cbffa7c5792f2ab790432a3738bb06"
