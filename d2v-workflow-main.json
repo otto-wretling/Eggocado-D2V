@@ -52,8 +52,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1584,
-        -416
+        1376,
+        -352
       ],
       "id": "09570e17-13ee-4764-a74d-a9c02b93b70d",
       "name": "Extract Images from PDF"
@@ -65,8 +65,8 @@
       "type": "n8n-nodes-base.compression",
       "typeVersion": 1.1,
       "position": [
-        1808,
-        -416
+        1600,
+        -352
       ],
       "id": "1e3cfc4e-5ca9-4bd2-944c-9b79c4a9fb9f",
       "name": "Unzip Images"
@@ -79,8 +79,8 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        2032,
-        -320
+        1824,
+        -352
       ],
       "id": "0bee4cdd-70ad-4851-b608-256f0a558d99",
       "name": "Send Images One by One"
@@ -95,8 +95,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        2480,
-        -256
+        2272,
+        -448
       ],
       "id": "980e6300-d045-47d4-9eec-dfcd76b82f2c",
       "name": "Create Temporary Image File on Disk"
@@ -134,8 +134,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        2928,
-        -256
+        4944,
+        -272
       ],
       "id": "87b69236-0016-43a4-826b-12b9aa3b1c8f",
       "name": "Request Image Transcription"
@@ -163,8 +163,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        5616,
-        -176
+        7632,
+        -256
       ],
       "id": "4e6f7069-63b2-49ae-b64e-a9b628a8a85e",
       "name": "Request Clip Assembly"
@@ -193,41 +193,11 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        5168,
-        -256
+        7184,
+        -448
       ],
       "id": "ce073199-9b20-423d-b95c-e7d987ee2e08",
       "name": "Request TTS"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://nemo-normalizer:8000/normalize",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ text: $json.text }) }}",
-        "options": {
-          "batching": {
-            "batch": {
-              "batchSize": 1
-            }
-          },
-          "response": {
-            "response": {
-              "responseFormat": "json"
-            }
-          },
-          "timeout": 3600000
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        4048,
-        -256
-      ],
-      "id": "b6b8a46e-697f-4a79-abe4-68f837e852f4",
-      "name": "Request Grapheme to Phoneme Conversion"
     },
     {
       "parameters": {
@@ -238,8 +208,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        5392,
-        -256
+        7408,
+        -448
       ],
       "id": "3d3ff0c7-6ef8-4b8a-a408-04b947a4790d",
       "name": "Create Temporary Audio File on Disk"
@@ -251,8 +221,8 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        2256,
-        -320
+        2048,
+        -352
       ],
       "id": "1d46cee4-c0ac-48f0-9959-954fbef62aea",
       "name": "Process Pages One by One"
@@ -268,8 +238,8 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        3152,
-        -256
+        5168,
+        -272
       ],
       "id": "1412f3cf-9d70-41e6-a004-0a42d495b765",
       "name": "Convert Transcription to Text File"
@@ -283,8 +253,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        3376,
-        -256
+        5392,
+        -272
       ],
       "id": "da4e04b4-8430-4347-85fc-7aa90bb76a68",
       "name": "Create Temporary Text File on Disk"
@@ -297,8 +267,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        3600,
-        -256
+        5616,
+        -352
       ],
       "id": "b94f6e4c-4f80-4e8f-b754-94f5e37d1e09",
       "name": "Read Temporary Text File from Disk"
@@ -312,55 +282,11 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        3824,
-        -256
+        5840,
+        -352
       ],
       "id": "e86ecbe5-d3fb-4a98-a270-164483ddc16d",
       "name": "Extract Transcription from Text File"
-    },
-    {
-      "parameters": {
-        "operation": "write",
-        "fileName": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_transcription_normalized.txt",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.readWriteFile",
-      "typeVersion": 1.1,
-      "position": [
-        4496,
-        -256
-      ],
-      "id": "396c4060-2848-41f9-bd7a-faef19ca6c13",
-      "name": "Update Temporary Text File on Disk"
-    },
-    {
-      "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_transcription_normalized.txt",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.readWriteFile",
-      "typeVersion": 1.1,
-      "position": [
-        4720,
-        -256
-      ],
-      "id": "b41dfb5c-9e4e-45bc-b5d4-b325a26a6349",
-      "name": "Read Updated Temporary Text File from Disk"
-    },
-    {
-      "parameters": {
-        "operation": "text",
-        "destinationKey": "text",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.extractFromFile",
-      "typeVersion": 1.1,
-      "position": [
-        4944,
-        -256
-      ],
-      "id": "b0ac6456-6662-4671-8525-bf6cd81c3b86",
-      "name": "Extract Updated Transcription from Text File"
     },
     {
       "parameters": {
@@ -373,8 +299,8 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        4272,
-        -256
+        6288,
+        -352
       ],
       "id": "c5e0033b-e602-4bb8-bf58-c997a5b00452",
       "name": "Convert Updated Transcription to Text File"
@@ -402,8 +328,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        2480,
-        -448
+        2272,
+        -640
       ],
       "id": "e6ef0983-f72d-4599-be75-ba1e68d11412",
       "name": "Request Final Video Assembly"
@@ -418,8 +344,8 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        2704,
-        -256
+        4720,
+        -272
       ],
       "id": "c7c3622e-21d9-4cf2-bc89-37d8a265bf21",
       "name": "Extract from File"
@@ -434,8 +360,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        464,
-        -320
+        928,
+        -416
       ],
       "id": "4904010e-f383-4c5e-bf24-bc30ba1fc068",
       "name": "Save PDF File to Disk"
@@ -448,8 +374,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        688,
-        -176
+        1152,
+        -352
       ],
       "id": "911b3555-9a63-4583-ae58-1a90aa3af496",
       "name": "Read PDF File from Disk"
@@ -472,8 +398,8 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        240,
-        -320
+        704,
+        -416
       ],
       "id": "da50ce28-35d6-4d34-8abe-5b97118fc226",
       "name": "Select PDF File",
@@ -487,8 +413,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -432,
-        -32
+        32,
+        -208
       ],
       "id": "eaae3b24-1ecf-4c5e-8fa4-3e03c7501565",
       "name": "Verify if PDF Is Uploaded",
@@ -521,8 +447,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -208,
-        -32
+        256,
+        -208
       ],
       "id": "07294c67-a71d-4007-ac9a-089f4137977b",
       "name": "Previous PDF Is Uploaded"
@@ -536,8 +462,8 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        16,
-        -32
+        480,
+        -128
       ],
       "id": "e2317d5c-48b6-4f9a-b1b8-86be01821583",
       "name": "Error Message [\"No PDF File Found\"]",
@@ -570,8 +496,8 @@
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.5,
       "position": [
-        -880,
-        -112
+        -416,
+        -272
       ],
       "id": "6b3cb6d6-1809-4df9-828e-2ab4ae628bbb",
       "name": "Select Mode",
@@ -579,17 +505,66 @@
     },
     {
       "parameters": {
-        "fileSelector": "/home/node/project/temp/*_image.png",
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7cc2ec9d-6638-4653-8189-14ed9eec7830",
+              "leftValue": "={{ $json[\"Select Mode\"] }}",
+              "rightValue": "Start a New Conversion",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -192,
+        -272
+      ],
+      "id": "4fdbcd4e-8dfb-4e68-81df-c4c18413f6e8",
+      "name": "New Mode Selected 1"
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_transcription.txt",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        1136,
-        -320
+        4048,
+        -352
       ],
-      "id": "9daa517f-fd29-4c89-85cd-c1a1440690f9",
-      "name": "Verify if Images Are Extracted",
+      "id": "87414992-0093-415c-8bb3-a8055c1b6eef",
+      "name": "Check if Transcription Exists",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_transcription_normalized.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        3600,
+        -448
+      ],
+      "id": "94b6a7b2-89f8-4c12-9c2b-07d4d0d0e14d",
+      "name": "Check if Normalized Transcription Exists",
       "onError": "continueRegularOutput"
     },
     {
@@ -603,12 +578,13 @@
           },
           "conditions": [
             {
-              "id": "e52802f7-d5b9-4da6-a4c5-516df63d98d6",
+              "id": "caf47b9a-69c2-433b-ae7f-15aa4b206be4",
               "leftValue": "true",
               "rightValue": "={{ (!!$binary && Object.keys($binary).length > 0).toString() }}",
               "operator": {
                 "type": "string",
-                "operation": "equals"
+                "operation": "equals",
+                "name": "filter.operator.equals"
               }
             }
           ],
@@ -619,11 +595,11 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        1360,
-        -320
+        4272,
+        -352
       ],
-      "id": "425d4c37-35b7-41e7-b44f-6be25be1377d",
-      "name": "Images Are Extracted"
+      "id": "b31aed5c-fe88-45ec-a5b0-00acff6e780b",
+      "name": "Transcription Done Already"
     },
     {
       "parameters": {
@@ -636,9 +612,9 @@
           },
           "conditions": [
             {
-              "id": "7cc2ec9d-6638-4653-8189-14ed9eec7830",
-              "leftValue": "={{ $json[\"Select Mode\"] }}",
-              "rightValue": "Start a New Conversion",
+              "id": "8910d9fe-6ef4-4908-bef4-455801283e7b",
+              "leftValue": "true",
+              "rightValue": "={{ (!!$binary && Object.keys($binary).length > 0).toString() }}",
               "operator": {
                 "type": "string",
                 "operation": "equals",
@@ -653,11 +629,26 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -656,
-        -112
+        3824,
+        -448
       ],
-      "id": "4fdbcd4e-8dfb-4e68-81df-c4c18413f6e8",
-      "name": "New Mode Selected 1"
+      "id": "da09aada-f642-4b37-86a9-71c420646196",
+      "name": "Transcript Normalization Done Already"
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_audio.wav",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        3152,
+        -416
+      ],
+      "id": "8d0c3617-180b-412a-af7e-b86c5e3cad0d",
+      "name": "Check if Audio Exists",
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -670,9 +661,9 @@
           },
           "conditions": [
             {
-              "id": "7cc2ec9d-6638-4653-8189-14ed9eec7830",
-              "leftValue": "={{ $json[\"Select Mode\"] }}",
-              "rightValue": "Start a New Conversion",
+              "id": "fc742c64-e480-49c5-93f0-bd62da428ae7",
+              "leftValue": "true",
+              "rightValue": "={{ (!!$binary && Object.keys($binary).length > 0).toString() }}",
               "operator": {
                 "type": "string",
                 "operation": "equals",
@@ -687,10 +678,181 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        912,
-        -176
+        3376,
+        -416
       ],
-      "id": "289b13f2-65eb-4a97-95cd-9fb4b94e813e",
+      "id": "ad1166ba-34d0-4f38-a5c1-a67bd6e4db51",
+      "name": "TTS Done Already"
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_clip.mp4",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        2704,
+        -448
+      ],
+      "id": "1b765eec-1b7b-4fc0-b195-5a58615980a2",
+      "name": "Check if Clip Exists",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "23bb910a-bea4-49cc-af1e-b9fc1927c57f",
+              "leftValue": "true",
+              "rightValue": "={{ (!!$binary && Object.keys($binary).length > 0).toString() }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2928,
+        -416
+      ],
+      "id": "802cb8e1-0ff7-4625-b433-95e0ccafd0b2",
+      "name": "Clip Assembly Done Already"
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_image.png",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        4496,
+        -272
+      ],
+      "id": "0e0bef98-ba63-4e93-9aa9-65860f703e81",
+      "name": "Read Temporary Image File from Disk"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_transcription_normalized.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        6512,
+        -352
+      ],
+      "id": "396c4060-2848-41f9-bd7a-faef19ca6c13",
+      "name": "Create Normalized Temporary Text File on Disk"
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_transcription_normalized.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        6736,
+        -448
+      ],
+      "id": "b41dfb5c-9e4e-45bc-b5d4-b325a26a6349",
+      "name": "Read Normalized Temporary Text File from Disk"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "destinationKey": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        6960,
+        -448
+      ],
+      "id": "b0ac6456-6662-4671-8525-bf6cd81c3b86",
+      "name": "Extract Normalized Transcription from Text File"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://nemo-normalizer:8000/normalize",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: $json.text }) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1
+            }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 3600000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        6064,
+        -352
+      ],
+      "id": "b6b8a46e-697f-4a79-abe4-68f837e852f4",
+      "name": "Request Transcript Normalization"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a32fa826-3ff4-4a0e-9c41-657434253881",
+              "leftValue": "Start a New Conversion",
+              "rightValue": "={{ $('Select Mode').first().json['Select Mode'] }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2496,
+        -528
+      ],
+      "id": "1868e2b1-7258-4903-9156-d9ba7d6e43f6",
       "name": "New Mode Selected 2"
     }
   ],
@@ -733,7 +895,7 @@
       "main": [
         [
           {
-            "node": "Extract from File",
+            "node": "New Mode Selected 2",
             "type": "main",
             "index": 0
           }
@@ -756,17 +918,6 @@
         [
           {
             "node": "Create Temporary Audio File on Disk",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Request Grapheme to Phoneme Conversion": {
-      "main": [
-        [
-          {
-            "node": "Convert Updated Transcription to Text File",
             "type": "main",
             "index": 0
           }
@@ -850,40 +1001,7 @@
       "main": [
         [
           {
-            "node": "Request Grapheme to Phoneme Conversion",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Update Temporary Text File on Disk": {
-      "main": [
-        [
-          {
-            "node": "Read Updated Temporary Text File from Disk",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Read Updated Temporary Text File from Disk": {
-      "main": [
-        [
-          {
-            "node": "Extract Updated Transcription from Text File",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Extract Updated Transcription from Text File": {
-      "main": [
-        [
-          {
-            "node": "Request TTS",
+            "node": "Request Transcript Normalization",
             "type": "main",
             "index": 0
           }
@@ -894,7 +1012,7 @@
       "main": [
         [
           {
-            "node": "Update Temporary Text File on Disk",
+            "node": "Create Normalized Temporary Text File on Disk",
             "type": "main",
             "index": 0
           }
@@ -927,7 +1045,7 @@
       "main": [
         [
           {
-            "node": "New Mode Selected 2",
+            "node": "Extract Images from PDF",
             "type": "main",
             "index": 0
           }
@@ -996,35 +1114,6 @@
         ]
       ]
     },
-    "Images Are Extracted": {
-      "main": [
-        [
-          {
-            "node": "Send Images One by One",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Extract Images from PDF",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Verify if Images Are Extracted": {
-      "main": [
-        [
-          {
-            "node": "Images Are Extracted",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "New Mode Selected 1": {
       "main": [
         [
@@ -1043,18 +1132,189 @@
         ]
       ]
     },
-    "New Mode Selected 2": {
+    "Check if Transcription Exists": {
       "main": [
         [
           {
-            "node": "Extract Images from PDF",
+            "node": "Transcription Done Already",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if Normalized Transcription Exists": {
+      "main": [
+        [
+          {
+            "node": "Transcript Normalization Done Already",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcription Done Already": {
+      "main": [
+        [
+          {
+            "node": "Read Temporary Text File from Disk",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Verify if Images Are Extracted",
+            "node": "Read Temporary Image File from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcript Normalization Done Already": {
+      "main": [
+        [
+          {
+            "node": "Read Normalized Temporary Text File from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check if Transcription Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if Audio Exists": {
+      "main": [
+        [
+          {
+            "node": "TTS Done Already",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TTS Done Already": {
+      "main": [
+        [
+          {
+            "node": "Request Clip Assembly",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check if Normalized Transcription Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if Clip Exists": {
+      "main": [
+        [
+          {
+            "node": "Clip Assembly Done Already",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clip Assembly Done Already": {
+      "main": [
+        [
+          {
+            "node": "Process Pages One by One",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check if Audio Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Temporary Image File from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Normalized Temporary Text File on Disk": {
+      "main": [
+        [
+          {
+            "node": "Read Normalized Temporary Text File from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Normalized Temporary Text File from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract Normalized Transcription from Text File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Normalized Transcription from Text File": {
+      "main": [
+        [
+          {
+            "node": "Request TTS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Request Transcript Normalization": {
+      "main": [
+        [
+          {
+            "node": "Convert Updated Transcription to Text File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "New Mode Selected 2": {
+      "main": [
+        [
+          {
+            "node": "Read Temporary Image File from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check if Clip Exists",
             "type": "main",
             "index": 0
           }
@@ -1071,7 +1331,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "d9db3c2c-bf9b-4eac-a78c-60ade86babcf",
+  "versionId": "fba1050d-5119-44fb-a227-b289cdab1264",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "d9bf099537c822dc26871b7cc49839e5a9cbffa7c5792f2ab790432a3738bb06"
