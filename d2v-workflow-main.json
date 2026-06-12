@@ -53,7 +53,7 @@
       "typeVersion": 4.4,
       "position": [
         1376,
-        -352
+        -48
       ],
       "id": "09570e17-13ee-4764-a74d-a9c02b93b70d",
       "name": "Extract Images from PDF"
@@ -66,7 +66,7 @@
       "typeVersion": 1.1,
       "position": [
         1600,
-        -352
+        -48
       ],
       "id": "1e3cfc4e-5ca9-4bd2-944c-9b79c4a9fb9f",
       "name": "Unzip Images"
@@ -80,7 +80,7 @@
       "typeVersion": 1,
       "position": [
         1824,
-        -352
+        -48
       ],
       "id": "0bee4cdd-70ad-4851-b608-256f0a558d99",
       "name": "Send Images One by One"
@@ -96,7 +96,7 @@
       "typeVersion": 1.1,
       "position": [
         2272,
-        -448
+        -160
       ],
       "id": "980e6300-d045-47d4-9eec-dfcd76b82f2c",
       "name": "Create Temporary Image File on Disk"
@@ -134,8 +134,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        4944,
-        -272
+        4960,
+        -160
       ],
       "id": "87b69236-0016-43a4-826b-12b9aa3b1c8f",
       "name": "Request Image Transcription"
@@ -163,41 +163,11 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        7632,
-        -256
+        8320,
+        32
       ],
       "id": "4e6f7069-63b2-49ae-b64e-a9b628a8a85e",
       "name": "Request Clip Assembly"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://kokoro:8880/v1/audio/speech",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ model: \"kokoro\", voice: \"af_heart\", input: $json.text, response_format: \"wav\" }) }}",
-        "options": {
-          "batching": {
-            "batch": {
-              "batchSize": 1
-            }
-          },
-          "response": {
-            "response": {
-              "responseFormat": "file"
-            }
-          },
-          "timeout": 3600000
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        7184,
-        -448
-      ],
-      "id": "ce073199-9b20-423d-b95c-e7d987ee2e08",
-      "name": "Request TTS"
     },
     {
       "parameters": {
@@ -208,8 +178,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        7408,
-        -448
+        7872,
+        -352
       ],
       "id": "3d3ff0c7-6ef8-4b8a-a408-04b947a4790d",
       "name": "Create Temporary Audio File on Disk"
@@ -222,7 +192,7 @@
       "typeVersion": 3,
       "position": [
         2048,
-        -352
+        -48
       ],
       "id": "1d46cee4-c0ac-48f0-9959-954fbef62aea",
       "name": "Process Pages One by One"
@@ -238,8 +208,8 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        5168,
-        -272
+        5184,
+        -160
       ],
       "id": "1412f3cf-9d70-41e6-a004-0a42d495b765",
       "name": "Convert Transcription to Text File"
@@ -253,8 +223,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        5392,
-        -272
+        5408,
+        -160
       ],
       "id": "da4e04b4-8430-4347-85fc-7aa90bb76a68",
       "name": "Create Temporary Text File on Disk"
@@ -267,8 +237,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        5616,
-        -352
+        5632,
+        -240
       ],
       "id": "b94f6e4c-4f80-4e8f-b754-94f5e37d1e09",
       "name": "Read Temporary Text File from Disk"
@@ -282,8 +252,8 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        5840,
-        -352
+        5856,
+        -240
       ],
       "id": "e86ecbe5-d3fb-4a98-a270-164483ddc16d",
       "name": "Extract Transcription from Text File"
@@ -299,8 +269,8 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        6288,
-        -352
+        6304,
+        -240
       ],
       "id": "c5e0033b-e602-4bb8-bf58-c997a5b00452",
       "name": "Convert Updated Transcription to Text File"
@@ -313,7 +283,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "=export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH && mkdir -p output && find temp -name \"*_clip.mp4\" | sort -V | sed \"s|.*|file '$PWD/&'|\" > temp/concat_list.txt && ffmpeg -y -f concat -safe 0 -i temp/concat_list.txt -c copy output/final_video.mp4"
+              "value": "=export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH && mkdir -p output && find temp -name \"*_clip.mp4\" | sort -V | sed \"s|.*|file '$PWD/&'|\" > temp/concat_list.txt && ffmpeg -y -f concat -safe 0 -i temp/concat_list.txt -i temp/final_video_chapters.ffmeta -map_metadata 1 -c copy output/final_video.mp4"
             }
           ]
         },
@@ -328,8 +298,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        2272,
-        -640
+        5360,
+        -672
       ],
       "id": "e6ef0983-f72d-4599-be75-ba1e68d11412",
       "name": "Request Final Video Assembly"
@@ -344,8 +314,8 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        4720,
-        -272
+        4736,
+        -160
       ],
       "id": "c7c3622e-21d9-4cf2-bc89-37d8a265bf21",
       "name": "Extract from File"
@@ -361,7 +331,7 @@
       "typeVersion": 1.1,
       "position": [
         928,
-        -416
+        -112
       ],
       "id": "4904010e-f383-4c5e-bf24-bc30ba1fc068",
       "name": "Save PDF File to Disk"
@@ -375,7 +345,7 @@
       "typeVersion": 1.1,
       "position": [
         1152,
-        -352
+        -48
       ],
       "id": "911b3555-9a63-4583-ae58-1a90aa3af496",
       "name": "Read PDF File from Disk"
@@ -399,7 +369,7 @@
       "typeVersion": 2.5,
       "position": [
         704,
-        -416
+        -112
       ],
       "id": "da50ce28-35d6-4d34-8abe-5b97118fc226",
       "name": "Select PDF File",
@@ -414,7 +384,7 @@
       "typeVersion": 1.1,
       "position": [
         32,
-        -208
+        96
       ],
       "id": "eaae3b24-1ecf-4c5e-8fa4-3e03c7501565",
       "name": "Verify if PDF Is Uploaded",
@@ -448,7 +418,7 @@
       "typeVersion": 2.3,
       "position": [
         256,
-        -208
+        96
       ],
       "id": "07294c67-a71d-4007-ac9a-089f4137977b",
       "name": "Previous PDF Is Uploaded"
@@ -463,7 +433,7 @@
       "typeVersion": 2.5,
       "position": [
         480,
-        -128
+        176
       ],
       "id": "e2317d5c-48b6-4f9a-b1b8-86be01821583",
       "name": "Error Message [\"No PDF File Found\"]",
@@ -497,7 +467,7 @@
       "typeVersion": 2.5,
       "position": [
         -416,
-        -272
+        32
       ],
       "id": "6b3cb6d6-1809-4df9-828e-2ab4ae628bbb",
       "name": "Select Mode",
@@ -532,7 +502,7 @@
       "typeVersion": 2.3,
       "position": [
         -192,
-        -272
+        32
       ],
       "id": "4fdbcd4e-8dfb-4e68-81df-c4c18413f6e8",
       "name": "New Mode Selected 1"
@@ -545,8 +515,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        4048,
-        -352
+        4064,
+        -240
       ],
       "id": "87414992-0093-415c-8bb3-a8055c1b6eef",
       "name": "Check if Transcription Exists",
@@ -560,8 +530,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        3600,
-        -448
+        3616,
+        -336
       ],
       "id": "94b6a7b2-89f8-4c12-9c2b-07d4d0d0e14d",
       "name": "Check if Normalized Transcription Exists",
@@ -595,8 +565,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        4272,
-        -352
+        4288,
+        -240
       ],
       "id": "b31aed5c-fe88-45ec-a5b0-00acff6e780b",
       "name": "Transcription Done Already"
@@ -629,8 +599,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        3824,
-        -448
+        3840,
+        -336
       ],
       "id": "da09aada-f642-4b37-86a9-71c420646196",
       "name": "Transcript Normalization Done Already"
@@ -643,8 +613,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        3152,
-        -416
+        3168,
+        -240
       ],
       "id": "8d0c3617-180b-412a-af7e-b86c5e3cad0d",
       "name": "Check if Audio Exists",
@@ -678,8 +648,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        3376,
-        -416
+        3392,
+        -240
       ],
       "id": "ad1166ba-34d0-4f38-a5c1-a67bd6e4db51",
       "name": "TTS Done Already"
@@ -692,8 +662,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        2704,
-        -448
+        2720,
+        -240
       ],
       "id": "1b765eec-1b7b-4fc0-b195-5a58615980a2",
       "name": "Check if Clip Exists",
@@ -727,8 +697,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        2928,
-        -416
+        2944,
+        -240
       ],
       "id": "802cb8e1-0ff7-4625-b433-95e0ccafd0b2",
       "name": "Clip Assembly Done Already"
@@ -741,8 +711,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        4496,
-        -272
+        4512,
+        -160
       ],
       "id": "0e0bef98-ba63-4e93-9aa9-65860f703e81",
       "name": "Read Temporary Image File from Disk"
@@ -756,8 +726,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        6512,
-        -352
+        6528,
+        -240
       ],
       "id": "396c4060-2848-41f9-bd7a-faef19ca6c13",
       "name": "Create Normalized Temporary Text File on Disk"
@@ -770,8 +740,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        6736,
-        -448
+        6752,
+        -256
       ],
       "id": "b41dfb5c-9e4e-45bc-b5d4-b325a26a6349",
       "name": "Read Normalized Temporary Text File from Disk"
@@ -785,8 +755,8 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        6960,
-        -448
+        6976,
+        -256
       ],
       "id": "b0ac6456-6662-4671-8525-bf6cd81c3b86",
       "name": "Extract Normalized Transcription from Text File"
@@ -815,8 +785,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        6064,
-        -352
+        6080,
+        -240
       ],
       "id": "b6b8a46e-697f-4a79-abe4-68f837e852f4",
       "name": "Request Transcript Normalization"
@@ -850,10 +820,484 @@
       "typeVersion": 2.3,
       "position": [
         2496,
-        -528
+        -160
       ],
       "id": "1868e2b1-7258-4903-9156-d9ba7d6e43f6",
       "name": "New Mode Selected 2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://kokoro:8880/dev/captioned_speech",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: \"kokoro\", voice: \"af_heart\", input: $json.text, response_format: \"wav\", return_timestamps: true, stream: false }) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1
+            }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 3600000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        7200,
+        -256
+      ],
+      "id": "ce073199-9b20-423d-b95c-e7d987ee2e08",
+      "name": "Request TTS with Timestamps"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "87d8b8eb-bb8a-48da-8237-869892a6ce76",
+              "name": "timestampsJson",
+              "value": "={{ JSON.stringify({ pageIndex: $node[\"Process Pages One by One\"].context.currentRunIndex, timestamps: $json.timestamps }) }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        7424,
+        -64
+      ],
+      "id": "7fa06cc5-a802-42a4-80e8-c55942a4b758",
+      "name": "Add Page Index to Audio Timestamps"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "timestampsJson",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        7648,
+        -64
+      ],
+      "id": "782c32a0-fd3a-4aae-972b-eb187116b935",
+      "name": "Convert Timestamps to File"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_timestamps.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        7872,
+        -64
+      ],
+      "id": "f0351a54-8191-4abe-a077-340b62bc3192",
+      "name": "Save Timestamps to Disk"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "audio",
+        "options": {
+          "mimeType": "audio/wav"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        7648,
+        -352
+      ],
+      "id": "820ebc52-5bba-4fd9-9147-cfa6130eb07f",
+      "name": "Convert Base64 to Audio File"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/home/node/project/temp/*_timestamps.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        2496,
+        -672
+      ],
+      "id": "e0ff92f4-4bec-479f-942a-193663bea64a",
+      "name": "Read All Timestamps from Disk"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "destinationKey": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        2720,
+        -672
+      ],
+      "id": "671df0ff-79bd-4b4b-bd1f-7788ca3b43f0",
+      "name": "Extract Timestamps Text"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "eac73c4a-4db4-4d64-b8ba-0acec2193352",
+              "name": "data",
+              "value": "={{ JSON.parse($json.text) }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2944,
+        -672
+      ],
+      "id": "88512f5f-91a5-4777-b445-07ab385c2e39",
+      "name": "Parse Timestamps JSON"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "pages",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        3168,
+        -672
+      ],
+      "id": "5c25bc53-be22-459d-949e-d5d2caeab650",
+      "name": "Aggregate All Timestamps"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7533fc03-f9f5-467a-a7ad-9c8db4565d1f",
+              "name": "subtitleChunks",
+              "value": "={{ (() => {\n    const pages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n    const fmt = s => {\n      s = Math.max(0, s);\n      const h = String(Math.floor(s/3600)).padStart(2,'0');\n      const m = String(Math.floor((s%3600)/60)).padStart(2,'0');\n      const sec = String(Math.floor(s%60)).padStart(2,'0');\n      const ms = String(Math.round((s%1)*1000)).padStart(3,'0');\n      return h+':'+m+':'+sec+','+ms;\n    };\n    const chunks = [];\n    let offset = 0, idx = 1;\n    for (const page of pages) {\n      const words = page.timestamps.filter(t => t.word.trim() && !/^[.,!?;:]$/.test(t.word.trim()));\n      let i = 0;\n      while (i < words.length) {\n        const blockStart = words[i].start_time;\n        let blockEnd = words[i].end_time;\n        let chunkWords = [words[i].word.trim()];\n        i++;\n        while (i < words.length) {\n          const dur = words[i].end_time - blockStart;\n          if (dur > 7) break;\n          chunkWords.push(words[i].word.trim());\n          blockEnd = words[i].end_time;\n          i++;\n          if (dur >= 2 && chunkWords.length >= 5) break;\n        }\n        chunks.push({ idx, start: fmt(blockStart+offset), end: fmt(blockEnd+offset), text: chunkWords.join(' ') });\n        idx++;\n      }\n      offset += page.timestamps[page.timestamps.length-1].end_time;\n    }\n    return chunks;\n  })() }}",
+              "type": "array"
+            },
+            {
+              "id": "b49b8042-e188-4a3f-aa09-7799a268fd15",
+              "name": "chaptersContent",
+              "value": "={{ (() => {\n    const pages = $json.pages\n      .map(p => p.data)\n      .sort((a, b) => a.pageIndex - b.pageIndex);\n\n    let meta = ';FFMETADATA1\\n', offset = 0;\n\n    for (const page of pages) {\n      const dur = page.timestamps[page.timestamps.length - 1].end_time;\n      meta += `\\n[CHAPTER]\\nTIMEBASE=1/1000\\nSTART=${Math.round(offset * 1000)}\\nEND=${Math.round((offset + dur) * 1000)}\\ntitle=Page ${page.pageIndex + 1}\\n`;\n      offset += dur;\n    }\n\n    return meta;\n  })() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3392,
+        -672
+      ],
+      "id": "6484c88c-3310-4d4a-a83f-ffac66686f3a",
+      "name": "Generate Subtitle File and Video Chapters"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "subtitleContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        4688,
+        -768
+      ],
+      "id": "5f59db10-27f7-4858-b42a-6f7b4f3337b6",
+      "name": "Convert Subtitles to File"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "chaptersContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        4688,
+        -576
+      ],
+      "id": "9d87d835-0c72-4ab6-b628-c4cbb5483b01",
+      "name": "Convert Chapters to File"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/home/node/project/temp/final_video_chapters.ffmeta",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        4912,
+        -576
+      ],
+      "id": "800d0941-b0bb-408c-ab86-10774667d4e4",
+      "name": "Save Chapters to Disk"
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_timestamps.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        6304,
+        32
+      ],
+      "id": "a7c0ac41-62a4-4cd4-a784-fad2604d7c5f",
+      "name": "Check if Timestamps Exist",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "aadf172c-8fd8-40dd-87be-e4085ed6c67d",
+              "leftValue": "true",
+              "rightValue": "={{ (!!$binary && Object.keys($binary).length > 0).toString() }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        6528,
+        32
+      ],
+      "id": "b39da178-8234-4f83-8ec0-4c13137d309d",
+      "name": "Timestamps Already Saved"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        8096,
+        -256
+      ],
+      "id": "e9c13149-8be0-49f6-9e5c-319d7fa73984",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/home/node/project/output/final_video.srt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        4912,
+        -768
+      ],
+      "id": "a6d60cf8-e8b7-4c43-942a-7fb2188b8870",
+      "name": "Save Subtitles to Disk"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        5136,
+        -672
+      ],
+      "id": "45c2ee89-c1e4-4610-94cd-02edbce2b907",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "trigger",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2272,
+        -672
+      ],
+      "id": "674055d7-ee4c-41dc-9c0b-b5be4128ea8c",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "subtitleChunks",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        3616,
+        -768
+      ],
+      "id": "df601d9a-8d37-47ba-961b-3d76339a00c3",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://nemo-normalizer:8000/inverse_normalize",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: $json.text }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3840,
+        -768
+      ],
+      "id": "8ab020d3-1ce8-4958-99c8-4de04369028f",
+      "name": "Denormalize Subtitle Chunk"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7fd86e97-6a56-46b9-8a50-4dfd90f89fa4",
+              "name": "idx",
+              "value": "={{ $('Split Out').item.json.idx }}",
+              "type": "string"
+            },
+            {
+              "id": "9f9acdaf-a5aa-4d4e-8c9f-39a1caed28e3",
+              "name": "start",
+              "value": "={{ $('Split Out').item.json.start }}",
+              "type": "string"
+            },
+            {
+              "id": "87caf012-872a-4915-aa35-214573cddc5e",
+              "name": "end",
+              "value": "={{ $('Split Out').item.json.end }}",
+              "type": "string"
+            },
+            {
+              "id": "fc3f1a40-0673-43da-95b4-09a4b1b8ce1d",
+              "name": "text",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4048,
+        -768
+      ],
+      "id": "f843bfe6-8682-453e-8d22-271506580b81",
+      "name": "Reassemble Subtitle Chunk"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "chunks",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        4256,
+        -768
+      ],
+      "id": "aa08c80f-aff0-423c-aaa5-50da3ca5e4df",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c3a6c915-b908-4817-8105-5b72788e43bd",
+              "name": "subtitleContent",
+              "value": "={{ (() => {\n    const chunks = $json.chunks;\n    let srt = '';\n    for (const c of chunks) {\n      const words = c.json.text.split(' ');\n      const mid = Math.ceil(words.length / 2);\n      const line1 = words.slice(0, mid).join(' ');\n      const line2 = words.slice(mid).join(' ');\n      const text = line2 ? line1 + '\\n' + line2 : line1;\n      srt += c.json.idx + '\\n' + c.json.start + ' --> ' + c.json.end + '\\n' + text + '\\n\\n';\n    }\n    return srt.trim();\n  })() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4464,
+        -768
+      ],
+      "id": "be241dd1-0508-4a48-b815-c139315a7b46",
+      "name": "Generate final subtitles"
     }
   ],
   "pinData": {},
@@ -913,22 +1357,11 @@
         ]
       ]
     },
-    "Request TTS": {
-      "main": [
-        [
-          {
-            "node": "Create Temporary Audio File on Disk",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Create Temporary Audio File on Disk": {
       "main": [
         [
           {
-            "node": "Request Clip Assembly",
+            "node": "Merge",
             "type": "main",
             "index": 0
           }
@@ -939,7 +1372,7 @@
       "main": [
         [
           {
-            "node": "Request Final Video Assembly",
+            "node": "Aggregate",
             "type": "main",
             "index": 0
           }
@@ -1205,7 +1638,7 @@
       "main": [
         [
           {
-            "node": "Request Clip Assembly",
+            "node": "Check if Timestamps Exist",
             "type": "main",
             "index": 0
           }
@@ -1285,7 +1718,7 @@
       "main": [
         [
           {
-            "node": "Request TTS",
+            "node": "Request TTS with Timestamps",
             "type": "main",
             "index": 0
           }
@@ -1320,6 +1753,287 @@
           }
         ]
       ]
+    },
+    "Request TTS with Timestamps": {
+      "main": [
+        [
+          {
+            "node": "Convert Base64 to Audio File",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Add Page Index to Audio Timestamps",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Page Index to Audio Timestamps": {
+      "main": [
+        [
+          {
+            "node": "Convert Timestamps to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Timestamps to File": {
+      "main": [
+        [
+          {
+            "node": "Save Timestamps to Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Timestamps to Disk": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Convert Base64 to Audio File": {
+      "main": [
+        [
+          {
+            "node": "Create Temporary Audio File on Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read All Timestamps from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract Timestamps Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Timestamps Text": {
+      "main": [
+        [
+          {
+            "node": "Parse Timestamps JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Timestamps JSON": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Timestamps",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate All Timestamps": {
+      "main": [
+        [
+          {
+            "node": "Generate Subtitle File and Video Chapters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Subtitle File and Video Chapters": {
+      "main": [
+        [
+          {
+            "node": "Convert Chapters to File",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Subtitles to File": {
+      "main": [
+        [
+          {
+            "node": "Save Subtitles to Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Chapters to File": {
+      "main": [
+        [
+          {
+            "node": "Save Chapters to Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Chapters to Disk": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Check if Timestamps Exist": {
+      "main": [
+        [
+          {
+            "node": "Timestamps Already Saved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Timestamps Already Saved": {
+      "main": [
+        [
+          {
+            "node": "Request Clip Assembly",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read Normalized Temporary Text File from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Request Clip Assembly",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Subtitles to Disk": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Request Final Video Assembly",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Read All Timestamps from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Denormalize Subtitle Chunk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Denormalize Subtitle Chunk": {
+      "main": [
+        [
+          {
+            "node": "Reassemble Subtitle Chunk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reassemble Subtitle Chunk": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Generate final subtitles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate final subtitles": {
+      "main": [
+        [
+          {
+            "node": "Convert Subtitles to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -1331,7 +2045,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "fba1050d-5119-44fb-a227-b289cdab1264",
+  "versionId": "7990d6b5-3691-4b6b-a2ca-e798c157c8df",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "d9bf099537c822dc26871b7cc49839e5a9cbffa7c5792f2ab790432a3738bb06"
