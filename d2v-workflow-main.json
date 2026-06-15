@@ -52,10 +52,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1376,
-        -48
+        -10224,
+        208
       ],
-      "id": "09570e17-13ee-4764-a74d-a9c02b93b70d",
+      "id": "a6c61e91-f96d-42ae-9ee8-145f77258e41",
       "name": "Extract Images from PDF"
     },
     {
@@ -65,10 +65,10 @@
       "type": "n8n-nodes-base.compression",
       "typeVersion": 1.1,
       "position": [
-        1600,
-        -48
+        -10000,
+        208
       ],
-      "id": "1e3cfc4e-5ca9-4bd2-944c-9b79c4a9fb9f",
+      "id": "c0aba882-7fa6-46e7-a7e2-e3cb421f4c95",
       "name": "Unzip Images"
     },
     {
@@ -79,26 +79,26 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        1824,
-        -48
+        -9776,
+        208
       ],
-      "id": "0bee4cdd-70ad-4851-b608-256f0a558d99",
+      "id": "5dd1bf69-114c-48c6-8c86-3e53422b476c",
       "name": "Send Images One by One"
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_image.png",
+        "fileName": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex + 1}}_image.png",
         "dataPropertyName": "={{Object.keys($binary)[0]}}",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        2272,
-        -160
+        -9328,
+        80
       ],
-      "id": "980e6300-d045-47d4-9eec-dfcd76b82f2c",
+      "id": "b4b16bee-382c-4d6b-b14b-c8522863b04c",
       "name": "Create Temporary Image File on Disk"
     },
     {
@@ -116,7 +116,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ model: \"gemma4:31b\", prompt: \"You are a professional documentary narrator. Look at this page visually. 1. Write a seamless spoken script that covers the main text content. 2. If there are images, charts, graphs, or diagrams, describe them naturally within the flow of the narrative. 3. Ignore page numbers, headers, and footers unless critical to the narrative. 4. Do not use Markdown formatting, bullet points, or stage directions. Just return the raw text to be spoken. 5. You are not allowed to summarize, explain, skip over, or shorten any text. All text must be transcribed from top to bottom, left to right. 6. Convert all numbers fully to spoken words. Swedish number formatting uses a space as the thousands separator and a comma as the decimal separator, so 6 870,00 means six thousand eight hundred and seventy, not six eight-hundred. For currency amounts, say the currency name, for example kronor for SEK and euro for EUR. 7. For alphanumeric codes, IBANs, order numbers, UUIDs, and invoice numbers, read each character individually, letters by their name and digits as individual numbers, for example f367ebef becomes f three six seven e b e f. 8. For percentages like 0,00%, say zero point zero zero percent. 9. For dates in ISO format like 2026-02-19, say february nineteenth twenty twenty six. 10. For abbreviations made of initials that are spelled out when spoken, say each letter individually, for example PO becomes P O and AB becomes A B. Abbreviations that are pronounced as words should remain as-is, for example SWIFT is said as swift, IBAN as eye-ban, and VAT as vat.\", imageBase64: $json.imageBase64 }) }}",
+        "jsonBody": "={{ JSON.stringify({ model: \"gemma4:31b\", prompt: \"You are a precise document transcription assistant. Look at this page visually and transcribe all text exactly as it appears, from top to bottom, left to right. Rules: 1. Transcribe all text verbatim — preserve numbers, symbols, currencies, dates, codes, and abbreviations exactly as written. 2. If there are images, charts, graphs, or diagrams, describe them in plain natural language within the flow of the text. 3. Ignore page numbers, headers, and footers unless critical to understanding the content. 4. Do not use Markdown formatting, bullet points, or stage directions. Return only plain text. 5. Do not summarize, explain, skip, or shorten any text. 6. End every sentence with a period. 7. For tables, first write one sentence summarizing what the table contains. Then transcribe each data row by pairing each cell with its column header, in the format \\\"Header: Value.\\\" for every column in that row, left to right. Repeat this for every row until the entire table is transcribed. Do not skip any rows or columns.\", imageBase64: $json.imageBase64 }) }}",
         "options": {
           "batching": {
             "batch": {
@@ -134,10 +134,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        4960,
-        -160
+        -6640,
+        -64
       ],
-      "id": "87b69236-0016-43a4-826b-12b9aa3b1c8f",
+      "id": "741b1118-29dc-4b38-9969-8acf1a7ee608",
       "name": "Request Image Transcription"
     },
     {
@@ -148,7 +148,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "=export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH && DUR=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_audio.wav) && ffmpeg -y -loop 1 -t \"$DUR\" -i temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_image.png -i temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_audio.wav -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_clip.mp4"
+              "value": "=export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH && DUR=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex + 1}}_audio.wav) && ffmpeg -y -loop 1 -t \"$DUR\" -i temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex + 1}}_image.png -i temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex + 1}}_audio.wav -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex + 1}}_clip.mp4"
             }
           ]
         },
@@ -163,25 +163,25 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        8320,
-        32
+        -2608,
+        352
       ],
-      "id": "4e6f7069-63b2-49ae-b64e-a9b628a8a85e",
+      "id": "22e75862-805e-4f69-b09f-cf72c820ff7e",
       "name": "Request Clip Assembly"
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_audio.wav",
+        "fileName": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex + 1}}_audio.wav",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        7872,
-        -352
+        -3056,
+        80
       ],
-      "id": "3d3ff0c7-6ef8-4b8a-a408-04b947a4790d",
+      "id": "2d844c92-584d-498e-b943-70c9ce934f51",
       "name": "Create Temporary Audio File on Disk"
     },
     {
@@ -191,10 +191,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        2048,
-        -48
+        -9552,
+        208
       ],
-      "id": "1d46cee4-c0ac-48f0-9959-954fbef62aea",
+      "id": "db86b14b-2f93-43ab-b9cb-c01157cf04db",
       "name": "Process Pages One by One"
     },
     {
@@ -208,60 +208,62 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        5184,
-        -160
+        -6416,
+        -64
       ],
-      "id": "1412f3cf-9d70-41e6-a004-0a42d495b765",
+      "id": "35b5d1bd-e292-401d-af03-2b854bd2787f",
       "name": "Convert Transcription to Text File"
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_transcription.txt",
+        "fileName": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex + 1}}_transcription.txt",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        5408,
-        -160
+        -6192,
+        -64
       ],
-      "id": "da4e04b4-8430-4347-85fc-7aa90bb76a68",
+      "id": "94de2d31-18e9-4502-a4b0-6566b66e7507",
       "name": "Create Temporary Text File on Disk"
     },
     {
       "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_transcription.txt",
+        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex + 1}}_transcription.txt",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        5632,
-        -240
+        -5968,
+        16
       ],
-      "id": "b94f6e4c-4f80-4e8f-b754-94f5e37d1e09",
+      "id": "384d6717-1c80-4b31-8f6f-77783551ed8a",
       "name": "Read Temporary Text File from Disk"
     },
     {
       "parameters": {
         "operation": "text",
         "destinationKey": "text",
-        "options": {}
+        "options": {
+          "encoding": "utf8"
+        }
       },
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        5856,
-        -240
+        -5744,
+        16
       ],
-      "id": "e86ecbe5-d3fb-4a98-a270-164483ddc16d",
+      "id": "6b54b028-b46a-47a8-ac4a-e1073980d3eb",
       "name": "Extract Transcription from Text File"
     },
     {
       "parameters": {
         "operation": "toText",
-        "sourceProperty": "text",
+        "sourceProperty": "={{ $json.words.map(w => w.normalized).join(' ') }}",
         "options": {
           "encoding": "utf8"
         }
@@ -269,10 +271,10 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        6304,
-        -240
+        -5072,
+        176
       ],
-      "id": "c5e0033b-e602-4bb8-bf58-c997a5b00452",
+      "id": "837a24a3-e583-4fbe-8e1a-5b17ae35e099",
       "name": "Convert Updated Transcription to Text File"
     },
     {
@@ -283,7 +285,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "=export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH && mkdir -p output && find temp -name \"*_clip.mp4\" | sort -V | sed \"s|.*|file '$PWD/&'|\" > temp/concat_list.txt && ffmpeg -y -f concat -safe 0 -i temp/concat_list.txt -i temp/final_video_chapters.ffmeta -map_metadata 1 -c copy output/final_video.mp4"
+              "value": "=export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH && mkdir -p output && find temp -name \"*_clip.mp4\" | sort -V | sed \"s|.*|file '$PWD/&'|\" > temp/concat_list.txt && ffmpeg -y -f concat -safe 0 -i temp/concat_list.txt -i temp/final_video_chapters.ffmeta -map_metadata 1 -c copy output/final_video.mp4 && xattr -d com.apple.quarantine \"$PWD/output/final_video.mp4\""
             }
           ]
         },
@@ -298,10 +300,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        5360,
-        -672
+        -7088,
+        -352
       ],
-      "id": "e6ef0983-f72d-4599-be75-ba1e68d11412",
+      "id": "a1aa3900-7c65-4216-9b0b-e6965f3dc6e5",
       "name": "Request Final Video Assembly"
     },
     {
@@ -314,10 +316,10 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        4736,
-        -160
+        -6864,
+        -64
       ],
-      "id": "c7c3622e-21d9-4cf2-bc89-37d8a265bf21",
+      "id": "62fe1db6-505c-43ba-a902-0dcf670139d1",
       "name": "Extract from File"
     },
     {
@@ -330,10 +332,10 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        928,
-        -112
+        -10672,
+        128
       ],
-      "id": "4904010e-f383-4c5e-bf24-bc30ba1fc068",
+      "id": "b19e93dc-5348-4514-8de7-cea14d8fa172",
       "name": "Save PDF File to Disk"
     },
     {
@@ -344,10 +346,10 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        1152,
-        -48
+        -10448,
+        208
       ],
-      "id": "911b3555-9a63-4583-ae58-1a90aa3af496",
+      "id": "fd760034-346e-4ce1-a30e-101286b88beb",
       "name": "Read PDF File from Disk"
     },
     {
@@ -368,10 +370,10 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        704,
-        -112
+        -10896,
+        128
       ],
-      "id": "da50ce28-35d6-4d34-8abe-5b97118fc226",
+      "id": "b39d727f-1355-41de-a799-963f87f8dc1c",
       "name": "Select PDF File",
       "webhookId": "16ff899e-2f38-4b1e-9eb1-164f02db5a03"
     },
@@ -383,10 +385,10 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        32,
-        96
+        -11568,
+        352
       ],
-      "id": "eaae3b24-1ecf-4c5e-8fa4-3e03c7501565",
+      "id": "92234fd2-b714-42ce-996e-bfc1e278f7dd",
       "name": "Verify if PDF Is Uploaded",
       "onError": "continueRegularOutput"
     },
@@ -417,10 +419,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        256,
-        96
+        -11344,
+        352
       ],
-      "id": "07294c67-a71d-4007-ac9a-089f4137977b",
+      "id": "70df9400-575c-4f08-b7a1-d03ad638247a",
       "name": "Previous PDF Is Uploaded"
     },
     {
@@ -432,10 +434,10 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        480,
-        176
+        -11120,
+        416
       ],
-      "id": "e2317d5c-48b6-4f9a-b1b8-86be01821583",
+      "id": "64f860fb-7e4e-478b-8a1a-db53e5b5fe88",
       "name": "Error Message [\"No PDF File Found\"]",
       "webhookId": "289755c0-98be-4489-8f8c-6c7ab2bc8509"
     },
@@ -466,12 +468,12 @@
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.5,
       "position": [
-        -416,
-        32
+        -12016,
+        272
       ],
-      "id": "6b3cb6d6-1809-4df9-828e-2ab4ae628bbb",
+      "id": "e30640c2-0bae-4918-8c6f-96e9ceb44d5e",
       "name": "Select Mode",
-      "webhookId": "55394070-91aa-42d8-a6a5-5acb40680968"
+      "webhookId": "45abbea5-383f-44f2-be82-57b15da3786d"
     },
     {
       "parameters": {
@@ -501,40 +503,25 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -192,
-        32
+        -11792,
+        272
       ],
-      "id": "4fdbcd4e-8dfb-4e68-81df-c4c18413f6e8",
+      "id": "11759da2-46a4-455b-8b34-3d9a18b1a7fb",
       "name": "New Mode Selected 1"
     },
     {
       "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_transcription.txt",
+        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex + 1}}_transcription.txt",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        4064,
-        -240
+        -7536,
+        224
       ],
-      "id": "87414992-0093-415c-8bb3-a8055c1b6eef",
+      "id": "60772388-5cff-4834-a5e3-00e4270594aa",
       "name": "Check if Transcription Exists",
-      "onError": "continueRegularOutput"
-    },
-    {
-      "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_transcription_normalized.txt",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.readWriteFile",
-      "typeVersion": 1.1,
-      "position": [
-        3616,
-        -336
-      ],
-      "id": "94b6a7b2-89f8-4c12-9c2b-07d4d0d0e14d",
-      "name": "Check if Normalized Transcription Exists",
       "onError": "continueRegularOutput"
     },
     {
@@ -565,58 +552,24 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        4288,
-        -240
+        -7312,
+        224
       ],
-      "id": "b31aed5c-fe88-45ec-a5b0-00acff6e780b",
+      "id": "e3d8248e-0d1f-4f00-b216-3992eaeac6ea",
       "name": "Transcription Done Already"
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "8910d9fe-6ef4-4908-bef4-455801283e7b",
-              "leftValue": "true",
-              "rightValue": "={{ (!!$binary && Object.keys($binary).length > 0).toString() }}",
-              "operator": {
-                "type": "string",
-                "operation": "equals",
-                "name": "filter.operator.equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        3840,
-        -336
-      ],
-      "id": "da09aada-f642-4b37-86a9-71c420646196",
-      "name": "Transcript Normalization Done Already"
-    },
-    {
-      "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_audio.wav",
+        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex + 1}}_audio.wav",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        3168,
-        -240
+        -8432,
+        272
       ],
-      "id": "8d0c3617-180b-412a-af7e-b86c5e3cad0d",
+      "id": "164c4e24-3fd4-486a-8565-f51a710d8d7b",
       "name": "Check if Audio Exists",
       "onError": "continueRegularOutput"
     },
@@ -648,24 +601,24 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        3392,
-        -240
+        -8208,
+        272
       ],
-      "id": "ad1166ba-34d0-4f38-a5c1-a67bd6e4db51",
+      "id": "6ad1eece-9b53-48d5-9af8-fec6358f05c0",
       "name": "TTS Done Already"
     },
     {
       "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_clip.mp4",
+        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex + 1}}_clip.mp4",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        2720,
-        -240
+        -8880,
+        160
       ],
-      "id": "1b765eec-1b7b-4fc0-b195-5a58615980a2",
+      "id": "09d18025-db7b-432a-83a8-0341dba01c1a",
       "name": "Check if Clip Exists",
       "onError": "continueRegularOutput"
     },
@@ -697,53 +650,53 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        2944,
-        -240
+        -8656,
+        160
       ],
-      "id": "802cb8e1-0ff7-4625-b433-95e0ccafd0b2",
+      "id": "f424927d-9d76-44d2-9581-ffc957339662",
       "name": "Clip Assembly Done Already"
     },
     {
       "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_image.png",
+        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex + 1}}_image.png",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        4512,
-        -160
+        -7088,
+        -64
       ],
-      "id": "0e0bef98-ba63-4e93-9aa9-65860f703e81",
+      "id": "0377fffd-2335-4579-bbe4-79dc86c5d1cc",
       "name": "Read Temporary Image File from Disk"
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_transcription_normalized.txt",
+        "fileName": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex + 1}}_transcription_normalized.txt",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        6528,
-        -240
+        -4848,
+        176
       ],
-      "id": "396c4060-2848-41f9-bd7a-faef19ca6c13",
+      "id": "9ac766e8-fef2-462f-9834-d27e5d4dc1a2",
       "name": "Create Normalized Temporary Text File on Disk"
     },
     {
       "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_transcription_normalized.txt",
+        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex + 1}}_transcription_normalized.txt",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        6752,
-        -256
+        -4624,
+        176
       ],
-      "id": "b41dfb5c-9e4e-45bc-b5d4-b325a26a6349",
+      "id": "8210fbd1-1dbf-4cfd-a548-596c1e917ba0",
       "name": "Read Normalized Temporary Text File from Disk"
     },
     {
@@ -755,19 +708,19 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        6976,
-        -256
+        -4400,
+        176
       ],
-      "id": "b0ac6456-6662-4671-8525-bf6cd81c3b86",
+      "id": "df8796cf-26c4-45f4-b221-7b46967d5229",
       "name": "Extract Normalized Transcription from Text File"
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "http://nemo-normalizer:8000/normalize",
+        "url": "http://nemo-normalizer:8000/normalize_words",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ text: $json.text }) }}",
+        "jsonBody": "={{ JSON.stringify({\n    words: $json.text\n      .replace(/\\|/g, ',')\n      .replace(/ > /g, ', ')\n      .replace(/[–—]/g, ' ')\n      .split(/\\s+/)\n      .filter(w => w)\n  }) }}",
         "options": {
           "batching": {
             "batch": {
@@ -785,10 +738,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        6080,
-        -240
+        -5520,
+        16
       ],
-      "id": "b6b8a46e-697f-4a79-abe4-68f837e852f4",
+      "id": "0e5f6212-20e6-4acb-961e-ed28a51afdd6",
       "name": "Request Transcript Normalization"
     },
     {
@@ -819,10 +772,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        2496,
-        -160
+        -9104,
+        80
       ],
-      "id": "1868e2b1-7258-4903-9156-d9ba7d6e43f6",
+      "id": "16df4896-36f0-4c2b-a9eb-0e2b142a5529",
       "name": "New Mode Selected 2"
     },
     {
@@ -831,7 +784,7 @@
         "url": "http://kokoro:8880/dev/captioned_speech",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ model: \"kokoro\", voice: \"af_heart\", input: $json.text, response_format: \"wav\", return_timestamps: true, stream: false }) }}",
+        "jsonBody": "={{ JSON.stringify({\n    model: \"kokoro\",\n    voice: \"af_heart\",\n    input: JSON.parse($json.text).text,\n    response_format: \"wav\",\n    return_timestamps: true,\n    stream: false\n  }) }}",
         "options": {
           "batching": {
             "batch": {
@@ -849,10 +802,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        7200,
-        -256
+        -4176,
+        176
       ],
-      "id": "ce073199-9b20-423d-b95c-e7d987ee2e08",
+      "id": "0e416aa8-3241-4e14-8bce-4d9dc133d91d",
       "name": "Request TTS with Timestamps"
     },
     {
@@ -862,8 +815,20 @@
             {
               "id": "87d8b8eb-bb8a-48da-8237-869892a6ce76",
               "name": "timestampsJson",
-              "value": "={{ JSON.stringify({ pageIndex: $node[\"Process Pages One by One\"].context.currentRunIndex, timestamps: $json.timestamps }) }}",
+              "value": "={{ JSON.stringify({\n      pageIndex: $node[\"Process Pages One by One\"].context.currentRunIndex + 1,\n      timestamps: $('Request TTS with Timestamps').item.json.timestamps,\n      wordMap: JSON.parse($json.text)\n    }) }}",
               "type": "string"
+            },
+            {
+              "id": "090bc7e2-52e9-45c8-b236-4715fc09c643",
+              "name": "wordMap",
+              "value": "={{ JSON.parse($json.text) }}",
+              "type": "string"
+            },
+            {
+              "id": "8c79ad7c-057e-4ec9-9ffd-835c765dbf10",
+              "name": "audioDuration",
+              "value": "={{ (() => {\n    const base64Audio = $('Request TTS with Timestamps').item.json.audio;\n    const totalBytes = Math.floor(base64Audio.length * 3 / 4);\n    const wavHeaderBytes = 44;\n    const bytesPerSecond = 24000 * 1 * 2; // 24kHz, mono, 16-bit\n    return (totalBytes - wavHeaderBytes) / bytesPerSecond;\n  })() }}",
+              "type": "number"
             }
           ]
         },
@@ -873,10 +838,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        7424,
-        -64
+        -3504,
+        272
       ],
-      "id": "7fa06cc5-a802-42a4-80e8-c55942a4b758",
+      "id": "6af65ae0-d648-4f2a-9536-e6ad53759884",
       "name": "Add Page Index to Audio Timestamps"
     },
     {
@@ -890,25 +855,25 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        7648,
-        -64
+        -3280,
+        272
       ],
-      "id": "782c32a0-fd3a-4aae-972b-eb187116b935",
+      "id": "7fb9918c-40ba-4776-b5f4-ba7ebb09277d",
       "name": "Convert Timestamps to File"
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_timestamps.json",
+        "fileName": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex + 1}}_timestamps.json",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        7872,
-        -64
+        -3056,
+        272
       ],
-      "id": "f0351a54-8191-4abe-a077-340b62bc3192",
+      "id": "0a861c0e-859b-4849-a6e6-efc437699497",
       "name": "Save Timestamps to Disk"
     },
     {
@@ -922,10 +887,10 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        7648,
-        -352
+        -3280,
+        80
       ],
-      "id": "820ebc52-5bba-4fd9-9147-cfa6130eb07f",
+      "id": "e88f9b03-a71a-4b8e-9b24-bf1612abcdcf",
       "name": "Convert Base64 to Audio File"
     },
     {
@@ -936,10 +901,10 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        2496,
-        -672
+        -9104,
+        -352
       ],
-      "id": "e0ff92f4-4bec-479f-942a-193663bea64a",
+      "id": "cd86ac56-a3d9-47eb-bd4a-9bf0648db288",
       "name": "Read All Timestamps from Disk"
     },
     {
@@ -951,10 +916,10 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        2720,
-        -672
+        -8880,
+        -352
       ],
-      "id": "671df0ff-79bd-4b4b-bd1f-7788ca3b43f0",
+      "id": "b29ec909-a627-442d-b587-b5eb85cb2574",
       "name": "Extract Timestamps Text"
     },
     {
@@ -974,10 +939,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        2944,
-        -672
+        -8656,
+        -352
       ],
-      "id": "88512f5f-91a5-4777-b445-07ab385c2e39",
+      "id": "525af04d-21b1-4920-b95b-ecd998621646",
       "name": "Parse Timestamps JSON"
     },
     {
@@ -989,10 +954,10 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        3168,
-        -672
+        -8432,
+        -352
       ],
-      "id": "5c25bc53-be22-459d-949e-d5d2caeab650",
+      "id": "3aea40bc-4fe3-4b53-84d7-468095345f73",
       "name": "Aggregate All Timestamps"
     },
     {
@@ -1002,13 +967,13 @@
             {
               "id": "7533fc03-f9f5-467a-a7ad-9c8db4565d1f",
               "name": "subtitleChunks",
-              "value": "={{ (() => {\n    const pages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n    const fmt = s => {\n      s = Math.max(0, s);\n      const h = String(Math.floor(s/3600)).padStart(2,'0');\n      const m = String(Math.floor((s%3600)/60)).padStart(2,'0');\n      const sec = String(Math.floor(s%60)).padStart(2,'0');\n      const ms = String(Math.round((s%1)*1000)).padStart(3,'0');\n      return h+':'+m+':'+sec+','+ms;\n    };\n    const chunks = [];\n    let offset = 0, idx = 1;\n    for (const page of pages) {\n      const words = page.timestamps.filter(t => t.word.trim() && !/^[.,!?;:]$/.test(t.word.trim()));\n      let i = 0;\n      while (i < words.length) {\n        const blockStart = words[i].start_time;\n        let blockEnd = words[i].end_time;\n        let chunkWords = [words[i].word.trim()];\n        i++;\n        while (i < words.length) {\n          const dur = words[i].end_time - blockStart;\n          if (dur > 7) break;\n          chunkWords.push(words[i].word.trim());\n          blockEnd = words[i].end_time;\n          i++;\n          if (dur >= 2 && chunkWords.length >= 5) break;\n        }\n        chunks.push({ idx, start: fmt(blockStart+offset), end: fmt(blockEnd+offset), text: chunkWords.join(' ') });\n        idx++;\n      }\n      offset += page.timestamps[page.timestamps.length-1].end_time;\n    }\n    return chunks;\n  })() }}",
+              "value": "={{ (() => {\n    function formatSrtTimestamp(seconds) {\n      seconds = Math.max(0, seconds);\n      const hours = String(Math.floor(seconds / 3600)).padStart(2, '0');\n      const minutes = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');\n      const secs = String(Math.floor(seconds % 60)).padStart(2, '0');\n      const ms = String(Math.round((seconds % 1) * 1000)).padStart(3, '0');\n      return hours + ':' + minutes + ':' + secs + ',' + ms;\n    }\n\n    function stripNonAlphanumeric(word) {\n      return word.toLowerCase().replace(/[^a-z0-9]/g, '');\n    }\n\n    function buildNormalizedWordList(wordMap) {\n      const normList = [];\n      for (let origIdx = 0; origIdx < wordMap.length; origIdx++) {\n        const normalizedTokens = wordMap[origIdx].normalized.split(/\\s+/).filter(w => /\\w/.test(w));\n        if (normalizedTokens.length > 0) {\n          for (const token of normalizedTokens) normList.push({ word: token.toLowerCase(), origIdx });\n        } else {\n          normList.push({ word: '', origIdx });\n        }\n      }\n      return normList;\n    }\n\n    function alignTimestampsToOriginalWords(timestamps, normList) {\n      let cursor = 0;\n      return timestamps.map(t => {\n        const cleanedWord = stripNonAlphanumeric(t.word);\n        for (let j = cursor; j < Math.min(cursor + 60, normList.length); j++) {\n          if (stripNonAlphanumeric(normList[j].word) === cleanedWord) {\n            cursor = j + 1;\n            return normList[j].origIdx;\n          }\n        }\n        return normList[Math.min(cursor, normList.length - 1)].origIdx;\n      });\n    }\n\n    function buildSubtitleChunksForPage(page, timeOffset, startIdx) {\n      const timestamps = page.timestamps.filter(t => /\\w/.test(t.word));\n      const pageDuration = page.audioDuration ?? page.timestamps[page.timestamps.length - 1].end_time;\n      const originalWords = page.wordMap.map(w => w.original);\n\n      const normList = buildNormalizedWordList(page.wordMap);\n      const alignedOrigIdx = alignTimestampsToOriginalWords(timestamps, normList);\n\n      const numChunks = Math.max(1, Math.ceil(pageDuration / 4));\n      const wordsPerChunk = Math.ceil(timestamps.length / numChunks);\n\n      const chunks = [];\n      let i = 0, chunkIdx = startIdx;\n      while (i < timestamps.length) {\n        const isLastChunk = i + wordsPerChunk >= timestamps.length;\n        const chunkStart = timestamps[i].start_time;\n        const chunkEnd = isLastChunk ? pageDuration : timestamps[i + wordsPerChunk].start_time;\n        const startOrigIdx = alignedOrigIdx[i];\n        const endOrigIdx = isLastChunk ? originalWords.length - 1 : alignedOrigIdx[Math.min(i + wordsPerChunk - 1, alignedOrigIdx.length - 1)];\n        chunks.push({\n          idx: chunkIdx,\n          start: formatSrtTimestamp(chunkStart + timeOffset),\n          end: formatSrtTimestamp(chunkEnd + timeOffset),\n          text: originalWords.slice(startOrigIdx, endOrigIdx + 1).join(' ')\n        });\n        chunkIdx++;\n        i += wordsPerChunk;\n      }\n      return { chunks, pageDuration };\n    }\n\n    const pages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n    const allChunks = [];\n    let timeOffset = 0, chunkIdx = 1;\n    for (const page of pages) {\n      const { chunks, pageDuration } = buildSubtitleChunksForPage(page, timeOffset, chunkIdx);\n      allChunks.push(...chunks);\n      chunkIdx += chunks.length;\n      timeOffset += pageDuration;\n    }\n    return allChunks;\n  })() }}",
               "type": "array"
             },
             {
               "id": "b49b8042-e188-4a3f-aa09-7799a268fd15",
               "name": "chaptersContent",
-              "value": "={{ (() => {\n    const pages = $json.pages\n      .map(p => p.data)\n      .sort((a, b) => a.pageIndex - b.pageIndex);\n\n    let meta = ';FFMETADATA1\\n', offset = 0;\n\n    for (const page of pages) {\n      const dur = page.timestamps[page.timestamps.length - 1].end_time;\n      meta += `\\n[CHAPTER]\\nTIMEBASE=1/1000\\nSTART=${Math.round(offset * 1000)}\\nEND=${Math.round((offset + dur) * 1000)}\\ntitle=Page ${page.pageIndex + 1}\\n`;\n      offset += dur;\n    }\n\n    return meta;\n  })() }}",
+              "value": "={{ (() => {\n      const pages = $json.pages\n        .map(p => p.data)\n        .sort((a, b) => a.pageIndex - b.pageIndex);\n\n      let meta = ';FFMETADATA1\\n', offset = 0;\n\n      for (const page of pages) {\n        const dur = page.timestamps[page.timestamps.length - 1].end_time;\n        meta += `\\n[CHAPTER]\\nTIMEBASE=1/1000\\nSTART=${Math.round(offset * 1000)}\\nEND=${Math.round((offset + dur) * 1000)}\\ntitle=Page ${page.pageIndex}\\n`;\n        offset += dur;\n      }\n\n      return meta;\n    })() }}",
               "type": "string"
             }
           ]
@@ -1018,10 +983,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        3392,
-        -672
+        -8208,
+        -352
       ],
-      "id": "6484c88c-3310-4d4a-a83f-ffac66686f3a",
+      "id": "511103b3-8179-475c-a0a7-8a856f1c8dd7",
       "name": "Generate Subtitle File and Video Chapters"
     },
     {
@@ -1035,10 +1000,10 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        4688,
-        -768
+        -7760,
+        -400
       ],
-      "id": "5f59db10-27f7-4858-b42a-6f7b4f3337b6",
+      "id": "8de182f8-3454-4498-a737-47ab2ecabf38",
       "name": "Convert Subtitles to File"
     },
     {
@@ -1052,10 +1017,10 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        4688,
-        -576
+        -7760,
+        -208
       ],
-      "id": "9d87d835-0c72-4ab6-b628-c4cbb5483b01",
+      "id": "a5b82290-809d-415f-83b7-cdbb34575e7a",
       "name": "Convert Chapters to File"
     },
     {
@@ -1067,24 +1032,24 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        4912,
-        -576
+        -7536,
+        -208
       ],
-      "id": "800d0941-b0bb-408c-ab86-10774667d4e4",
+      "id": "5932d857-856b-4307-a922-eae4f4a9b499",
       "name": "Save Chapters to Disk"
     },
     {
       "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex}}_timestamps.json",
+        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex + 1}}_timestamps.json",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        6304,
-        32
+        -7984,
+        368
       ],
-      "id": "a7c0ac41-62a4-4cd4-a784-fad2604d7c5f",
+      "id": "cc13ee98-4752-4617-b387-a1388f713bb0",
       "name": "Check if Timestamps Exist",
       "onError": "continueRegularOutput"
     },
@@ -1116,10 +1081,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        6528,
-        32
+        -7760,
+        368
       ],
-      "id": "b39da178-8234-4f83-8ec0-4c13137d309d",
+      "id": "c9b9e503-13e2-4b84-bccf-3ff39023f4cf",
       "name": "Timestamps Already Saved"
     },
     {
@@ -1131,10 +1096,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        8096,
-        -256
+        -2832,
+        176
       ],
-      "id": "e9c13149-8be0-49f6-9e5c-319d7fa73984",
+      "id": "0a85c2c1-4ed6-4fd9-9e1f-a2b9ea0b8eae",
       "name": "Merge"
     },
     {
@@ -1146,10 +1111,10 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        4912,
-        -768
+        -7536,
+        -400
       ],
-      "id": "a6d60cf8-e8b7-4c43-942a-7fb2188b8870",
+      "id": "43a9add9-c4e6-41f8-8a1e-41ae735171a2",
       "name": "Save Subtitles to Disk"
     },
     {
@@ -1161,10 +1126,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        5136,
-        -672
+        -7312,
+        -352
       ],
-      "id": "45c2ee89-c1e4-4610-94cd-02edbce2b907",
+      "id": "46c88e05-2bfd-4c0b-9ec8-dc9c841fc635",
       "name": "Merge1"
     },
     {
@@ -1176,105 +1141,11 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        2272,
-        -672
+        -9328,
+        -352
       ],
-      "id": "674055d7-ee4c-41dc-9c0b-b5be4128ea8c",
+      "id": "0ff3a528-cdd3-4571-bf97-3008bf93a61c",
       "name": "Aggregate"
-    },
-    {
-      "parameters": {
-        "fieldToSplitOut": "subtitleChunks",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.splitOut",
-      "typeVersion": 1,
-      "position": [
-        3616,
-        -768
-      ],
-      "id": "df601d9a-8d37-47ba-961b-3d76339a00c3",
-      "name": "Split Out"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://nemo-normalizer:8000/inverse_normalize",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ text: $json.text }) }}",
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "json"
-            }
-          }
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        3840,
-        -768
-      ],
-      "id": "8ab020d3-1ce8-4958-99c8-4de04369028f",
-      "name": "Denormalize Subtitle Chunk"
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "7fd86e97-6a56-46b9-8a50-4dfd90f89fa4",
-              "name": "idx",
-              "value": "={{ $('Split Out').item.json.idx }}",
-              "type": "string"
-            },
-            {
-              "id": "9f9acdaf-a5aa-4d4e-8c9f-39a1caed28e3",
-              "name": "start",
-              "value": "={{ $('Split Out').item.json.start }}",
-              "type": "string"
-            },
-            {
-              "id": "87caf012-872a-4915-aa35-214573cddc5e",
-              "name": "end",
-              "value": "={{ $('Split Out').item.json.end }}",
-              "type": "string"
-            },
-            {
-              "id": "fc3f1a40-0673-43da-95b4-09a4b1b8ce1d",
-              "name": "text",
-              "value": "={{ $json.text }}",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        4048,
-        -768
-      ],
-      "id": "f843bfe6-8682-453e-8d22-271506580b81",
-      "name": "Reassemble Subtitle Chunk"
-    },
-    {
-      "parameters": {
-        "aggregate": "aggregateAllItemData",
-        "destinationFieldName": "chunks",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.aggregate",
-      "typeVersion": 1,
-      "position": [
-        4256,
-        -768
-      ],
-      "id": "aa08c80f-aff0-423c-aaa5-50da3ca5e4df",
-      "name": "Aggregate1"
     },
     {
       "parameters": {
@@ -1283,7 +1154,7 @@
             {
               "id": "c3a6c915-b908-4817-8105-5b72788e43bd",
               "name": "subtitleContent",
-              "value": "={{ (() => {\n    const chunks = $json.chunks;\n    let srt = '';\n    for (const c of chunks) {\n      const words = c.json.text.split(' ');\n      const mid = Math.ceil(words.length / 2);\n      const line1 = words.slice(0, mid).join(' ');\n      const line2 = words.slice(mid).join(' ');\n      const text = line2 ? line1 + '\\n' + line2 : line1;\n      srt += c.json.idx + '\\n' + c.json.start + ' --> ' + c.json.end + '\\n' + text + '\\n\\n';\n    }\n    return srt.trim();\n  })() }}",
+              "value": "={{ (() => {\n    const chunks = $json.subtitleChunks;\n    let srt = '';\n    for (const c of chunks) {\n      const words = c.text.split(' ');\n      const mid = Math.ceil(words.length / 2);\n      const line1 = words.slice(0, mid).join(' ');\n      const line2 = words.slice(mid).join(' ');\n      const text = line2 ? line1 + '\\n' + line2 : line1;\n      srt += c.idx + '\\n' + c.start + ' --> ' + c.end + '\\n' + text + '\\n\\n';\n    }\n    return srt.trim();\n  })() }}",
               "type": "string"
             }
           ]
@@ -1293,11 +1164,124 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        4464,
-        -768
+        -7984,
+        -400
       ],
-      "id": "be241dd1-0508-4a48-b815-c139315a7b46",
+      "id": "ec91e12f-1e66-46df-8ed2-f77195e93742",
       "name": "Generate final subtitles"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "636a8c1d-a936-427a-a7b7-b7a7ba7a41a1",
+              "name": "pageSkipped",
+              "value": "={{ true }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -8432,
+        80
+      ],
+      "id": "398e2d1b-cdfc-4b54-84f4-c94485385807",
+      "name": "Strip Binary Before Next Iteration"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5da1f5e3-085e-4845-a185-403619930302",
+              "name": "text",
+              "value": "={{ $json.words.map(w => w.normalized).join(' ') }}",
+              "type": "string"
+            },
+            {
+              "id": "b0d9bb15-ebc4-44cb-9c8b-40b08117dc98",
+              "name": "wordMap",
+              "value": "={{ $json.words }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -5296,
+        16
+      ],
+      "id": "5f6fa4e9-18da-4512-b1f2-93376fdab3a0",
+      "name": "Assemble Normalized Text and Configure Word Map"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "wordMap",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -5072,
+        -64
+      ],
+      "id": "96280d0d-3829-42a5-8322-a6ad126e24eb",
+      "name": "Convert Word Map to File"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex + 1}}_wordmap.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -4848,
+        -64
+      ],
+      "id": "d8a9e5a9-de94-46a6-8eec-0ade0f39b774",
+      "name": "Save Word Map to Disk"
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/home/node/project/temp/{{$node[\"Process Pages One by One\"].context.currentRunIndex + 1}}_wordmap.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -3952,
+        272
+      ],
+      "id": "d5a067ce-d69a-40a0-a872-b631a2f5fbf7",
+      "name": "Read Word Map from Disk"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "destinationKey": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -3728,
+        272
+      ],
+      "id": "8f0d9b8e-22a5-4498-ab7c-653655b23891",
+      "name": "Extract Word Map from File"
     }
   ],
   "pinData": {},
@@ -1576,17 +1560,6 @@
         ]
       ]
     },
-    "Check if Normalized Transcription Exists": {
-      "main": [
-        [
-          {
-            "node": "Transcript Normalization Done Already",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Transcription Done Already": {
       "main": [
         [
@@ -1599,24 +1572,6 @@
         [
           {
             "node": "Read Temporary Image File from Disk",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Transcript Normalization Done Already": {
-      "main": [
-        [
-          {
-            "node": "Read Normalized Temporary Text File from Disk",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Check if Transcription Exists",
             "type": "main",
             "index": 0
           }
@@ -1645,7 +1600,7 @@
         ],
         [
           {
-            "node": "Check if Normalized Transcription Exists",
+            "node": "Check if Transcription Exists",
             "type": "main",
             "index": 0
           }
@@ -1667,7 +1622,7 @@
       "main": [
         [
           {
-            "node": "Process Pages One by One",
+            "node": "Strip Binary Before Next Iteration",
             "type": "main",
             "index": 0
           }
@@ -1729,7 +1684,7 @@
       "main": [
         [
           {
-            "node": "Convert Updated Transcription to Text File",
+            "node": "Assemble Normalized Text and Configure Word Map",
             "type": "main",
             "index": 0
           }
@@ -1763,7 +1718,7 @@
             "index": 0
           },
           {
-            "node": "Add Page Index to Audio Timestamps",
+            "node": "Read Word Map from Disk",
             "type": "main",
             "index": 0
           }
@@ -1867,7 +1822,7 @@
             "index": 0
           },
           {
-            "node": "Split Out",
+            "node": "Generate final subtitles",
             "type": "main",
             "index": 0
           }
@@ -1929,7 +1884,7 @@
         ],
         [
           {
-            "node": "Read Normalized Temporary Text File from Disk",
+            "node": "Check if Transcription Exists",
             "type": "main",
             "index": 0
           }
@@ -1980,55 +1935,71 @@
         ]
       ]
     },
-    "Split Out": {
-      "main": [
-        [
-          {
-            "node": "Denormalize Subtitle Chunk",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Denormalize Subtitle Chunk": {
-      "main": [
-        [
-          {
-            "node": "Reassemble Subtitle Chunk",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Reassemble Subtitle Chunk": {
-      "main": [
-        [
-          {
-            "node": "Aggregate1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Aggregate1": {
-      "main": [
-        [
-          {
-            "node": "Generate final subtitles",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Generate final subtitles": {
       "main": [
         [
           {
             "node": "Convert Subtitles to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Strip Binary Before Next Iteration": {
+      "main": [
+        [
+          {
+            "node": "Process Pages One by One",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assemble Normalized Text and Configure Word Map": {
+      "main": [
+        [
+          {
+            "node": "Convert Word Map to File",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Convert Updated Transcription to Text File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Word Map to File": {
+      "main": [
+        [
+          {
+            "node": "Save Word Map to Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Word Map from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract Word Map from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Word Map from File": {
+      "main": [
+        [
+          {
+            "node": "Add Page Index to Audio Timestamps",
             "type": "main",
             "index": 0
           }
@@ -2045,7 +2016,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "7990d6b5-3691-4b6b-a2ca-e798c157c8df",
+  "versionId": "b9e79af8-4e95-4ea9-aa42-1f2682d41341",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "d9bf099537c822dc26871b7cc49839e5a9cbffa7c5792f2ab790432a3738bb06"

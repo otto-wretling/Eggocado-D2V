@@ -7,48 +7,39 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 normalizer = None
-inverse_normalizer = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global normalizer, inverse_normalizer
+    global normalizer
     logger.info("Loading nemo text normalizer...")
     from nemo_text_processing.text_normalization.normalize import Normalizer
     normalizer = Normalizer(input_case="cased", lang="en")
     logger.info("Normalizer ready.")
-    logger.info("Loading nemo inverse text normalizer...")
-    from nemo_text_processing.inverse_text_normalization.inverse_normalize import InverseNormalizer
-    inverse_normalizer = InverseNormalizer(lang="en")
-    logger.info("Inverse normalizer ready.")
     yield
 
 
 app = FastAPI(lifespan=lifespan)
 
 
-class TextRequest(BaseModel):
-    text: str
+class WordsRequest(BaseModel):
+    words: list
 
 
-@app.post("/normalize")
-def normalize(req: TextRequest):
+@app.post("/normalize_words")
+def normalize_words(req: WordsRequest):
     try:
-        result = normalizer.normalize(req.text, verbose=False)
-        return {"text": result}
+        result = []
+        for word in req.words:
+            try:
+                normalized = normalizer.normalize(word, verbose=False).strip()
+            except Exception:
+                normalized = word
+            result.append({"original": word, "normalized": normalized})
+        return {"words": result}
     except Exception as e:
-        logger.error(f"Normalization failed: {e}")
-        return {"text": req.text}
-
-
-@app.post("/inverse_normalize")
-def inverse_normalize(req: TextRequest):
-    try:
-        result = inverse_normalizer.inverse_normalize(req.text, verbose=False)
-        return {"text": result}
-    except Exception as e:
-        logger.error(f"Inverse normalization failed: {e}")
-        return {"text": req.text}
+        logger.error(f"Word normalization failed: {e}")
+        return {"words": [{"original": w, "normalized": w} for w in req.words]}
 
 
 @app.get("/health")
