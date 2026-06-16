@@ -52,7 +52,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -10224,
+        -10000,
         208
       ],
       "id": "a6c61e91-f96d-42ae-9ee8-145f77258e41",
@@ -65,7 +65,7 @@
       "type": "n8n-nodes-base.compression",
       "typeVersion": 1.1,
       "position": [
-        -10000,
+        -9776,
         208
       ],
       "id": "c0aba882-7fa6-46e7-a7e2-e3cb421f4c95",
@@ -79,7 +79,7 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        -9776,
+        -9552,
         208
       ],
       "id": "5dd1bf69-114c-48c6-8c86-3e53422b476c",
@@ -95,7 +95,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -9104,
+        -8880,
         80
       ],
       "id": "b4b16bee-382c-4d6b-b14b-c8522863b04c",
@@ -134,7 +134,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -6416,
+        -6192,
         -64
       ],
       "id": "741b1118-29dc-4b38-9969-8acf1a7ee608",
@@ -163,7 +163,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -2384,
+        -2160,
         352
       ],
       "id": "22e75862-805e-4f69-b09f-cf72c820ff7e",
@@ -178,7 +178,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -2832,
+        -2608,
         80
       ],
       "id": "2d844c92-584d-498e-b943-70c9ce934f51",
@@ -191,7 +191,7 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -9552,
+        -9328,
         208
       ],
       "id": "db86b14b-2f93-43ab-b9cb-c01157cf04db",
@@ -208,7 +208,7 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -6192,
+        -5968,
         -64
       ],
       "id": "35b5d1bd-e292-401d-af03-2b854bd2787f",
@@ -223,7 +223,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -5968,
+        -5744,
         -64
       ],
       "id": "94de2d31-18e9-4502-a4b0-6566b66e7507",
@@ -237,7 +237,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -5744,
+        -5520,
         16
       ],
       "id": "384d6717-1c80-4b31-8f6f-77783551ed8a",
@@ -254,7 +254,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -5520,
+        -5296,
         16
       ],
       "id": "6b54b028-b46a-47a8-ac4a-e1073980d3eb",
@@ -271,7 +271,7 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -4848,
+        -4624,
         176
       ],
       "id": "837a24a3-e583-4fbe-8e1a-5b17ae35e099",
@@ -300,7 +300,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -7088,
+        -6864,
         -352
       ],
       "id": "a1aa3900-7c65-4216-9b0b-e6965f3dc6e5",
@@ -316,7 +316,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -6640,
+        -6416,
         -64
       ],
       "id": "62fe1db6-505c-43ba-a902-0dcf670139d1",
@@ -332,8 +332,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -10672,
-        128
+        -10448,
+        112
       ],
       "id": "b19e93dc-5348-4514-8de7-cea14d8fa172",
       "name": "Save PDF File to Disk"
@@ -346,7 +346,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -10448,
+        -10224,
         208
       ],
       "id": "fd760034-346e-4ce1-a30e-101286b88beb",
@@ -370,8 +370,8 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -10896,
-        128
+        -10672,
+        112
       ],
       "id": "b39d727f-1355-41de-a799-963f87f8dc1c",
       "name": "Select PDF File",
@@ -385,8 +385,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -11568,
-        352
+        -11344,
+        448
       ],
       "id": "92234fd2-b714-42ce-996e-bfc1e278f7dd",
       "name": "Verify if PDF Is Uploaded",
@@ -419,8 +419,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -11344,
-        352
+        -11120,
+        448
       ],
       "id": "70df9400-575c-4f08-b7a1-d03ad638247a",
       "name": "Previous PDF Is Uploaded"
@@ -434,8 +434,8 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -11120,
-        416
+        -10896,
+        512
       ],
       "id": "64f860fb-7e4e-478b-8a1a-db53e5b5fe88",
       "name": "Error Message [\"No PDF File Found\"]",
@@ -452,10 +452,13 @@
               "fieldOptions": {
                 "values": [
                   {
-                    "option": "Start a New Conversion"
+                    "option": "🆕 Start a New Conversion"
                   },
                   {
-                    "option": "Continue Previous Conversion"
+                    "option": "🔁 Continue Previous Conversion"
+                  },
+                  {
+                    "option": "🧶 Knit Pages Together"
                   }
                 ]
               },
@@ -477,47 +480,13 @@
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "7cc2ec9d-6638-4653-8189-14ed9eec7830",
-              "leftValue": "={{ $json[\"Select Mode\"] }}",
-              "rightValue": "Start a New Conversion",
-              "operator": {
-                "type": "string",
-                "operation": "equals",
-                "name": "filter.operator.equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -11792,
-        272
-      ],
-      "id": "11759da2-46a4-455b-8b34-3d9a18b1a7fb",
-      "name": "New Mode Selected 1"
-    },
-    {
-      "parameters": {
         "fileSelector": "=/home/node/project/temp/{{$('Set Page Number').item.json.pageNumber}}_transcription.txt",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7312,
+        -7088,
         224
       ],
       "id": "60772388-5cff-4834-a5e3-00e4270594aa",
@@ -552,7 +521,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -7088,
+        -6864,
         224
       ],
       "id": "e3d8248e-0d1f-4f00-b216-3992eaeac6ea",
@@ -566,7 +535,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -8208,
+        -7984,
         272
       ],
       "id": "164c4e24-3fd4-486a-8565-f51a710d8d7b",
@@ -601,7 +570,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -7984,
+        -7760,
         272
       ],
       "id": "6ad1eece-9b53-48d5-9af8-fec6358f05c0",
@@ -615,7 +584,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -8656,
+        -8432,
         160
       ],
       "id": "09d18025-db7b-432a-83a8-0341dba01c1a",
@@ -650,7 +619,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -8432,
+        -8208,
         160
       ],
       "id": "f424927d-9d76-44d2-9581-ffc957339662",
@@ -664,7 +633,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -6864,
+        -6640,
         -64
       ],
       "id": "0377fffd-2335-4579-bbe4-79dc86c5d1cc",
@@ -679,7 +648,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -4624,
+        -4400,
         176
       ],
       "id": "9ac766e8-fef2-462f-9834-d27e5d4dc1a2",
@@ -693,7 +662,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -4400,
+        -4176,
         176
       ],
       "id": "8210fbd1-1dbf-4cfd-a548-596c1e917ba0",
@@ -708,7 +677,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -4176,
+        -3952,
         176
       ],
       "id": "df8796cf-26c4-45f4-b221-7b46967d5229",
@@ -738,7 +707,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -5296,
+        -5072,
         16
       ],
       "id": "0e5f6212-20e6-4acb-961e-ed28a51afdd6",
@@ -756,7 +725,7 @@
           "conditions": [
             {
               "id": "a32fa826-3ff4-4a0e-9c41-657434253881",
-              "leftValue": "Start a New Conversion",
+              "leftValue": "🆕 Start a New Conversion",
               "rightValue": "={{ $('Select Mode').first().json['Select Mode'] }}",
               "operator": {
                 "type": "string",
@@ -772,7 +741,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -8880,
+        -8656,
         80
       ],
       "id": "16df4896-36f0-4c2b-a9eb-0e2b142a5529",
@@ -802,7 +771,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -3952,
+        -3728,
         176
       ],
       "id": "0e416aa8-3241-4e14-8bce-4d9dc133d91d",
@@ -838,7 +807,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -3280,
+        -3056,
         272
       ],
       "id": "6af65ae0-d648-4f2a-9536-e6ad53759884",
@@ -855,7 +824,7 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -3056,
+        -2832,
         272
       ],
       "id": "7fb9918c-40ba-4776-b5f4-ba7ebb09277d",
@@ -870,7 +839,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -2832,
+        -2608,
         272
       ],
       "id": "0a861c0e-859b-4849-a6e6-efc437699497",
@@ -887,7 +856,7 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -3056,
+        -2832,
         80
       ],
       "id": "e88f9b03-a71a-4b8e-9b24-bf1612abcdcf",
@@ -901,7 +870,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -9104,
+        -8880,
         -352
       ],
       "id": "cd86ac56-a3d9-47eb-bd4a-9bf0648db288",
@@ -916,7 +885,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -8880,
+        -8656,
         -352
       ],
       "id": "b29ec909-a627-442d-b587-b5eb85cb2574",
@@ -939,7 +908,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -8656,
+        -8432,
         -352
       ],
       "id": "525af04d-21b1-4920-b95b-ecd998621646",
@@ -954,7 +923,7 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        -8432,
+        -8208,
         -352
       ],
       "id": "3aea40bc-4fe3-4b53-84d7-468095345f73",
@@ -983,7 +952,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -8208,
+        -7984,
         -352
       ],
       "id": "511103b3-8179-475c-a0a7-8a856f1c8dd7",
@@ -1000,7 +969,7 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -7760,
+        -7536,
         -400
       ],
       "id": "8de182f8-3454-4498-a737-47ab2ecabf38",
@@ -1017,7 +986,7 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -7760,
+        -7536,
         -208
       ],
       "id": "a5b82290-809d-415f-83b7-cdbb34575e7a",
@@ -1032,7 +1001,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7536,
+        -7312,
         -208
       ],
       "id": "5932d857-856b-4307-a922-eae4f4a9b499",
@@ -1046,7 +1015,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7760,
+        -7536,
         368
       ],
       "id": "cc13ee98-4752-4617-b387-a1388f713bb0",
@@ -1081,7 +1050,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -7536,
+        -7312,
         368
       ],
       "id": "c9b9e503-13e2-4b84-bccf-3ff39023f4cf",
@@ -1096,7 +1065,7 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -2608,
+        -2384,
         176
       ],
       "id": "0a85c2c1-4ed6-4fd9-9e1f-a2b9ea0b8eae",
@@ -1111,7 +1080,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7536,
+        -7312,
         -400
       ],
       "id": "43a9add9-c4e6-41f8-8a1e-41ae735171a2",
@@ -1126,7 +1095,7 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -7312,
+        -7088,
         -352
       ],
       "id": "46c88e05-2bfd-4c0b-9ec8-dc9c841fc635",
@@ -1141,7 +1110,7 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        -9328,
+        -9104,
         -352
       ],
       "id": "0ff3a528-cdd3-4571-bf97-3008bf93a61c",
@@ -1164,7 +1133,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -7984,
+        -7760,
         -400
       ],
       "id": "ec91e12f-1e66-46df-8ed2-f77195e93742",
@@ -1187,7 +1156,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -8208,
+        -7984,
         80
       ],
       "id": "398e2d1b-cdfc-4b54-84f4-c94485385807",
@@ -1216,7 +1185,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -5072,
+        -4848,
         16
       ],
       "id": "5f6fa4e9-18da-4512-b1f2-93376fdab3a0",
@@ -1233,7 +1202,7 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -4848,
+        -4624,
         -64
       ],
       "id": "96280d0d-3829-42a5-8322-a6ad126e24eb",
@@ -1248,7 +1217,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -4624,
+        -4400,
         -64
       ],
       "id": "d8a9e5a9-de94-46a6-8eec-0ade0f39b774",
@@ -1262,7 +1231,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -3728,
+        -3504,
         272
       ],
       "id": "d5a067ce-d69a-40a0-a872-b631a2f5fbf7",
@@ -1277,7 +1246,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -3504,
+        -3280,
         272
       ],
       "id": "8f0d9b8e-22a5-4498-ab7c-653655b23891",
@@ -1301,11 +1270,130 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -9328,
+        -9104,
         80
       ],
       "id": "3bbeba09-a786-4aaf-88c2-ef52e1275642",
       "name": "Set Page Number"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "082f68c7-2bc1-4c42-bda2-2a2e21c7f15f",
+              "leftValue": "🧶 Knit Pages Together",
+              "rightValue": "={{ $('Select Mode').first().json['Select Mode'] }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -11568,
+        352
+      ],
+      "id": "fc4b00c9-fc88-48d1-984c-5a43dfc6c229",
+      "name": "🧶 Knit Mode Selected"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7cc2ec9d-6638-4653-8189-14ed9eec7830",
+              "leftValue": "={{ $json[\"Select Mode\"] }}",
+              "rightValue": "🆕 Start a New Conversion",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -11792,
+        272
+      ],
+      "id": "11759da2-46a4-455b-8b34-3d9a18b1a7fb",
+      "name": "New Mode Selected"
+    },
+    {
+      "parameters": {
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "⬅️ Left Page Number",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Right Page Number ➡️",
+              "fieldType": "number",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        -11248,
+        272
+      ],
+      "id": "0a341644-cb35-465b-993c-8788c356a6f5",
+      "name": "🧶 Page Knitting Configuration",
+      "webhookId": "b6c2ed1a-c196-4079-ba1d-41c055ed1832"
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:5679/webhook/clip",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "command",
+              "value": "={{ (() => {\n    const left = $json['⬅️ Left Page Number'];\n    const right = $json['Right Page Number ➡️'];\n    return [\n      'export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH',\n      `ffmpeg -y -i temp/${left}_image.png -i temp/${right}_image.png -filter_complex hstack temp/${left}-${right}_knit_image.png`\n    ].join(' && ');\n  })() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -11040,
+        272
+      ],
+      "id": "8764539e-e318-4e17-bfc1-9adadaf03f0a",
+      "name": "🧶 Knit Images"
     }
   ],
   "pinData": {},
@@ -1548,25 +1636,7 @@
       "main": [
         [
           {
-            "node": "New Mode Selected 1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "New Mode Selected 1": {
-      "main": [
-        [
-          {
-            "node": "Select PDF File",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Verify if PDF Is Uploaded",
+            "node": "New Mode Selected",
             "type": "main",
             "index": 0
           }
@@ -2040,6 +2110,53 @@
           }
         ]
       ]
+    },
+    "🧶 Knit Mode Selected": {
+      "main": [
+        [
+          {
+            "node": "🧶 Page Knitting Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Verify if PDF Is Uploaded",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "New Mode Selected": {
+      "main": [
+        [
+          {
+            "node": "Select PDF File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "🧶 Knit Mode Selected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🧶 Page Knitting Configuration": {
+      "main": [
+        [
+          {
+            "node": "🧶 Knit Images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -2051,7 +2168,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "57e2bfd4-3131-49f8-9199-7b684a0fd613",
+  "versionId": "0eddf21d-8e9d-4e9d-a95c-a8b53d1fa47a",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "d9bf099537c822dc26871b7cc49839e5a9cbffa7c5792f2ab790432a3738bb06"
