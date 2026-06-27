@@ -53,7 +53,7 @@
       "typeVersion": 4.4,
       "position": [
         -10000,
-        208
+        -16
       ],
       "id": "a6c61e91-f96d-42ae-9ee8-145f77258e41",
       "name": "Extract Images from PDF"
@@ -66,7 +66,7 @@
       "typeVersion": 1.1,
       "position": [
         -9776,
-        208
+        -16
       ],
       "id": "c0aba882-7fa6-46e7-a7e2-e3cb421f4c95",
       "name": "Unzip Images"
@@ -80,7 +80,7 @@
       "typeVersion": 1,
       "position": [
         -9552,
-        208
+        -16
       ],
       "id": "5dd1bf69-114c-48c6-8c86-3e53422b476c",
       "name": "Send Images One by One"
@@ -96,7 +96,7 @@
       "typeVersion": 1.1,
       "position": [
         -8880,
-        80
+        -80
       ],
       "id": "b4b16bee-382c-4d6b-b14b-c8522863b04c",
       "name": "Create Temporary Image File on Disk"
@@ -116,7 +116,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ model: \"gemma4:31b\", prompt: \"You are a precise document transcription assistant. Look at this page visually and transcribe all text exactly as it appears, from top to bottom, left to right. Rules: 1. Transcribe all text verbatim — preserve numbers, symbols, currencies, dates, codes, and abbreviations exactly as written. 2. If there are images, charts, graphs, or diagrams, describe them in plain natural language within the flow of the text. 3. Ignore page numbers, headers, and footers unless critical to understanding the content. 4. Do not use Markdown formatting, bullet points, or stage directions. Return only plain text. 5. Do not summarize, explain, skip, or shorten any text. 6. End every sentence with a period. 7. For tables, first write one sentence summarizing what the table contains. Then transcribe each data row by pairing each cell with its column header, in the format \\\"Header: Value.\\\" for every column in that row, left to right. Repeat this for every row until the entire table is transcribed. Do not skip any rows or columns.\", imageBase64: $json.imageBase64 }) }}",
+        "jsonBody": "={{ JSON.stringify({\n    model: \"gemma4:31b\",\n    prompt: [\n      \"You are a precise document transcription assistant. Look at this page visually and transcribe all text exactly as it appears, from top to bottom, left to right. Rules:\",\n      \"1. Transcribe all text verbatim — preserve numbers, symbols, currencies, dates, codes, and abbreviations exactly as written.\",\n      \"2. If there are charts, graphs, or diagrams, describe them in plain natural language within the flow of the text. If there are images or photographs, describe them in plain natural language but place the description at the end of the transcription, including where on the page the image appears, for example: 'The image in the top left displays...'.\",\n      \"3. Ignore page numbers, headers, and footers unless critical to understanding the content.\",\n      \"4. Do not use Markdown formatting, bullet points, or stage directions. Return only plain text.\",\n      \"5. Do not summarize, explain, skip, or shorten any text.\",\n      \"6. End every sentence with a period.\",\n      \"7. For tables, first write one sentence summarizing what the table contains. Then transcribe each data row by pairing each cell with its column header, in the format \\\"Header: Value.\\\" for every column in that row, left to right. Repeat this for every row until the entire table is transcribed. Do not skip any rows or columns.\"\n    ].join(\"\\n\"),\n    imageBase64: $json.imageBase64\n  }) }}",
         "options": {
           "batching": {
             "batch": {
@@ -135,7 +135,7 @@
       "typeVersion": 4.4,
       "position": [
         -6192,
-        -64
+        -224
       ],
       "id": "741b1118-29dc-4b38-9969-8acf1a7ee608",
       "name": "Request Image Transcription"
@@ -148,7 +148,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "={{ (() => {\n    const p = $('Set Page Number').item.json.pageNumber;\n    return [\n      'export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH',\n      `DUR=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 temp/${p}_audio.wav)`,\n      `ffmpeg -y -loop 1 -t \"$DUR\" -i temp/${p}_image.png -i temp/${p}_audio.wav -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/${p}_clip.mp4`,\n      `xattr -d com.apple.quarantine temp/${p}_clip.mp4`\n    ].join(' && ');\n  })() }}"
+              "value": "={{ (() => {\n    const isKnit = !$('Set Page Number').isExecuted;\n    const left = isKnit ? $('Page Knitting Configuration').item.json['⬅️ Left Page Number'] : null;\n    const right = isKnit ? $('Page Knitting Configuration').item.json['Right Page Number ➡️'] : null;\n    const p = isKnit ? `${left}-${right}_knit` : $('Set Page Number').item.json.pageNumber;\n    const img = isKnit ? `temp/${left}-${right}_knit_image.png` : `temp/${p}_image.png`;\n    const ffmpegCmd = isKnit ? `ffmpeg -y -loop 1 -t \"$DUR\" -i ${img} -i temp/${p}_audio.wav -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/${p}_clip.mp4` : `ffmpeg -y -loop 1 -t \"$DUR\" -i ${img} -i temp/${p}_audio.wav -filter_complex \"[0:v]split[bg_src][fg_src];[bg_src]scale=iw*2:ih,boxblur=20:3[bg];[fg_src]scale=trunc(iw/2)*2:trunc(ih/2)*2[fg];[bg][fg]overlay=(main_w-overlay_w)/2:0[v]\" -map \"[v]\" -map 1:a -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/${p}_clip.mp4`;\n    return [\n      'export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH',\n      `DUR=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 temp/${p}_audio.wav)`,\n      `sed -i '' 's/\"audioDuration\":null/\"audioDuration\":'\"$DUR\"'/' temp/${p}_timestamps.json`,\n      ffmpegCmd,\n      `xattr -d com.apple.quarantine temp/${p}_clip.mp4`\n    ].join(' && ');\n  })() }}"
             }
           ]
         },
@@ -164,7 +164,7 @@
       "typeVersion": 4.4,
       "position": [
         -2160,
-        352
+        32
       ],
       "id": "22e75862-805e-4f69-b09f-cf72c820ff7e",
       "name": "Request Clip Assembly"
@@ -172,14 +172,14 @@
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/temp/{{$('Set Page Number').item.json.pageNumber}}_audio.wav",
+        "fileName": "=/home/node/project/temp/{{ $('Set Page Number').isExecuted ? ($('Set Page Number').item.json.pageNumber + '_audio.wav') : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_audio.wav') }}",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -2608,
-        80
+        -128
       ],
       "id": "2d844c92-584d-498e-b943-70c9ce934f51",
       "name": "Create Temporary Audio File on Disk"
@@ -192,7 +192,7 @@
       "typeVersion": 3,
       "position": [
         -9328,
-        208
+        -16
       ],
       "id": "db86b14b-2f93-43ab-b9cb-c01157cf04db",
       "name": "Process Pages One by One"
@@ -209,7 +209,7 @@
       "typeVersion": 1.1,
       "position": [
         -5968,
-        -64
+        -224
       ],
       "id": "35b5d1bd-e292-401d-af03-2b854bd2787f",
       "name": "Convert Transcription to Text File"
@@ -224,7 +224,7 @@
       "typeVersion": 1.1,
       "position": [
         -5744,
-        -64
+        -224
       ],
       "id": "94de2d31-18e9-4502-a4b0-6566b66e7507",
       "name": "Create Temporary Text File on Disk"
@@ -238,7 +238,7 @@
       "typeVersion": 1.1,
       "position": [
         -5520,
-        16
+        -160
       ],
       "id": "384d6717-1c80-4b31-8f6f-77783551ed8a",
       "name": "Read Temporary Text File from Disk"
@@ -255,7 +255,7 @@
       "typeVersion": 1.1,
       "position": [
         -5296,
-        16
+        -160
       ],
       "id": "6b54b028-b46a-47a8-ac4a-e1073980d3eb",
       "name": "Extract Transcription from Text File"
@@ -272,7 +272,7 @@
       "typeVersion": 1.1,
       "position": [
         -4624,
-        176
+        -32
       ],
       "id": "837a24a3-e583-4fbe-8e1a-5b17ae35e099",
       "name": "Convert Updated Transcription to Text File"
@@ -285,7 +285,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "=export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH && mkdir -p output && find temp -name \"*_clip.mp4\" | sort -V | sed \"s|.*|file '$PWD/&'|\" > temp/concat_list.txt && ffmpeg -y -f concat -safe 0 -i temp/concat_list.txt -i temp/final_video_chapters.ffmeta -map_metadata 1 -c copy output/final_video.mp4 && xattr -d com.apple.quarantine \"$PWD/output/final_video.mp4\""
+              "value": "=export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH && mkdir -p output && find temp -maxdepth 1 -name \"*_clip.mp4\" | sort -V | while read f; do b=$(basename \"$f\" _clip.mp4); case \"$b\" in *_knit) echo \"file '$PWD/$f'\";; *) ls \"temp/${b}-\"*\"_knit_clip.mp4\" 2>/dev/null | grep -q . || ls \"temp/\"*\"-${b}_knit_clip.mp4\" 2>/dev/null | grep -q . || echo \"file '$PWD/$f'\";; esac; done > temp/concat_list.txt && MAX_W=0 && for f in temp/*_knit_clip.mp4; do [ -f \"$f\" ] || break; W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$f\" | head -1); if [ \"$W\" -gt \"$MAX_W\" ]; then MAX_W=$W; fi; done && SINGLE=$(find temp -maxdepth 1 -name \"*_clip.mp4\" ! -name \"*_knit_clip.mp4\" | sort -V | head -1) && if [ -n \"$SINGLE\" ]; then CLIP_W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$SINGLE\" | head -1); PAGE_W=$((CLIP_W/2)); if [ \"$PAGE_W\" -gt \"$MAX_W\" ]; then MAX_W=$PAGE_W; fi; else CLIP_W=$MAX_W; fi && TARGET_W=$MAX_W && if [ \"$CLIP_W\" -eq \"$TARGET_W\" ]; then ffmpeg -y -f concat -safe 0 -i temp/concat_list.txt -i temp/final_video_chapters.ffmeta -map_metadata 1 -c copy output/final_video.mp4; elif [ \"$CLIP_W\" -gt \"$TARGET_W\" ]; then X=$(( (CLIP_W - TARGET_W) / 2 )) && ffmpeg -y -f concat -safe 0 -i temp/concat_list.txt -i temp/final_video_chapters.ffmeta -map_metadata 1 -vf \"crop=${TARGET_W}:ih:${X}:0\" -c:v libx264 -preset ultrafast -c:a copy -pix_fmt yuv420p output/final_video.mp4; else OX=$(( (TARGET_W - CLIP_W) / 2 )) && ffmpeg -y -f concat -safe 0 -i temp/concat_list.txt -i temp/final_video_chapters.ffmeta -map_metadata 1 -vf \"split[bg][fg];[bg]scale=${TARGET_W}:ih,boxblur=20:3[bg_b];[fg][bg_b]overlay=${OX}:0\" -c:v libx264 -preset ultrafast -c:a copy -pix_fmt yuv420p output/final_video.mp4; fi && xattr -d com.apple.quarantine \"$PWD/output/final_video.mp4\" 2>/dev/null; true"
             }
           ]
         },
@@ -294,14 +294,15 @@
             "batch": {
               "batchSize": 1
             }
-          }
+          },
+          "timeout": 3600000
         }
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -6864,
-        -352
+        304,
+        -80
       ],
       "id": "a1aa3900-7c65-4216-9b0b-e6965f3dc6e5",
       "name": "Request Final Video Assembly"
@@ -317,7 +318,7 @@
       "typeVersion": 1.1,
       "position": [
         -6416,
-        -64
+        -224
       ],
       "id": "62fe1db6-505c-43ba-a902-0dcf670139d1",
       "name": "Extract from File"
@@ -333,7 +334,7 @@
       "typeVersion": 1.1,
       "position": [
         -10448,
-        112
+        -16
       ],
       "id": "b19e93dc-5348-4514-8de7-cea14d8fa172",
       "name": "Save PDF File to Disk"
@@ -347,7 +348,7 @@
       "typeVersion": 1.1,
       "position": [
         -10224,
-        208
+        -16
       ],
       "id": "fd760034-346e-4ce1-a30e-101286b88beb",
       "name": "Read PDF File from Disk"
@@ -371,7 +372,7 @@
       "typeVersion": 2.5,
       "position": [
         -10672,
-        112
+        -16
       ],
       "id": "b39d727f-1355-41de-a799-963f87f8dc1c",
       "name": "Select PDF File",
@@ -386,7 +387,7 @@
       "typeVersion": 1.1,
       "position": [
         -11344,
-        448
+        752
       ],
       "id": "92234fd2-b714-42ce-996e-bfc1e278f7dd",
       "name": "Verify if PDF Is Uploaded",
@@ -420,7 +421,7 @@
       "typeVersion": 2.3,
       "position": [
         -11120,
-        448
+        752
       ],
       "id": "70df9400-575c-4f08-b7a1-d03ad638247a",
       "name": "Previous PDF Is Uploaded"
@@ -435,7 +436,7 @@
       "typeVersion": 2.5,
       "position": [
         -10896,
-        512
+        832
       ],
       "id": "64f860fb-7e4e-478b-8a1a-db53e5b5fe88",
       "name": "Error Message [\"No PDF File Found\"]",
@@ -472,7 +473,7 @@
       "typeVersion": 2.5,
       "position": [
         -12016,
-        272
+        224
       ],
       "id": "e30640c2-0bae-4918-8c6f-96e9ceb44d5e",
       "name": "Select Mode",
@@ -487,7 +488,7 @@
       "typeVersion": 1.1,
       "position": [
         -7088,
-        224
+        16
       ],
       "id": "60772388-5cff-4834-a5e3-00e4270594aa",
       "name": "Check if Transcription Exists",
@@ -522,7 +523,7 @@
       "typeVersion": 2.3,
       "position": [
         -6864,
-        224
+        16
       ],
       "id": "e3d8248e-0d1f-4f00-b216-3992eaeac6ea",
       "name": "Transcription Done Already"
@@ -536,7 +537,7 @@
       "typeVersion": 1.1,
       "position": [
         -7984,
-        272
+        80
       ],
       "id": "164c4e24-3fd4-486a-8565-f51a710d8d7b",
       "name": "Check if Audio Exists",
@@ -571,7 +572,7 @@
       "typeVersion": 2.3,
       "position": [
         -7760,
-        272
+        80
       ],
       "id": "6ad1eece-9b53-48d5-9af8-fec6358f05c0",
       "name": "TTS Done Already"
@@ -585,7 +586,7 @@
       "typeVersion": 1.1,
       "position": [
         -8432,
-        160
+        -16
       ],
       "id": "09d18025-db7b-432a-83a8-0341dba01c1a",
       "name": "Check if Clip Exists",
@@ -620,7 +621,7 @@
       "typeVersion": 2.3,
       "position": [
         -8208,
-        160
+        -16
       ],
       "id": "f424927d-9d76-44d2-9581-ffc957339662",
       "name": "Clip Assembly Done Already"
@@ -634,7 +635,7 @@
       "typeVersion": 1.1,
       "position": [
         -6640,
-        -64
+        -224
       ],
       "id": "0377fffd-2335-4579-bbe4-79dc86c5d1cc",
       "name": "Read Temporary Image File from Disk"
@@ -642,28 +643,28 @@
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/temp/{{$('Set Page Number').item.json.pageNumber}}_transcription_normalized.txt",
+        "fileName": "=/home/node/project/temp/{{ $('Set Page Number').isExecuted ? ($('Set Page Number').item.json.pageNumber + '_transcription_normalized.txt') : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_transcription_normalized.txt') }}",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -4400,
-        176
+        -32
       ],
       "id": "9ac766e8-fef2-462f-9834-d27e5d4dc1a2",
       "name": "Create Normalized Temporary Text File on Disk"
     },
     {
       "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{$('Set Page Number').item.json.pageNumber}}_transcription_normalized.txt",
+        "fileSelector": "=/home/node/project/temp/{{ $('Set Page Number').isExecuted ? ($('Set Page Number').item.json.pageNumber + '_transcription_normalized.txt') : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_transcription_normalized.txt') }}",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -4176,
-        176
+        -32
       ],
       "id": "8210fbd1-1dbf-4cfd-a548-596c1e917ba0",
       "name": "Read Normalized Temporary Text File from Disk"
@@ -678,7 +679,7 @@
       "typeVersion": 1.1,
       "position": [
         -3952,
-        176
+        -32
       ],
       "id": "df8796cf-26c4-45f4-b221-7b46967d5229",
       "name": "Extract Normalized Transcription from Text File"
@@ -708,7 +709,7 @@
       "typeVersion": 4.4,
       "position": [
         -5072,
-        16
+        -160
       ],
       "id": "0e5f6212-20e6-4acb-961e-ed28a51afdd6",
       "name": "Request Transcript Normalization"
@@ -742,7 +743,7 @@
       "typeVersion": 2.3,
       "position": [
         -8656,
-        80
+        -80
       ],
       "id": "16df4896-36f0-4c2b-a9eb-0e2b142a5529",
       "name": "New Mode Selected 2"
@@ -772,7 +773,7 @@
       "typeVersion": 4.4,
       "position": [
         -3728,
-        176
+        -32
       ],
       "id": "0e416aa8-3241-4e14-8bce-4d9dc133d91d",
       "name": "Request TTS with Timestamps"
@@ -784,7 +785,7 @@
             {
               "id": "87d8b8eb-bb8a-48da-8237-869892a6ce76",
               "name": "timestampsJson",
-              "value": "={{ JSON.stringify({\n      pageIndex: $('Set Page Number').item.json.pageNumber,\n      timestamps: $('Request TTS with Timestamps').item.json.timestamps,\n      wordMap: JSON.parse($json.text)\n    }) }}",
+              "value": "={{ JSON.stringify({\n    pageIndex: $('Set Page Number').isExecuted ? $('Set Page Number').item.json.pageNumber : $('Set Knit Page Number').item.json.pageNumber,\n    knitPages: $('Set Page Number').isExecuted ? null : [$('Page Knitting Configuration').item.json['⬅️ Left Page Number'], $('Page Knitting Configuration').item.json['Right Page Number ➡️']],\n    timestamps: $('Request TTS with Timestamps').item.json.timestamps,\n    wordMap: JSON.parse($json.text)\n  }) }}",
               "type": "string"
             },
             {
@@ -808,7 +809,7 @@
       "typeVersion": 3.4,
       "position": [
         -3056,
-        272
+        64
       ],
       "id": "6af65ae0-d648-4f2a-9536-e6ad53759884",
       "name": "Add Page Index to Audio Timestamps"
@@ -825,7 +826,7 @@
       "typeVersion": 1.1,
       "position": [
         -2832,
-        272
+        64
       ],
       "id": "7fb9918c-40ba-4776-b5f4-ba7ebb09277d",
       "name": "Convert Timestamps to File"
@@ -833,14 +834,14 @@
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/temp/{{$('Set Page Number').item.json.pageNumber}}_timestamps.json",
+        "fileName": "=/home/node/project/temp/{{ $('Set Page Number').isExecuted ? ($('Set Page Number').item.json.pageNumber + '_timestamps.json') : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_timestamps.json') }}",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -2608,
-        272
+        64
       ],
       "id": "0a861c0e-859b-4849-a6e6-efc437699497",
       "name": "Save Timestamps to Disk"
@@ -857,7 +858,7 @@
       "typeVersion": 1.1,
       "position": [
         -2832,
-        80
+        -128
       ],
       "id": "e88f9b03-a71a-4b8e-9b24-bf1612abcdcf",
       "name": "Convert Base64 to Audio File"
@@ -870,8 +871,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -8880,
-        -352
+        -1712,
+        -80
       ],
       "id": "cd86ac56-a3d9-47eb-bd4a-9bf0648db288",
       "name": "Read All Timestamps from Disk"
@@ -885,8 +886,8 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -8656,
-        -352
+        -1488,
+        -80
       ],
       "id": "b29ec909-a627-442d-b587-b5eb85cb2574",
       "name": "Extract Timestamps Text"
@@ -908,8 +909,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -8432,
-        -352
+        -1264,
+        -80
       ],
       "id": "525af04d-21b1-4920-b95b-ecd998621646",
       "name": "Parse Timestamps JSON"
@@ -923,8 +924,8 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        -8208,
-        -352
+        -1040,
+        -80
       ],
       "id": "3aea40bc-4fe3-4b53-84d7-468095345f73",
       "name": "Aggregate All Timestamps"
@@ -936,13 +937,13 @@
             {
               "id": "7533fc03-f9f5-467a-a7ad-9c8db4565d1f",
               "name": "subtitleChunks",
-              "value": "={{ (() => {\n    function formatSrtTimestamp(seconds) {\n      seconds = Math.max(0, seconds);\n      const hours = String(Math.floor(seconds / 3600)).padStart(2, '0');\n      const minutes = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');\n      const secs = String(Math.floor(seconds % 60)).padStart(2, '0');\n      const ms = String(Math.round((seconds % 1) * 1000)).padStart(3, '0');\n      return hours + ':' + minutes + ':' + secs + ',' + ms;\n    }\n\n    function stripNonAlphanumeric(word) {\n      return word.toLowerCase().replace(/[^a-z0-9]/g, '');\n    }\n\n    function buildNormalizedWordList(wordMap) {\n      const normList = [];\n      for (let origIdx = 0; origIdx < wordMap.length; origIdx++) {\n        const normalizedTokens = wordMap[origIdx].normalized.split(/\\s+/).filter(w => /\\w/.test(w));\n        if (normalizedTokens.length > 0) {\n          for (const token of normalizedTokens) normList.push({ word: token.toLowerCase(), origIdx });\n        } else {\n          normList.push({ word: '', origIdx });\n        }\n      }\n      return normList;\n    }\n\n    function alignTimestampsToOriginalWords(timestamps, normList) {\n      let cursor = 0;\n      return timestamps.map(t => {\n        const cleanedWord = stripNonAlphanumeric(t.word);\n        for (let j = cursor; j < Math.min(cursor + 60, normList.length); j++) {\n          if (stripNonAlphanumeric(normList[j].word) === cleanedWord) {\n            cursor = j + 1;\n            return normList[j].origIdx;\n          }\n        }\n        return normList[Math.min(cursor, normList.length - 1)].origIdx;\n      });\n    }\n\n    function buildSubtitleChunksForPage(page, timeOffset, startIdx) {\n      const timestamps = page.timestamps.filter(t => /\\w/.test(t.word));\n      const pageDuration = page.audioDuration ?? page.timestamps[page.timestamps.length - 1].end_time;\n      const originalWords = page.wordMap.map(w => w.original);\n\n      const normList = buildNormalizedWordList(page.wordMap);\n      const alignedOrigIdx = alignTimestampsToOriginalWords(timestamps, normList);\n\n      const numChunks = Math.max(1, Math.ceil(pageDuration / 4));\n      const wordsPerChunk = Math.ceil(timestamps.length / numChunks);\n\n      const chunks = [];\n      let i = 0, chunkIdx = startIdx;\n      while (i < timestamps.length) {\n        const isLastChunk = i + wordsPerChunk >= timestamps.length;\n        const chunkStart = timestamps[i].start_time;\n        const chunkEnd = isLastChunk ? pageDuration : timestamps[i + wordsPerChunk].start_time;\n        const startOrigIdx = alignedOrigIdx[i];\n        const endOrigIdx = isLastChunk ? originalWords.length - 1 : alignedOrigIdx[Math.min(i + wordsPerChunk - 1, alignedOrigIdx.length - 1)];\n        chunks.push({\n          idx: chunkIdx,\n          start: formatSrtTimestamp(chunkStart + timeOffset),\n          end: formatSrtTimestamp(chunkEnd + timeOffset),\n          text: originalWords.slice(startOrigIdx, endOrigIdx + 1).join(' ')\n        });\n        chunkIdx++;\n        i += wordsPerChunk;\n      }\n      return { chunks, pageDuration };\n    }\n\n    const pages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n    const allChunks = [];\n    let timeOffset = 0, chunkIdx = 1;\n    for (const page of pages) {\n      const { chunks, pageDuration } = buildSubtitleChunksForPage(page, timeOffset, chunkIdx);\n      allChunks.push(...chunks);\n      chunkIdx += chunks.length;\n      timeOffset += pageDuration;\n    }\n    return allChunks;\n  })() }}",
+              "value": "={{ (() => {\n      function formatSrtTimestamp(seconds) {\n        seconds = Math.max(0, seconds);\n        const hours = String(Math.floor(seconds / 3600)).padStart(2, '0');\n        const minutes = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');\n        const secs = String(Math.floor(seconds % 60)).padStart(2, '0');\n        const ms = String(Math.round((seconds % 1) * 1000)).padStart(3, '0');\n        return hours + ':' + minutes + ':' + secs + ',' + ms;\n      }\n\n      function stripNonAlphanumeric(word) {\n        return word.toLowerCase().replace(/[^a-z0-9]/g, '');\n      }\n\n      function buildNormalizedWordList(wordMap) {\n        const normList = [];\n        for (let origIdx = 0; origIdx < wordMap.length; origIdx++) {\n          const normalizedTokens = wordMap[origIdx].normalized.split(/\\s+/).filter(w => /\\w/.test(w));\n          if (normalizedTokens.length > 0) {\n            for (const token of normalizedTokens) normList.push({ word: token.toLowerCase(), origIdx });\n          } else {\n            normList.push({ word: '', origIdx });\n          }\n        }\n        return normList;\n      }\n\n      function alignTimestampsToOriginalWords(timestamps, normList) {\n        let cursor = 0;\n        return timestamps.map(t => {\n          const cleanedWord = stripNonAlphanumeric(t.word);\n          for (let j = cursor; j < Math.min(cursor + 60, normList.length); j++) {\n            if (stripNonAlphanumeric(normList[j].word) === cleanedWord) {\n              cursor = j + 1;\n              return normList[j].origIdx;\n            }\n          }\n          return normList[Math.min(cursor, normList.length - 1)].origIdx;\n        });\n      }\n\n      function buildSubtitleChunksForPage(page, timeOffset, startIdx) {\n        const timestamps = page.timestamps.filter(t => /\\w/.test(t.word));\n        const pageDuration = page.audioDuration ?? page.timestamps[page.timestamps.length - 1].end_time;\n        const originalWords = page.wordMap.map(w => w.original);\n\n        const normList = buildNormalizedWordList(page.wordMap);\n        const alignedOrigIdx = alignTimestampsToOriginalWords(timestamps, normList);\n\n        const numChunks = Math.max(1, Math.ceil(pageDuration / 4));\n        const wordsPerChunk = Math.ceil(timestamps.length / numChunks);\n\n        const chunks = [];\n        let i = 0, chunkIdx = startIdx;\n        while (i < timestamps.length) {\n          const isLastChunk = i + wordsPerChunk >= timestamps.length;\n          const chunkStart = timestamps[i].start_time;\n          const chunkEnd = isLastChunk ? pageDuration : timestamps[i + wordsPerChunk].start_time;\n          const startOrigIdx = alignedOrigIdx[i];\n          const endOrigIdx = isLastChunk ? originalWords.length - 1 : alignedOrigIdx[Math.min(i + wordsPerChunk - 1, alignedOrigIdx.length - 1)];\n          chunks.push({\n            idx: chunkIdx,\n            start: formatSrtTimestamp(chunkStart + timeOffset),\n            end: formatSrtTimestamp(chunkEnd + timeOffset),\n            text: originalWords.slice(startOrigIdx, endOrigIdx + 1).join(' ')\n          });\n          chunkIdx++;\n          i += wordsPerChunk;\n        }\n        return { chunks, pageDuration };\n      }\n\n      const allPages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n      const knitCovered = new Set(allPages.filter(p => p.knitPages).flatMap(p => p.knitPages));\n      const pages = allPages.filter(p => p.knitPages || !knitCovered.has(p.pageIndex));\n      const allChunks = [];\n      let timeOffset = 0, chunkIdx = 1;\n      for (const page of pages) {\n        const { chunks, pageDuration } = buildSubtitleChunksForPage(page, timeOffset, chunkIdx);\n        allChunks.push(...chunks);\n        chunkIdx += chunks.length;\n        timeOffset += pageDuration;\n      }\n      return allChunks;\n    })() }}",
               "type": "array"
             },
             {
               "id": "b49b8042-e188-4a3f-aa09-7799a268fd15",
               "name": "chaptersContent",
-              "value": "={{ (() => {\n    const pages = $json.pages\n      .map(p => p.data)\n      .sort((a, b) => a.pageIndex - b.pageIndex);\n\n    let meta = ';FFMETADATA1\\n', offset = 0;\n\n    for (const page of pages) {\n      const dur = page.audioDuration ?? page.timestamps[page.timestamps.length - 1].end_time;\n      meta += `\\n[CHAPTER]\\nTIMEBASE=1/1000\\nSTART=${Math.round(offset * 1000)}\\nEND=${Math.round((offset + dur) * 1000)}\\ntitle=Page ${page.pageIndex}\\n`;\n      offset += dur;\n    }\n\n    return meta;\n  })() }}",
+              "value": "={{ (() => {\n      const allPages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n      const knitCovered = new Set(allPages.filter(p => p.knitPages).flatMap(p => p.knitPages.map(Number)));\n      const pages = allPages.filter(p => p.knitPages || !knitCovered.has(Number(p.pageIndex)));\n\n      let meta = ';FFMETADATA1\\n', offset = 0;\n\n      for (const page of pages) {\n        const dur = page.audioDuration ?? page.timestamps[page.timestamps.length - 1].end_time;\n        const title = page.knitPages ? `Pages ${page.knitPages[0]} & ${page.knitPages[1]}` : `Page ${page.pageIndex}`;\n        meta += `\\n[CHAPTER]\\nTIMEBASE=1/1000\\nSTART=${Math.round(offset * 1000)}\\nEND=${Math.round((offset + dur) * 1000)}\\ntitle=${title}\\n`;\n        offset += dur;\n      }\n\n      return meta;\n    })() }}",
               "type": "string"
             }
           ]
@@ -952,8 +953,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -7984,
-        -352
+        -816,
+        -80
       ],
       "id": "511103b3-8179-475c-a0a7-8a856f1c8dd7",
       "name": "Generate Subtitle File and Video Chapters"
@@ -969,8 +970,8 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -7536,
-        -400
+        -368,
+        -176
       ],
       "id": "8de182f8-3454-4498-a737-47ab2ecabf38",
       "name": "Convert Subtitles to File"
@@ -986,8 +987,8 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -7536,
-        -208
+        -368,
+        16
       ],
       "id": "a5b82290-809d-415f-83b7-cdbb34575e7a",
       "name": "Convert Chapters to File"
@@ -1001,8 +1002,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7312,
-        -208
+        -144,
+        16
       ],
       "id": "5932d857-856b-4307-a922-eae4f4a9b499",
       "name": "Save Chapters to Disk"
@@ -1016,7 +1017,7 @@
       "typeVersion": 1.1,
       "position": [
         -7536,
-        368
+        160
       ],
       "id": "cc13ee98-4752-4617-b387-a1388f713bb0",
       "name": "Check if Timestamps Exist",
@@ -1051,7 +1052,7 @@
       "typeVersion": 2.3,
       "position": [
         -7312,
-        368
+        160
       ],
       "id": "c9b9e503-13e2-4b84-bccf-3ff39023f4cf",
       "name": "Timestamps Already Saved"
@@ -1066,7 +1067,7 @@
       "typeVersion": 3.2,
       "position": [
         -2384,
-        176
+        -32
       ],
       "id": "0a85c2c1-4ed6-4fd9-9e1f-a2b9ea0b8eae",
       "name": "Merge"
@@ -1080,8 +1081,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7312,
-        -400
+        -144,
+        -176
       ],
       "id": "43a9add9-c4e6-41f8-8a1e-41ae735171a2",
       "name": "Save Subtitles to Disk"
@@ -1095,8 +1096,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -7088,
-        -352
+        80,
+        -80
       ],
       "id": "46c88e05-2bfd-4c0b-9ec8-dc9c841fc635",
       "name": "Merge1"
@@ -1110,8 +1111,8 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        -9104,
-        -352
+        -1936,
+        -400
       ],
       "id": "0ff3a528-cdd3-4571-bf97-3008bf93a61c",
       "name": "Aggregate"
@@ -1133,8 +1134,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -7760,
-        -400
+        -592,
+        -176
       ],
       "id": "ec91e12f-1e66-46df-8ed2-f77195e93742",
       "name": "Generate final subtitles"
@@ -1157,7 +1158,7 @@
       "typeVersion": 3.4,
       "position": [
         -7984,
-        80
+        -128
       ],
       "id": "398e2d1b-cdfc-4b54-84f4-c94485385807",
       "name": "Strip Binary Before Next Iteration"
@@ -1186,7 +1187,7 @@
       "typeVersion": 3.4,
       "position": [
         -4848,
-        16
+        -160
       ],
       "id": "5f6fa4e9-18da-4512-b1f2-93376fdab3a0",
       "name": "Assemble Normalized Text and Configure Word Map"
@@ -1203,7 +1204,7 @@
       "typeVersion": 1.1,
       "position": [
         -4624,
-        -64
+        -256
       ],
       "id": "96280d0d-3829-42a5-8322-a6ad126e24eb",
       "name": "Convert Word Map to File"
@@ -1211,28 +1212,28 @@
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/temp/{{$('Set Page Number').item.json.pageNumber}}_wordmap.json",
+        "fileName": "=/home/node/project/temp/{{ $('Set Page Number').isExecuted ? ($('Set Page Number').item.json.pageNumber + '_wordmap.json') : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_wordmap.json') }}",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -4400,
-        -64
+        -256
       ],
       "id": "d8a9e5a9-de94-46a6-8eec-0ade0f39b774",
       "name": "Save Word Map to Disk"
     },
     {
       "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{$('Set Page Number').item.json.pageNumber}}_wordmap.json",
+        "fileSelector": "=/home/node/project/temp/{{ $('Set Page Number').isExecuted ? ($('Set Page Number').item.json.pageNumber + '_wordmap.json') : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_wordmap.json') }}",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -3504,
-        272
+        64
       ],
       "id": "d5a067ce-d69a-40a0-a872-b631a2f5fbf7",
       "name": "Read Word Map from Disk"
@@ -1247,7 +1248,7 @@
       "typeVersion": 1.1,
       "position": [
         -3280,
-        272
+        64
       ],
       "id": "8f0d9b8e-22a5-4498-ab7c-653655b23891",
       "name": "Extract Word Map from File"
@@ -1271,44 +1272,10 @@
       "typeVersion": 3.4,
       "position": [
         -9104,
-        80
+        -80
       ],
       "id": "3bbeba09-a786-4aaf-88c2-ef52e1275642",
       "name": "Set Page Number"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "082f68c7-2bc1-4c42-bda2-2a2e21c7f15f",
-              "leftValue": "🧶 Knit Pages Together",
-              "rightValue": "={{ $('Select Mode').first().json['Select Mode'] }}",
-              "operator": {
-                "type": "string",
-                "operation": "equals",
-                "name": "filter.operator.equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -11568,
-        352
-      ],
-      "id": "fc4b00c9-fc88-48d1-984c-5a43dfc6c229",
-      "name": "🧶 Knit Mode Selected"
     },
     {
       "parameters": {
@@ -1339,10 +1306,86 @@
       "typeVersion": 2.3,
       "position": [
         -11792,
-        272
+        224
       ],
       "id": "11759da2-46a4-455b-8b34-3d9a18b1a7fb",
       "name": "New Mode Selected"
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/home/node/project/temp/{{$('Page Knitting Configuration').item.json['⬅️ Left Page Number']}}_transcription.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -7760,
+        640
+      ],
+      "id": "34033c1e-8ea6-406c-8692-559a8ee14094",
+      "name": "Read Left Page Transcription from Disk"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "destinationKey": "text",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -7536,
+        640
+      ],
+      "id": "b55dd822-6a36-4db9-9e57-7fe232d0350e",
+      "name": "Extract Left Page Transcription from File"
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/home/node/project/temp/{{$('Page Knitting Configuration').item.json['Right Page Number ➡️']}}_transcription.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -7312,
+        640
+      ],
+      "id": "ac49d3de-3c4e-4b43-b351-09d0ac385243",
+      "name": "Read Right Page Transcription from Disk"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "destinationKey": "text",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -7088,
+        640
+      ],
+      "id": "be697eda-9a3f-4f77-864b-da5c58ca73cf",
+      "name": "Extract Right Page Transcription from File"
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/home/node/project/temp/{{$('Page Knitting Configuration').item.json['⬅️ Left Page Number']}}-{{$('Page Knitting Configuration').item.json['Right Page Number ➡️']}}_knit_image.png",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -6864,
+        640
+      ],
+      "id": "33d02734-00b9-4a71-93ec-1df5cb30a777",
+      "name": "Read Knitted Image from Disk"
     },
     {
       "parameters": {
@@ -1365,12 +1408,46 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -11248,
-        272
+        -8656,
+        560
       ],
       "id": "0a341644-cb35-465b-993c-8788c356a6f5",
-      "name": "🧶 Page Knitting Configuration",
+      "name": "Page Knitting Configuration",
       "webhookId": "b6c2ed1a-c196-4079-ba1d-41c055ed1832"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "082f68c7-2bc1-4c42-bda2-2a2e21c7f15f",
+              "leftValue": "🧶 Knit Pages Together",
+              "rightValue": "={{ $('Select Mode').first().json['Select Mode'] }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -11568,
+        688
+      ],
+      "id": "fc4b00c9-fc88-48d1-984c-5a43dfc6c229",
+      "name": "Knit Mode Selected"
     },
     {
       "parameters": {
@@ -1389,11 +1466,220 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -11040,
-        272
+        -8432,
+        560
       ],
       "id": "8764539e-e318-4e17-bfc1-9adadaf03f0a",
-      "name": "🧶 Knit Images"
+      "name": "Knit Images"
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "binaryPropertyName": "={{ Object.keys($binary)[0] }}",
+        "destinationKey": "imageBase64",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -6640,
+        640
+      ],
+      "id": "25a8edf8-7ad9-41e6-991c-855997c3defc",
+      "name": "Extract Knitted Image to Base64"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:5679/webhook/prompt",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n    model: \"gemma4:31b\",\n    imageBase64: $json.imageBase64,\n    prompt: [\n      \"You are given two consecutive page transcriptions from a document and a combined image showing both pages side by side. Merge them into one transcription following these rules:\",\n      \"1. Assume all transcribed text is completely correct. Do not change, correct, or paraphrase any words.\",\n      \"2. Reorder the text if necessary so it reads naturally across the full double-page spread, left to right, top to bottom, as a reader would experience it.\",\n      \"3. Always place image descriptions at the end of the transcription, including where on the spread the image appears, for example: 'The image in the top left displays...'. Descriptions of charts, graphs, tables, and other visual data should remain where they appear in the reading order.\",\n      \"4. Only rewrite descriptions of images, charts, graphs, or tables that clearly span both pages and can be better described when seen as a whole.\",\n      \"5. If data values on one page lack labels because the legend or column headers appear on the other page, use those labels to identify all unlabeled values across both pages.\",\n      \"6. Preserve all numbers, names, dates, abbreviations, and symbols exactly as written.\",\n      \"7. Return only the merged transcription as plain text, nothing else.\",\n      \"Left page:\",\n      $('Extract Left Page Transcription from File').item.json.text,\n      \"Right page:\",\n      $('Extract Right Page Transcription from File').item.json.text\n    ].join(\"\\n\")\n  }) }}",
+        "options": {
+          "timeout": 3600000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -6416,
+        640
+      ],
+      "id": "46692609-688b-4f3b-88b6-0daaa14b1d96",
+      "name": "Knit Transcriptions"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "text",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -6192,
+        640
+      ],
+      "id": "04378658-7dab-42e4-9676-2fdfe547673d",
+      "name": "Convert Knitted Transcription to Text File"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/home/node/project/temp/{{$('Page Knitting Configuration').item.json['⬅️ Left Page Number']}}-{{$('Page Knitting Configuration').item.json['Right Page Number ➡️']}}_knit_transcription.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -5968,
+        640
+      ],
+      "id": "d65954a8-d998-4d57-9556-dcaa657ec252",
+      "name": "Create Temporary Knitted Text File on Disk"
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/home/node/project/temp/{{$('Page Knitting Configuration').item.json['⬅️ Left Page Number']}}-{{$('Page Knitting Configuration').item.json['Right Page Number ➡️']}}_knit_transcription.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -8208,
+        560
+      ],
+      "id": "f774a94d-d2d3-4dab-bd16-6c43c7bcf1d0",
+      "name": "Check if Knitted Transcription Exists",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "caf47b9a-69c2-433b-ae7f-15aa4b206be4",
+              "leftValue": "true",
+              "rightValue": "={{ (!!$binary && Object.keys($binary).length > 0).toString() }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -7984,
+        560
+      ],
+      "id": "4bf3a017-2bd3-46dd-bea9-3bc68a923659",
+      "name": "Knitted Transcription Done Already"
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/home/node/project/temp/{{$('Page Knitting Configuration').item.json['⬅️ Left Page Number']}}-{{$('Page Knitting Configuration').item.json['Right Page Number ➡️']}}_knit_transcription.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -5744,
+        560
+      ],
+      "id": "28cdd014-aeff-4fff-aeb6-b71c21a9d420",
+      "name": "Read Temporary Knitted Text File from Disk"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "destinationKey": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -5520,
+        560
+      ],
+      "id": "63b7c043-b1f3-4021-801c-4909dda61d4b",
+      "name": "Extract Knitted Transcription from Text File"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9b68bdde-399c-4e42-b5ad-b5250715dd26",
+              "name": "pageNumber",
+              "value": "={{ $('Page Knitting Configuration').item.json['⬅️ Left Page Number'] }}",
+              "type": "number"
+            },
+            {
+              "id": "c9843c8f-2c9c-4773-937c-30ca27b75b10",
+              "name": "text",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -5296,
+        560
+      ],
+      "id": "64ab376b-6958-44a3-96ba-983eefe7b767",
+      "name": "Set Knit Page Number"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d0969b53-a837-4ae7-9775-7aeb44939204",
+              "leftValue": "true",
+              "rightValue": "={{ $('Set Knit Page Number').isExecuted.toString() }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1936,
+        112
+      ],
+      "id": "a663aee1-884f-476d-9843-a99eb3c5a959",
+      "name": "Skip Loop if Knit Mode Selected"
     }
   ],
   "pinData": {},
@@ -1486,7 +1772,7 @@
       "main": [
         [
           {
-            "node": "Process Pages One by One",
+            "node": "Skip Loop if Knit Mode Selected",
             "type": "main",
             "index": 0
           }
@@ -2111,11 +2397,84 @@
         ]
       ]
     },
-    "🧶 Knit Mode Selected": {
+    "New Mode Selected": {
       "main": [
         [
           {
-            "node": "🧶 Page Knitting Configuration",
+            "node": "Select PDF File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Knit Mode Selected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Left Page Transcription from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract Left Page Transcription from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Right Page Transcription from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract Right Page Transcription from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Left Page Transcription from File": {
+      "main": [
+        [
+          {
+            "node": "Read Right Page Transcription from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Right Page Transcription from File": {
+      "main": [
+        [
+          {
+            "node": "Read Knitted Image from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Page Knitting Configuration": {
+      "main": [
+        [
+          {
+            "node": "Knit Images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Knit Mode Selected": {
+      "main": [
+        [
+          {
+            "node": "Page Knitting Configuration",
             "type": "main",
             "index": 0
           }
@@ -2129,29 +2488,146 @@
         ]
       ]
     },
-    "New Mode Selected": {
+    "Knit Images": {
       "main": [
         [
           {
-            "node": "Select PDF File",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "🧶 Knit Mode Selected",
+            "node": "Check if Knitted Transcription Exists",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "🧶 Page Knitting Configuration": {
+    "Read Knitted Image from Disk": {
       "main": [
         [
           {
-            "node": "🧶 Knit Images",
+            "node": "Extract Knitted Image to Base64",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Knitted Image to Base64": {
+      "main": [
+        [
+          {
+            "node": "Knit Transcriptions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Knit Transcriptions": {
+      "main": [
+        [
+          {
+            "node": "Convert Knitted Transcription to Text File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Knitted Transcription to Text File": {
+      "main": [
+        [
+          {
+            "node": "Create Temporary Knitted Text File on Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if Knitted Transcription Exists": {
+      "main": [
+        [
+          {
+            "node": "Knitted Transcription Done Already",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Knitted Transcription Done Already": {
+      "main": [
+        [
+          {
+            "node": "Read Temporary Knitted Text File from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read Left Page Transcription from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Temporary Knitted Text File on Disk": {
+      "main": [
+        [
+          {
+            "node": "Read Temporary Knitted Text File from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Temporary Knitted Text File from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract Knitted Transcription from Text File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Knitted Transcription from Text File": {
+      "main": [
+        [
+          {
+            "node": "Set Knit Page Number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Knit Page Number": {
+      "main": [
+        [
+          {
+            "node": "Request Transcript Normalization",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Skip Loop if Knit Mode Selected": {
+      "main": [
+        [
+          {
+            "node": "Read All Timestamps from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Process Pages One by One",
             "type": "main",
             "index": 0
           }
@@ -2168,7 +2644,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "0eddf21d-8e9d-4e9d-a95c-a8b53d1fa47a",
+  "versionId": "feec5e15-c9dd-45b7-bfa7-c159869f72f9",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "d9bf099537c822dc26871b7cc49839e5a9cbffa7c5792f2ab790432a3738bb06"
