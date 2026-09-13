@@ -785,7 +785,7 @@
             {
               "id": "87d8b8eb-bb8a-48da-8237-869892a6ce76",
               "name": "timestampsJson",
-              "value": "={{ JSON.stringify({\n    pageIndex: $('Set Page Number').isExecuted ? $('Set Page Number').item.json.pageNumber : $('Set Knit Page Number').item.json.pageNumber,\n    knitPages: $('Set Page Number').isExecuted ? null : [$('Page Knitting Configuration').item.json['⬅️ Left Page Number'], $('Page Knitting Configuration').item.json['Right Page Number ➡️']],\n    timestamps: $('Request TTS with Timestamps').item.json.timestamps,\n    wordMap: JSON.parse($json.text)\n  }) }}",
+              "value": "={{ JSON.stringify({\n    pageIndex: $('Set Page Number').isExecuted ? $('Set Page Number').item.json.pageNumber : $('Set Knit Page Number').item.json.pageNumber,\n    knitPages: $('Set Page Number').isExecuted ? null : [$('Page Knitting Configuration').item.json['⬅️ Left Page Number'], $('Page Knitting Configuration').item.json['Right Page Number ➡️']],\n    audioDuration: null,\n    timestamps: $('Request TTS with Timestamps').item.json.timestamps,\n    wordMap: JSON.parse($json.text)\n  }) }}",
               "type": "string"
             },
             {
@@ -2644,10 +2644,10 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "feec5e15-c9dd-45b7-bfa7-c159869f72f9",
+  "versionId": "e839c682-10d3-4ca9-bcc5-b159bf0d3521",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "d9bf099537c822dc26871b7cc49839e5a9cbffa7c5792f2ab790432a3738bb06"
+    "instanceId": "0d58a7a3f156139856be42466a14e05f00173514ac9794a8494b09c53ea173a0"
   },
   "nodeGroups": [],
   "id": "jRt9vIy3bcnOSxi5",
