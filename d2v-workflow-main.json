@@ -52,7 +52,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -10000,
+        -10224,
         -16
       ],
       "id": "a6c61e91-f96d-42ae-9ee8-145f77258e41",
@@ -65,7 +65,7 @@
       "type": "n8n-nodes-base.compression",
       "typeVersion": 1.1,
       "position": [
-        -9776,
+        -10000,
         -16
       ],
       "id": "c0aba882-7fa6-46e7-a7e2-e3cb421f4c95",
@@ -79,7 +79,7 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        -9552,
+        -9776,
         -16
       ],
       "id": "5dd1bf69-114c-48c6-8c86-3e53422b476c",
@@ -95,7 +95,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -8880,
+        -9104,
         -80
       ],
       "id": "b4b16bee-382c-4d6b-b14b-c8522863b04c",
@@ -134,7 +134,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -6192,
+        -6416,
         -224
       ],
       "id": "741b1118-29dc-4b38-9969-8acf1a7ee608",
@@ -163,7 +163,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -2160,
+        -2384,
         32
       ],
       "id": "22e75862-805e-4f69-b09f-cf72c820ff7e",
@@ -178,7 +178,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -2608,
+        -2832,
         -128
       ],
       "id": "2d844c92-584d-498e-b943-70c9ce934f51",
@@ -191,7 +191,7 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -9328,
+        -9552,
         -16
       ],
       "id": "db86b14b-2f93-43ab-b9cb-c01157cf04db",
@@ -208,7 +208,7 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -5968,
+        -6192,
         -224
       ],
       "id": "35b5d1bd-e292-401d-af03-2b854bd2787f",
@@ -223,7 +223,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -5744,
+        -5968,
         -224
       ],
       "id": "94de2d31-18e9-4502-a4b0-6566b66e7507",
@@ -237,7 +237,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -5520,
+        -5744,
         -160
       ],
       "id": "384d6717-1c80-4b31-8f6f-77783551ed8a",
@@ -254,7 +254,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -5296,
+        -5520,
         -160
       ],
       "id": "6b54b028-b46a-47a8-ac4a-e1073980d3eb",
@@ -271,7 +271,7 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -4624,
+        -4848,
         -32
       ],
       "id": "837a24a3-e583-4fbe-8e1a-5b17ae35e099",
@@ -301,7 +301,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        304,
+        80,
         -80
       ],
       "id": "a1aa3900-7c65-4216-9b0b-e6965f3dc6e5",
@@ -317,7 +317,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -6416,
+        -6640,
         -224
       ],
       "id": "62fe1db6-505c-43ba-a902-0dcf670139d1",
@@ -333,7 +333,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -10448,
+        -10672,
         -16
       ],
       "id": "b19e93dc-5348-4514-8de7-cea14d8fa172",
@@ -347,7 +347,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -10224,
+        -10448,
         -16
       ],
       "id": "fd760034-346e-4ce1-a30e-101286b88beb",
@@ -371,7 +371,7 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -10672,
+        -10896,
         -16
       ],
       "id": "b39d727f-1355-41de-a799-963f87f8dc1c",
@@ -386,7 +386,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -11344,
+        -11568,
         752
       ],
       "id": "92234fd2-b714-42ce-996e-bfc1e278f7dd",
@@ -420,7 +420,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -11120,
+        -11344,
         752
       ],
       "id": "70df9400-575c-4f08-b7a1-d03ad638247a",
@@ -435,7 +435,7 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -10896,
+        -11120,
         832
       ],
       "id": "64f860fb-7e4e-478b-8a1a-db53e5b5fe88",
@@ -460,6 +460,9 @@
                   },
                   {
                     "option": "🧶 Knit Pages Together"
+                  },
+                  {
+                    "option": "🎙️ Read with a Different Voice"
                   }
                 ]
               },
@@ -473,7 +476,7 @@
       "typeVersion": 2.5,
       "position": [
         -12016,
-        224
+        688
       ],
       "id": "e30640c2-0bae-4918-8c6f-96e9ceb44d5e",
       "name": "Select Mode",
@@ -487,7 +490,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7088,
+        -7312,
         16
       ],
       "id": "60772388-5cff-4834-a5e3-00e4270594aa",
@@ -522,7 +525,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -6864,
+        -7088,
         16
       ],
       "id": "e3d8248e-0d1f-4f00-b216-3992eaeac6ea",
@@ -536,7 +539,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7984,
+        -8208,
         80
       ],
       "id": "164c4e24-3fd4-486a-8565-f51a710d8d7b",
@@ -571,7 +574,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -7760,
+        -7984,
         80
       ],
       "id": "6ad1eece-9b53-48d5-9af8-fec6358f05c0",
@@ -585,7 +588,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -8432,
+        -8656,
         -16
       ],
       "id": "09d18025-db7b-432a-83a8-0341dba01c1a",
@@ -620,7 +623,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -8208,
+        -8432,
         -16
       ],
       "id": "f424927d-9d76-44d2-9581-ffc957339662",
@@ -634,7 +637,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -6640,
+        -6864,
         -224
       ],
       "id": "0377fffd-2335-4579-bbe4-79dc86c5d1cc",
@@ -649,7 +652,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -4400,
+        -4624,
         -32
       ],
       "id": "9ac766e8-fef2-462f-9834-d27e5d4dc1a2",
@@ -663,7 +666,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -4176,
+        -4400,
         -32
       ],
       "id": "8210fbd1-1dbf-4cfd-a548-596c1e917ba0",
@@ -678,7 +681,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -3952,
+        -4176,
         -32
       ],
       "id": "df8796cf-26c4-45f4-b221-7b46967d5229",
@@ -708,7 +711,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -5072,
+        -5296,
         -160
       ],
       "id": "0e5f6212-20e6-4acb-961e-ed28a51afdd6",
@@ -742,7 +745,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -8656,
+        -8880,
         -80
       ],
       "id": "16df4896-36f0-4c2b-a9eb-0e2b142a5529",
@@ -754,7 +757,7 @@
         "url": "http://kokoro:8880/dev/captioned_speech",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n    model: \"kokoro\",\n    voice: \"af_heart\",\n    input: JSON.parse($json.text).text,\n    response_format: \"wav\",\n    return_timestamps: true,\n    stream: false\n  }) }}",
+        "jsonBody": "={{ JSON.stringify({\n    model: \"kokoro\",\n    voice: \"af_heart\",\n    input: JSON.parse($json.text).text,\n    response_format: \"wav\",\n    return_timestamps: true,\n    stream: false,\n    allow_voice_tags: true\n  }) }}",
         "options": {
           "batching": {
             "batch": {
@@ -772,7 +775,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -3728,
+        -3952,
         -32
       ],
       "id": "0e416aa8-3241-4e14-8bce-4d9dc133d91d",
@@ -808,7 +811,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -3056,
+        -3280,
         64
       ],
       "id": "6af65ae0-d648-4f2a-9536-e6ad53759884",
@@ -825,7 +828,7 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -2832,
+        -3056,
         64
       ],
       "id": "7fb9918c-40ba-4776-b5f4-ba7ebb09277d",
@@ -840,7 +843,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -2608,
+        -2832,
         64
       ],
       "id": "0a861c0e-859b-4849-a6e6-efc437699497",
@@ -857,7 +860,7 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -2832,
+        -3056,
         -128
       ],
       "id": "e88f9b03-a71a-4b8e-9b24-bf1612abcdcf",
@@ -871,7 +874,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -1712,
+        -1936,
         -80
       ],
       "id": "cd86ac56-a3d9-47eb-bd4a-9bf0648db288",
@@ -886,7 +889,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -1488,
+        -1712,
         -80
       ],
       "id": "b29ec909-a627-442d-b587-b5eb85cb2574",
@@ -909,7 +912,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1264,
+        -1488,
         -80
       ],
       "id": "525af04d-21b1-4920-b95b-ecd998621646",
@@ -924,7 +927,7 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        -1040,
+        -1264,
         -80
       ],
       "id": "3aea40bc-4fe3-4b53-84d7-468095345f73",
@@ -953,7 +956,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -816,
+        -1040,
         -80
       ],
       "id": "511103b3-8179-475c-a0a7-8a856f1c8dd7",
@@ -970,7 +973,7 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -368,
+        -592,
         -176
       ],
       "id": "8de182f8-3454-4498-a737-47ab2ecabf38",
@@ -987,7 +990,7 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -368,
+        -592,
         16
       ],
       "id": "a5b82290-809d-415f-83b7-cdbb34575e7a",
@@ -1002,7 +1005,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -144,
+        -368,
         16
       ],
       "id": "5932d857-856b-4307-a922-eae4f4a9b499",
@@ -1016,7 +1019,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7536,
+        -7760,
         160
       ],
       "id": "cc13ee98-4752-4617-b387-a1388f713bb0",
@@ -1051,7 +1054,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -7312,
+        -7536,
         160
       ],
       "id": "c9b9e503-13e2-4b84-bccf-3ff39023f4cf",
@@ -1066,7 +1069,7 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -2384,
+        -2608,
         -32
       ],
       "id": "0a85c2c1-4ed6-4fd9-9e1f-a2b9ea0b8eae",
@@ -1081,7 +1084,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -144,
+        -368,
         -176
       ],
       "id": "43a9add9-c4e6-41f8-8a1e-41ae735171a2",
@@ -1096,7 +1099,7 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        80,
+        -144,
         -80
       ],
       "id": "46c88e05-2bfd-4c0b-9ec8-dc9c841fc635",
@@ -1111,7 +1114,7 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        -1936,
+        -2160,
         -400
       ],
       "id": "0ff3a528-cdd3-4571-bf97-3008bf93a61c",
@@ -1134,7 +1137,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -592,
+        -816,
         -176
       ],
       "id": "ec91e12f-1e66-46df-8ed2-f77195e93742",
@@ -1157,7 +1160,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -7984,
+        -8208,
         -128
       ],
       "id": "398e2d1b-cdfc-4b54-84f4-c94485385807",
@@ -1186,7 +1189,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -4848,
+        -5072,
         -160
       ],
       "id": "5f6fa4e9-18da-4512-b1f2-93376fdab3a0",
@@ -1203,7 +1206,7 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -4624,
+        -4848,
         -256
       ],
       "id": "96280d0d-3829-42a5-8322-a6ad126e24eb",
@@ -1218,7 +1221,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -4400,
+        -4624,
         -256
       ],
       "id": "d8a9e5a9-de94-46a6-8eec-0ade0f39b774",
@@ -1232,7 +1235,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -3504,
+        -3728,
         64
       ],
       "id": "d5a067ce-d69a-40a0-a872-b631a2f5fbf7",
@@ -1247,7 +1250,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -3280,
+        -3504,
         64
       ],
       "id": "8f0d9b8e-22a5-4498-ab7c-653655b23891",
@@ -1271,45 +1274,11 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -9104,
+        -9328,
         -80
       ],
       "id": "3bbeba09-a786-4aaf-88c2-ef52e1275642",
       "name": "Set Page Number"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "7cc2ec9d-6638-4653-8189-14ed9eec7830",
-              "leftValue": "={{ $json[\"Select Mode\"] }}",
-              "rightValue": "🆕 Start a New Conversion",
-              "operator": {
-                "type": "string",
-                "operation": "equals",
-                "name": "filter.operator.equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -11792,
-        224
-      ],
-      "id": "11759da2-46a4-455b-8b34-3d9a18b1a7fb",
-      "name": "New Mode Selected"
     },
     {
       "parameters": {
@@ -1319,7 +1288,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7760,
+        -7984,
         640
       ],
       "id": "34033c1e-8ea6-406c-8692-559a8ee14094",
@@ -1336,7 +1305,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -7536,
+        -7760,
         640
       ],
       "id": "b55dd822-6a36-4db9-9e57-7fe232d0350e",
@@ -1350,7 +1319,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7312,
+        -7536,
         640
       ],
       "id": "ac49d3de-3c4e-4b43-b351-09d0ac385243",
@@ -1367,7 +1336,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -7088,
+        -7312,
         640
       ],
       "id": "be697eda-9a3f-4f77-864b-da5c58ca73cf",
@@ -1381,7 +1350,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -6864,
+        -7088,
         640
       ],
       "id": "33d02734-00b9-4a71-93ec-1df5cb30a777",
@@ -1408,46 +1377,12 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -8656,
+        -8880,
         560
       ],
       "id": "0a341644-cb35-465b-993c-8788c356a6f5",
       "name": "Page Knitting Configuration",
       "webhookId": "b6c2ed1a-c196-4079-ba1d-41c055ed1832"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "082f68c7-2bc1-4c42-bda2-2a2e21c7f15f",
-              "leftValue": "🧶 Knit Pages Together",
-              "rightValue": "={{ $('Select Mode').first().json['Select Mode'] }}",
-              "operator": {
-                "type": "string",
-                "operation": "equals",
-                "name": "filter.operator.equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -11568,
-        688
-      ],
-      "id": "fc4b00c9-fc88-48d1-984c-5a43dfc6c229",
-      "name": "Knit Mode Selected"
     },
     {
       "parameters": {
@@ -1466,7 +1401,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -8432,
+        -8656,
         560
       ],
       "id": "8764539e-e318-4e17-bfc1-9adadaf03f0a",
@@ -1482,7 +1417,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -6640,
+        -6864,
         640
       ],
       "id": "25a8edf8-7ad9-41e6-991c-855997c3defc",
@@ -1502,7 +1437,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -6416,
+        -6640,
         640
       ],
       "id": "46692609-688b-4f3b-88b6-0daaa14b1d96",
@@ -1519,7 +1454,7 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -6192,
+        -6416,
         640
       ],
       "id": "04378658-7dab-42e4-9676-2fdfe547673d",
@@ -1534,7 +1469,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -5968,
+        -6192,
         640
       ],
       "id": "d65954a8-d998-4d57-9556-dcaa657ec252",
@@ -1548,7 +1483,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -8208,
+        -8432,
         560
       ],
       "id": "f774a94d-d2d3-4dab-bd16-6c43c7bcf1d0",
@@ -1583,7 +1518,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -7984,
+        -8208,
         560
       ],
       "id": "4bf3a017-2bd3-46dd-bea9-3bc68a923659",
@@ -1597,7 +1532,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -5744,
+        -5968,
         560
       ],
       "id": "28cdd014-aeff-4fff-aeb6-b71c21a9d420",
@@ -1612,7 +1547,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -5520,
+        -5744,
         560
       ],
       "id": "63b7c043-b1f3-4021-801c-4909dda61d4b",
@@ -1642,7 +1577,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -5296,
+        -5520,
         560
       ],
       "id": "64ab376b-6958-44a3-96ba-983eefe7b767",
@@ -1675,11 +1610,192 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1936,
+        -2160,
         112
       ],
       "id": "a663aee1-884f-476d-9843-a99eb3c5a959",
       "name": "Skip Loop if Knit Mode Selected"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json['Select Mode'] }}",
+                    "rightValue": "🆕 Start a New Conversion",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "a68d0de0-688e-42ed-a9ce-b323f74abdfa"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "New"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "3aace82a-a406-474a-8b8b-0f5b07303a2d",
+                    "leftValue": "={{ $json['Select Mode'] }}",
+                    "rightValue": "🔁 Continue Previous Conversion",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Continue"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "3d126da3-df33-48c6-8f86-52b6b3d44f73",
+                    "leftValue": "={{ $json['Select Mode'] }}",
+                    "rightValue": "🧶 Knit Pages Together",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Knit"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "c1f2d3d2-4478-4bbc-ae5c-a833137d0ea6",
+                    "leftValue": "={{ $json['Select Mode'] }}",
+                    "rightValue": "🎙️ Read with a Different Voice",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ChangeVoice"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -11792,
+        656
+      ],
+      "id": "4fb342a8-6e48-4afd-a09f-739cf85a7d07",
+      "name": "Select Mode Router"
+    },
+    {
+      "parameters": {
+        "url": "http://kokoro:8880/v1/audio/voices",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -11568,
+        1024
+      ],
+      "id": "edbc78b3-4df0-4fbc-ad3d-e5e624f45f58",
+      "name": "Fetch Available Voices"
+    },
+    {
+      "parameters": {
+        "defineForm": "json",
+        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"Which page number has the text you want to change?\",\n    fieldName: \"pageNumber\",\n    fieldType: \"number\",\n    requiredField: true\n  },\n  {\n    fieldLabel: \"Which voice should read this text?\",\n    fieldName: \"voice\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: $('Fetch Available Voices').item.json.voices.map(v => ({ option: v.id }))\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"What text should be read in that voice?\",\n    fieldName: \"textToChange\",\n    fieldType: \"textarea\",\n    requiredField: true\n  }\n] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        -11344,
+        1024
+      ],
+      "id": "99c165d5-b8a7-4517-902f-cd7439b3dd29",
+      "name": "Change Voice Configuration",
+      "webhookId": "4b275d02-b3b2-42f6-a019-5cfbab8d8b0d"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4ffa83fb-8f9c-4e82-9d63-1ab36220bb26",
+              "name": "pageNumber",
+              "value": "={{ $json.pageNumber }}",
+              "type": "number"
+            },
+            {
+              "id": "94247326-a301-4604-959c-e6e87b60766b",
+              "name": "voice",
+              "value": "={{ $json.voice }}",
+              "type": "string"
+            },
+            {
+              "id": "016e2d5e-0f35-4687-81f9-bc5857ec46eb",
+              "name": "textToChange",
+              "value": "={{ $json.textToChange }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -11120,
+        1024
+      ],
+      "id": "850f9621-bd56-4994-b7d7-90d3bf23d247",
+      "name": "Set Change-Voice Page Number"
     }
   ],
   "pinData": {},
@@ -1922,7 +2038,7 @@
       "main": [
         [
           {
-            "node": "New Mode Selected",
+            "node": "Select Mode Router",
             "type": "main",
             "index": 0
           }
@@ -2397,24 +2513,6 @@
         ]
       ]
     },
-    "New Mode Selected": {
-      "main": [
-        [
-          {
-            "node": "Select PDF File",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Knit Mode Selected",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Read Left Page Transcription from Disk": {
       "main": [
         [
@@ -2464,24 +2562,6 @@
         [
           {
             "node": "Knit Images",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Knit Mode Selected": {
-      "main": [
-        [
-          {
-            "node": "Page Knitting Configuration",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Verify if PDF Is Uploaded",
             "type": "main",
             "index": 0
           }
@@ -2633,6 +2713,60 @@
           }
         ]
       ]
+    },
+    "Select Mode Router": {
+      "main": [
+        [
+          {
+            "node": "Select PDF File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Verify if PDF Is Uploaded",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Page Knitting Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fetch Available Voices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Available Voices": {
+      "main": [
+        [
+          {
+            "node": "Change Voice Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Change Voice Configuration": {
+      "main": [
+        [
+          {
+            "node": "Set Change-Voice Page Number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -2644,7 +2778,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "e839c682-10d3-4ca9-bcc5-b159bf0d3521",
+  "versionId": "d70f0307-3a29-4661-ae01-11c7b6a20221",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "0d58a7a3f156139856be42466a14e05f00173514ac9794a8494b09c53ea173a0"
