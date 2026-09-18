@@ -1741,7 +1741,7 @@
       "typeVersion": 4.5,
       "position": [
         -11568,
-        1024
+        1088
       ],
       "id": "edbc78b3-4df0-4fbc-ad3d-e5e624f45f58",
       "name": "Fetch Available Voices"
@@ -1756,7 +1756,7 @@
       "typeVersion": 2.5,
       "position": [
         -11344,
-        1024
+        1088
       ],
       "id": "99c165d5-b8a7-4517-902f-cd7439b3dd29",
       "name": "Change Voice Configuration",
@@ -1796,6 +1796,145 @@
       ],
       "id": "850f9621-bd56-4994-b7d7-90d3bf23d247",
       "name": "Set Change-Voice Page Number"
+    },
+    {
+      "parameters": {
+        "fileSelector": "=temp/{{ $('Set Change-Voice Page Number').item.json.pageNumber }}_transcription_normalized.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -10896,
+        1024
+      ],
+      "id": "9d9aca69-8e80-4906-8d86-5046bd5aefb4",
+      "name": "Read Normalized Transcript for Voice Change",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c367ca33-bcb2-4810-b255-92f15c65eae3",
+              "leftValue": "={{ (!!$binary && Object.keys($binary).length > 0).toString() }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -10672,
+        1024
+      ],
+      "id": "0e5e49fb-3cbc-4315-b6dd-9e2803541f16",
+      "name": "Change Voice Page File Exists?"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "destinationKey": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -10448,
+        896
+      ],
+      "id": "0ae68c95-1176-4986-a91b-7fbcb3d05568",
+      "name": "Extract Normalized Transcript for Voice Change"
+    },
+    {
+      "parameters": {
+        "formFields": {
+          "values": []
+        },
+        "options": {
+          "formDescription": "={{ \"Page \" + $('Set Change-Voice Page Number').item.json.pageNumber + \" has no processed transcript yet, please click Submit below to try again.\" }}"
+        }
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        -10448,
+        1184
+      ],
+      "id": "79b32d7f-bf84-4983-909d-cb8224832a75",
+      "name": "Error Message [\"Page Not Found\"]",
+      "webhookId": "dbba5561-3c7e-4e48-81f2-78bde770d831"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "30fb269e-c925-43c7-bc91-d9e48894a533",
+              "name": "result",
+              "value": "={{\n(() => {\n  const parsed = JSON.parse($json.text);\n  const wordMap = parsed.wordMap;\n  const target = $('Set Change-Voice Page Number').item.json.textToChange.trim().split(/\\s+/).filter(w => w);\n  const voice = $('Set Change-Voice Page Number').item.json.voice;\n\n  let matchStart = -1;\n  for (let i = 0; i <= wordMap.length - target.length; i++) {\n    let ok = true;\n    for (let k = 0; k < target.length; k++) {\n      if (wordMap[i + k].original.toLowerCase() !== target[k].toLowerCase()) { ok = false; break; }\n    }\n    if (ok) { matchStart = i; break; }\n  }\n  if (matchStart === -1) return JSON.stringify({ found: false });\n\n  const matchEnd = matchStart + target.length;\n  const before = wordMap.slice(0, matchStart).map(w => w.normalized).join(' ');\n  const middle = wordMap.slice(matchStart, matchEnd).map(w => w.normalized).join(' ');\n  const after = wordMap.slice(matchEnd).map(w => w.normalized).join(' ');\n  const wrapped = [before, `[voice:${voice}] ${middle} [voice:af_heart]`, after].filter(Boolean).join(' ');\n\n  return JSON.stringify({ found: true, text: wrapped, wordMap: wordMap });\n})()\n}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -10224,
+        896
+      ],
+      "id": "619d1030-244b-4c00-9b06-2570bb3b5574",
+      "name": "Find and Wrap Voice Span"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "dd5cfd64-f954-4f26-9293-9f872ee1e179",
+              "leftValue": "={{ JSON.parse($json.result).found }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -10000,
+        896
+      ],
+      "id": "809f180c-1e16-4bfe-b124-281ade989273",
+      "name": "Voice Span Exists?"
     }
   ],
   "pinData": {},
@@ -2767,6 +2906,79 @@
           }
         ]
       ]
+    },
+    "Set Change-Voice Page Number": {
+      "main": [
+        [
+          {
+            "node": "Read Normalized Transcript for Voice Change",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Normalized Transcript for Voice Change": {
+      "main": [
+        [
+          {
+            "node": "Change Voice Page File Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Change Voice Page File Exists?": {
+      "main": [
+        [
+          {
+            "node": "Extract Normalized Transcript for Voice Change",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Message [\"Page Not Found\"]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Message [\"Page Not Found\"]": {
+      "main": [
+        [
+          {
+            "node": "Change Voice Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Normalized Transcript for Voice Change": {
+      "main": [
+        [
+          {
+            "node": "Find and Wrap Voice Span",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find and Wrap Voice Span": {
+      "main": [
+        [
+          {
+            "node": "Voice Span Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -2778,7 +2990,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "d70f0307-3a29-4661-ae01-11c7b6a20221",
+  "versionId": "e33b8c83-0ead-4903-b07c-d3d0e0361fe6",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "0d58a7a3f156139856be42466a14e05f00173514ac9794a8494b09c53ea173a0"
