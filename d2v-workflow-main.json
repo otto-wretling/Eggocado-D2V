@@ -148,7 +148,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "={{ (() => {\n    const isKnit = !$('Set Page Number').isExecuted;\n    const left = isKnit ? $('Page Knitting Configuration').item.json['⬅️ Left Page Number'] : null;\n    const right = isKnit ? $('Page Knitting Configuration').item.json['Right Page Number ➡️'] : null;\n    const p = isKnit ? `${left}-${right}_knit` : $('Set Page Number').item.json.pageNumber;\n    const img = isKnit ? `temp/${left}-${right}_knit_image.png` : `temp/${p}_image.png`;\n    const ffmpegCmd = isKnit ? `ffmpeg -y -loop 1 -t \"$DUR\" -i ${img} -i temp/${p}_audio.wav -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/${p}_clip.mp4` : `ffmpeg -y -loop 1 -t \"$DUR\" -i ${img} -i temp/${p}_audio.wav -filter_complex \"[0:v]split[bg_src][fg_src];[bg_src]scale=iw*2:ih,boxblur=20:3[bg];[fg_src]scale=trunc(iw/2)*2:trunc(ih/2)*2[fg];[bg][fg]overlay=(main_w-overlay_w)/2:0[v]\" -map \"[v]\" -map 1:a -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/${p}_clip.mp4`;\n    return [\n      'export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH',\n      `DUR=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 temp/${p}_audio.wav)`,\n      `sed -i '' 's/\"audioDuration\":null/\"audioDuration\":'\"$DUR\"'/' temp/${p}_timestamps.json`,\n      ffmpegCmd,\n      `xattr -d com.apple.quarantine temp/${p}_clip.mp4`\n    ].join(' && ');\n  })() }}"
+              "value": "={{ (() => {\n    const isKnit = !$('Set Page Number').isExecuted && !$('Set Change-Voice Page Number').isExecuted;\n    const left = isKnit ? $('Page Knitting Configuration').item.json['⬅️ Left Page Number'] : null;\n    const right = isKnit ? $('Page Knitting Configuration').item.json['Right Page Number ➡️'] : null;\n    const p = isKnit ? `${left}-${right}_knit` : ($('Set Page Number').isExecuted ? $('Set Page Number').item.json.pageNumber : $('Set Change-Voice Page Number').item.json.pageNumber);\n    const img = isKnit ? `temp/${left}-${right}_knit_image.png` : `temp/${p}_image.png`;\n    const ffmpegCmd = isKnit ? `ffmpeg -y -loop 1 -t \"$DUR\" -i ${img} -i temp/${p}_audio.wav -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/${p}_clip.mp4` : `ffmpeg -y -loop 1 -t \"$DUR\" -i ${img} -i temp/${p}_audio.wav -filter_complex \"[0:v]split[bg_src][fg_src];[bg_src]scale=iw*2:ih,boxblur=20:3[bg];[fg_src]scale=trunc(iw/2)*2:trunc(ih/2)*2[fg];[bg][fg]overlay=(main_w-overlay_w)/2:0[v]\" -map \"[v]\" -map 1:a -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/${p}_clip.mp4`;\n    return [\n      'export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH',\n      `DUR=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 temp/${p}_audio.wav)`,\n      `sed -i '' 's/\"audioDuration\":null/\"audioDuration\":'\"$DUR\"'/' temp/${p}_timestamps.json`,\n      ffmpegCmd,\n      `xattr -d com.apple.quarantine temp/${p}_clip.mp4`\n    ].join(' && ');\n  })() }}"
             }
           ]
         },
@@ -172,7 +172,7 @@
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/temp/{{ $('Set Page Number').isExecuted ? ($('Set Page Number').item.json.pageNumber + '_audio.wav') : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_audio.wav') }}",
+        "fileName": "=/home/node/project/temp/{{ ($('Set Page Number').isExecuted || $('Set Change-Voice Page Number').isExecuted) ? ($('Set Page Number').isExecuted ? $('Set Page Number').item.json.pageNumber : $('Set Change-Voice Page Number').item.json.pageNumber) + '_audio.wav' : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_audio.wav') }}",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
@@ -463,6 +463,9 @@
                   },
                   {
                     "option": "🎙️ Read with a Different Voice"
+                  },
+                  {
+                    "option": "🔊 Create Sample Video"
                   }
                 ]
               },
@@ -476,7 +479,7 @@
       "typeVersion": 2.5,
       "position": [
         -12016,
-        688
+        752
       ],
       "id": "e30640c2-0bae-4918-8c6f-96e9ceb44d5e",
       "name": "Select Mode",
@@ -788,7 +791,7 @@
             {
               "id": "87d8b8eb-bb8a-48da-8237-869892a6ce76",
               "name": "timestampsJson",
-              "value": "={{ JSON.stringify({\n    pageIndex: $('Set Page Number').isExecuted ? $('Set Page Number').item.json.pageNumber : $('Set Knit Page Number').item.json.pageNumber,\n    knitPages: $('Set Page Number').isExecuted ? null : [$('Page Knitting Configuration').item.json['⬅️ Left Page Number'], $('Page Knitting Configuration').item.json['Right Page Number ➡️']],\n    audioDuration: null,\n    timestamps: $('Request TTS with Timestamps').item.json.timestamps,\n    wordMap: JSON.parse($json.text)\n  }) }}",
+              "value": "={{ JSON.stringify({\n    pageIndex: $('Set Page Number').isExecuted ? $('Set Page Number').item.json.pageNumber : ($('Set Change-Voice Page Number').isExecuted ? $('Set Change-Voice Page Number').item.json.pageNumber : $('Set Knit Page Number').item.json.pageNumber),\n    knitPages: ($('Set Page Number').isExecuted || $('Set Change-Voice Page Number').isExecuted) ? null : [$('Page Knitting Configuration').item.json['⬅️ Left Page Number'], $('Page Knitting Configuration').item.json['Right Page Number ➡️']],\n    audioDuration: null,\n    timestamps: $('Request TTS with Timestamps').item.json.timestamps,\n    wordMap: JSON.parse($json.text)\n  }) }}",
               "type": "string"
             },
             {
@@ -837,7 +840,7 @@
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/temp/{{ $('Set Page Number').isExecuted ? ($('Set Page Number').item.json.pageNumber + '_timestamps.json') : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_timestamps.json') }}",
+        "fileName": "=/home/node/project/temp/{{ ($('Set Page Number').isExecuted || $('Set Change-Voice Page Number').isExecuted) ? ($('Set Page Number').isExecuted ? $('Set Page Number').item.json.pageNumber : $('Set Change-Voice Page Number').item.json.pageNumber) + '_timestamps.json' : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_timestamps.json') }}",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
@@ -1585,39 +1588,6 @@
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "d0969b53-a837-4ae7-9775-7aeb44939204",
-              "leftValue": "true",
-              "rightValue": "={{ $('Set Knit Page Number').isExecuted.toString() }}",
-              "operator": {
-                "type": "string",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -2160,
-        112
-      ],
-      "id": "a663aee1-884f-476d-9843-a99eb3c5a959",
-      "name": "Skip Loop if Knit Mode Selected"
-    },
-    {
-      "parameters": {
         "rules": {
           "values": [
             {
@@ -1718,6 +1688,31 @@
               },
               "renameOutput": true,
               "outputKey": "ChangeVoice"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d3acb58b-ee6b-4324-aee2-1c4ff7f099e4",
+                    "leftValue": "={{ $json['Select Mode'] }}",
+                    "rightValue": "🔊 Create Sample Video",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "SampleVideo"
             }
           ]
         },
@@ -1727,7 +1722,7 @@
       "typeVersion": 3.4,
       "position": [
         -11792,
-        656
+        704
       ],
       "id": "4fb342a8-6e48-4afd-a09f-739cf85a7d07",
       "name": "Select Mode Router"
@@ -1740,8 +1735,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.5,
       "position": [
-        -11568,
-        1088
+        -11344,
+        1312
       ],
       "id": "edbc78b3-4df0-4fbc-ad3d-e5e624f45f58",
       "name": "Fetch Available Voices"
@@ -1755,8 +1750,8 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -11344,
-        1088
+        -10896,
+        1136
       ],
       "id": "99c165d5-b8a7-4517-902f-cd7439b3dd29",
       "name": "Change Voice Configuration",
@@ -1791,8 +1786,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -11120,
-        1024
+        -10672,
+        928
       ],
       "id": "850f9621-bd56-4994-b7d7-90d3bf23d247",
       "name": "Set Change-Voice Page Number"
@@ -1805,8 +1800,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -10896,
-        1024
+        -10448,
+        928
       ],
       "id": "9d9aca69-8e80-4906-8d86-5046bd5aefb4",
       "name": "Read Normalized Transcript for Voice Change",
@@ -1839,8 +1834,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -10672,
-        1024
+        -10224,
+        928
       ],
       "id": "0e5e49fb-3cbc-4315-b6dd-9e2803541f16",
       "name": "Change Voice Page File Exists?"
@@ -1854,8 +1849,8 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -10448,
-        896
+        -10000,
+        832
       ],
       "id": "0ae68c95-1176-4986-a91b-7fbcb3d05568",
       "name": "Extract Normalized Transcript for Voice Change"
@@ -1872,8 +1867,8 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -10448,
-        1184
+        -10000,
+        1024
       ],
       "id": "79b32d7f-bf84-4983-909d-cb8224832a75",
       "name": "Error Message [\"Page Not Found\"]",
@@ -1896,8 +1891,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -10224,
-        896
+        -9776,
+        832
       ],
       "id": "619d1030-244b-4c00-9b06-2570bb3b5574",
       "name": "Find and Wrap Voice Span"
@@ -1930,11 +1925,242 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -10000,
-        896
+        -9552,
+        832
       ],
       "id": "809f180c-1e16-4bfe-b124-281ade989273",
       "name": "Voice Span Exists?"
+    },
+    {
+      "parameters": {
+        "options": {
+          "formDescription": "={{ \"The text \\\"\" + $('Set Change-Voice Page Number').item.json.textToChange + \"\\\" wasn't found on page \" + $('Set Change-Voice Page Number').item.json.pageNumber + \". Please try again.\" }}"
+        }
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        -9328,
+        1120
+      ],
+      "id": "17d1ccf2-ae40-42d3-9549-1806742f5441",
+      "name": "Error Message [\"Text Not Found\"]",
+      "webhookId": "88d38d05-7bb2-4e1e-843b-fb007276b3d8"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "result",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -9328,
+        784
+      ],
+      "id": "9fc25031-8f53-43ae-b458-fd9b4ac81879",
+      "name": "Convert Voice Span Result to File"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=temp/{{ $('Set Change-Voice Page Number').item.json.pageNumber }}_transcription_normalized.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -9104,
+        784
+      ],
+      "id": "10b90bd0-238c-4530-bf06-f6dcad15de52",
+      "name": "Save Updated Transcript for Voice Change"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d0969b53-a837-4ae7-9775-7aeb44939204",
+              "leftValue": "true",
+              "rightValue": "={{ ($('Set Knit Page Number').isExecuted || $('Set Change-Voice Page Number').isExecuted).toString() }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2160,
+        112
+      ],
+      "id": "a663aee1-884f-476d-9843-a99eb3c5a959",
+      "name": "Skip Loop for Knit or Voice-Change Modes"
+    },
+    {
+      "parameters": {
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "What phrase should each voice say? Use {voice} where the voice's name should go.",
+              "fieldType": "textarea",
+              "defaultValue": "This is what {voice} sounds like."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        -11568,
+        1024
+      ],
+      "id": "4c3bcc17-f301-4989-b51f-89224ac605d4",
+      "name": "Sample Video Configuration",
+      "webhookId": "e909f839-5893-469e-886a-846e2bd15b55"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Select Mode').item.json['Select Mode'] }}",
+                    "rightValue": "🎙️ Read with a Different Voice",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "19756609-f5f0-405e-9b70-5b055825a0b5"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ChangeVoice"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "49187e11-bbbf-428d-9af8-bb300077f256",
+                    "leftValue": "={{ $('Select Mode').item.json['Select Mode'] }}",
+                    "rightValue": "🔊 Create Sample Video",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "SampleVideo"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -11120,
+        1312
+      ],
+      "id": "29c71036-e908-41d5-a403-510eb210f732",
+      "name": "Voice-Fetch Mode Router"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "voices",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -10896,
+        1424
+      ],
+      "id": "5a8e687a-7054-4e33-b85f-910442244aab",
+      "name": "Split Out Sample Voices"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -10672,
+        1424
+      ],
+      "id": "2b801e96-ae7c-4913-85b1-3f31f6514168",
+      "name": "Process Voices One by One"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "13583d3c-2020-4dce-9f08-773766d0f065",
+              "name": "voiceId",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "9651fbb3-db8c-4021-ad09-50b415d9aa8c",
+              "name": "friendlyName",
+              "value": "={{ $json.id.split('_')[1][0].toUpperCase() + $json.id.split('_')[1].slice(1) }}",
+              "type": "string"
+            },
+            {
+              "id": "6ad12437-104a-4061-a88c-c80bcfc46e60",
+              "name": "text",
+              "value": "={{ $('Sample Video Configuration').item.json[\"What phrase should each voice say? Use {voice} where the voice's name should go.\"].replace('{voice}', $json.id.split('_')[1][0].toUpperCase() + $json.id.split('_')[1].slice(1)) }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -10448,
+        1424
+      ],
+      "id": "c6360b25-203d-42aa-bb86-2512835944f5",
+      "name": "Set Sample Voice Number"
     }
   ],
   "pinData": {},
@@ -2027,7 +2253,7 @@
       "main": [
         [
           {
-            "node": "Skip Loop if Knit Mode Selected",
+            "node": "Skip Loop for Knit or Voice-Change Modes",
             "type": "main",
             "index": 0
           }
@@ -2835,24 +3061,6 @@
         ]
       ]
     },
-    "Skip Loop if Knit Mode Selected": {
-      "main": [
-        [
-          {
-            "node": "Read All Timestamps from Disk",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Process Pages One by One",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Select Mode Router": {
       "main": [
         [
@@ -2882,6 +3090,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Sample Video Configuration",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -2889,7 +3104,7 @@
       "main": [
         [
           {
-            "node": "Change Voice Configuration",
+            "node": "Voice-Fetch Mode Router",
             "type": "main",
             "index": 0
           }
@@ -2979,6 +3194,138 @@
           }
         ]
       ]
+    },
+    "Voice Span Exists?": {
+      "main": [
+        [
+          {
+            "node": "Convert Voice Span Result to File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Message [\"Text Not Found\"]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Message [\"Text Not Found\"]": {
+      "main": [
+        [
+          {
+            "node": "Change Voice Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Voice Span Result to File": {
+      "main": [
+        [
+          {
+            "node": "Save Updated Transcript for Voice Change",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Updated Transcript for Voice Change": {
+      "main": [
+        [
+          {
+            "node": "Read Normalized Temporary Text File from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Skip Loop for Knit or Voice-Change Modes": {
+      "main": [
+        [
+          {
+            "node": "Read All Timestamps from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Process Pages One by One",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sample Video Configuration": {
+      "main": [
+        [
+          {
+            "node": "Fetch Available Voices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Voice-Fetch Mode Router": {
+      "main": [
+        [
+          {
+            "node": "Change Voice Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Split Out Sample Voices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out Sample Voices": {
+      "main": [
+        [
+          {
+            "node": "Process Voices One by One",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Voices One by One": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Set Sample Voice Number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Sample Voice Number": {
+      "main": [
+        [
+          {
+            "node": "Request Transcript Normalization",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -2990,7 +3337,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "e33b8c83-0ead-4903-b07c-d3d0e0361fe6",
+  "versionId": "284f6efc-2446-4b40-8cfc-ae5370f15210",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "0d58a7a3f156139856be42466a14e05f00173514ac9794a8494b09c53ea173a0"
