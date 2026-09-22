@@ -649,7 +649,7 @@
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/temp/{{ $('Set Page Number').isExecuted ? ($('Set Page Number').item.json.pageNumber + '_transcription_normalized.txt') : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_transcription_normalized.txt') }}",
+        "fileName": "=/home/node/project/temp/{{\n  $('Set Page Number').isExecuted\n    ? ($('Set Page Number').item.json.pageNumber + '_transcription_normalized.txt')\n    : ($('Set Sample Voice Number').isExecuted\n        ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_transcription_normalized.txt')\n        : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_transcription_normalized.txt')\n      )\n}}",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
@@ -1218,7 +1218,7 @@
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/temp/{{ $('Set Page Number').isExecuted ? ($('Set Page Number').item.json.pageNumber + '_wordmap.json') : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_wordmap.json') }}",
+        "fileName": "=/home/node/project/temp/{{\n  $('Set Page Number').isExecuted\n    ? ($('Set Page Number').item.json.pageNumber + '_wordmap.json')\n    : ($('Set Sample Voice Number').isExecuted\n        ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_wordmap.json')\n        : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_wordmap.json')\n      )\n}}",
         "options": {}
       },
       "type": "n8n-nodes-base.readWriteFile",
@@ -3337,7 +3337,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "284f6efc-2446-4b40-8cfc-ae5370f15210",
+  "versionId": "246ea675-bd1e-40e4-869b-c0085c87ff02",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "0d58a7a3f156139856be42466a14e05f00173514ac9794a8494b09c53ea173a0"
