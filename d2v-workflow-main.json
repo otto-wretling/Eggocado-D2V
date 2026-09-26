@@ -49,41 +49,41 @@
           }
         }
       },
+      "id": "a6c61e91-f96d-42ae-9ee8-145f77258e41",
+      "name": "Extract Images from PDF",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
         -10224,
         -16
-      ],
-      "id": "a6c61e91-f96d-42ae-9ee8-145f77258e41",
-      "name": "Extract Images from PDF"
+      ]
     },
     {
       "parameters": {
         "outputPrefix": "page"
       },
+      "id": "c0aba882-7fa6-46e7-a7e2-e3cb421f4c95",
+      "name": "Unzip Images",
       "type": "n8n-nodes-base.compression",
       "typeVersion": 1.1,
       "position": [
         -10000,
         -16
-      ],
-      "id": "c0aba882-7fa6-46e7-a7e2-e3cb421f4c95",
-      "name": "Unzip Images"
+      ]
     },
     {
       "parameters": {
         "fieldToSplitOut": "$binary",
         "options": {}
       },
+      "id": "5dd1bf69-114c-48c6-8c86-3e53422b476c",
+      "name": "Send Images One by One",
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
         -9776,
         -16
-      ],
-      "id": "5dd1bf69-114c-48c6-8c86-3e53422b476c",
-      "name": "Send Images One by One"
+      ]
     },
     {
       "parameters": {
@@ -92,14 +92,14 @@
         "dataPropertyName": "={{Object.keys($binary)[0]}}",
         "options": {}
       },
+      "id": "b4b16bee-382c-4d6b-b14b-c8522863b04c",
+      "name": "Create Temporary Image File on Disk",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -9104,
         -80
-      ],
-      "id": "b4b16bee-382c-4d6b-b14b-c8522863b04c",
-      "name": "Create Temporary Image File on Disk"
+      ]
     },
     {
       "parameters": {
@@ -131,14 +131,14 @@
           "timeout": 3600000
         }
       },
+      "id": "741b1118-29dc-4b38-9969-8acf1a7ee608",
+      "name": "Request Image Transcription",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
         -6416,
         -224
-      ],
-      "id": "741b1118-29dc-4b38-9969-8acf1a7ee608",
-      "name": "Request Image Transcription"
+      ]
     },
     {
       "parameters": {
@@ -148,7 +148,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "={{ (() => {\n    const isKnit = !$('Set Page Number').isExecuted && !$('Set Change-Voice Page Number').isExecuted;\n    const left = isKnit ? $('Page Knitting Configuration').item.json['⬅️ Left Page Number'] : null;\n    const right = isKnit ? $('Page Knitting Configuration').item.json['Right Page Number ➡️'] : null;\n    const p = isKnit ? `${left}-${right}_knit` : ($('Set Page Number').isExecuted ? $('Set Page Number').item.json.pageNumber : $('Set Change-Voice Page Number').item.json.pageNumber);\n    const img = isKnit ? `temp/${left}-${right}_knit_image.png` : `temp/${p}_image.png`;\n    const ffmpegCmd = isKnit ? `ffmpeg -y -loop 1 -t \"$DUR\" -i ${img} -i temp/${p}_audio.wav -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/${p}_clip.mp4` : `ffmpeg -y -loop 1 -t \"$DUR\" -i ${img} -i temp/${p}_audio.wav -filter_complex \"[0:v]split[bg_src][fg_src];[bg_src]scale=iw*2:ih,boxblur=20:3[bg];[fg_src]scale=trunc(iw/2)*2:trunc(ih/2)*2[fg];[bg][fg]overlay=(main_w-overlay_w)/2:0[v]\" -map \"[v]\" -map 1:a -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/${p}_clip.mp4`;\n    return [\n      'export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH',\n      `DUR=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 temp/${p}_audio.wav)`,\n      `sed -i '' 's/\"audioDuration\":null/\"audioDuration\":'\"$DUR\"'/' temp/${p}_timestamps.json`,\n      ffmpegCmd,\n      `xattr -d com.apple.quarantine temp/${p}_clip.mp4`\n    ].join(' && ');\n  })() }}"
+              "value": "={{ (() => {\n    const isPage = $('Set Page Number').isExecuted;\n    const isChangeVoice = $('Set Change-Voice Page Number').isExecuted;\n    const isSample = $('Set Sample Voice Number').isExecuted;\n    const isKnit = !isPage && !isChangeVoice && !isSample;\n    const left = isKnit ? $('Page Knitting Configuration').item.json['⬅️ Left Page Number'] : null;\n    const right = isKnit ? $('Page Knitting Configuration').item.json['Right Page Number ➡️'] : null;\n    const p = isKnit\n      ? `${left}-${right}_knit`\n      : (isPage\n          ? $('Set Page Number').item.json.pageNumber\n          : (isChangeVoice\n              ? $('Set Change-Voice Page Number').item.json.pageNumber\n              : 'sample_' + $('Set Sample Voice Number').item.json.voiceId\n            )\n        );\n    const img = isKnit ? `temp/${left}-${right}_knit_image.png` : `temp/${p}_image.png`;\n    const cellFile = `temp/${p}_cell.png`;\n    const name = isSample ? $('Set Sample Voice Number').item.json.friendlyName : null;\n\n    const sampleImageCmds = isSample ? [\n      'REFW=1920',\n      'REFH=1080',\n      'FONTSIZE=$((REFH / 12))',\n      `NAME='${name}'`,\n      'NAMELEN=${#NAME}',\n      'CELLW=$(( (NAMELEN * FONTSIZE * 6 / 10) + FONTSIZE ))',\n      'CELLH=$(( FONTSIZE * 2 ))',\n      'COLS=$(( (REFW + CELLW - 1) / CELLW ))',\n      'ROWS=$(( (REFH + CELLH - 1) / CELLH ))',\n      `ffmpeg -y -f lavfi -i color=white:s=\\${CELLW}x\\${CELLH} -vf \"drawtext=text='\\${NAME}':fontcolor=black:fontsize=\\${FONTSIZE}:x=(w-text_w)/2:y=(h-text_h)/2\" -frames:v 1 ${cellFile}`,\n      `ffmpeg -y -i ${cellFile} -filter_complex \"tile=\\${COLS}x\\${ROWS}\" -vf \"crop=\\${REFW}:\\${REFH}:0:0\" -frames:v 1 ${img}`\n    ] : [];\n\n    const ffmpegCmd = isKnit\n      ? `ffmpeg -y -loop 1 -t \"$DUR\" -i ${img} -i temp/${p}_audio.wav -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/${p}_clip.mp4`\n      : `ffmpeg -y -loop 1 -t \"$DUR\" -i ${img} -i temp/${p}_audio.wav -filter_complex \"[0:v]split[bg_src][fg_src];[bg_src]scale=iw*2:ih,boxblur=20:3[bg];[fg_src]scale=trunc(iw/2)*2:trunc(ih/2)*2[fg];[bg][fg]overlay=(main_w-overlay_w)/2:0[v]\" -map \"[v]\" -map 1:a -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/${p}_clip.mp4`;\n\n    return [\n      'export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH',\n      ...sampleImageCmds,\n      `DUR=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 temp/${p}_audio.wav)`,\n      `sed -i '' 's/\"audioDuration\":null/\"audioDuration\":'\"$DUR\"'/' temp/${p}_timestamps.json`,\n      ffmpegCmd,\n      `xattr -d com.apple.quarantine temp/${p}_clip.mp4`\n    ].join(' && ');\n  })() }}"
             }
           ]
         },
@@ -160,42 +160,42 @@
           }
         }
       },
+      "id": "22e75862-805e-4f69-b09f-cf72c820ff7e",
+      "name": "Request Clip Assembly",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
         -2384,
         32
-      ],
-      "id": "22e75862-805e-4f69-b09f-cf72c820ff7e",
-      "name": "Request Clip Assembly"
+      ]
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/temp/{{ ($('Set Page Number').isExecuted || $('Set Change-Voice Page Number').isExecuted) ? ($('Set Page Number').isExecuted ? $('Set Page Number').item.json.pageNumber : $('Set Change-Voice Page Number').item.json.pageNumber) + '_audio.wav' : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_audio.wav') }}",
+        "fileName": "=/home/node/project/temp/{{\n  ($('Set Page Number').isExecuted || $('Set Change-Voice Page Number').isExecuted)\n    ? (($('Set Page Number').isExecuted ? $('Set Page Number').item.json.pageNumber : $('Set Change-Voice Page Number').item.json.pageNumber) + '_audio.wav')\n    : ($('Set Sample Voice Number').isExecuted\n        ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_audio.wav')\n        : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_audio.wav')\n      )\n}}",
         "options": {}
       },
+      "id": "2d844c92-584d-498e-b943-70c9ce934f51",
+      "name": "Create Temporary Audio File on Disk",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -2832,
         -128
-      ],
-      "id": "2d844c92-584d-498e-b943-70c9ce934f51",
-      "name": "Create Temporary Audio File on Disk"
+      ]
     },
     {
       "parameters": {
         "options": {}
       },
+      "id": "db86b14b-2f93-43ab-b9cb-c01157cf04db",
+      "name": "Process Pages One by One",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
         -9552,
         -16
-      ],
-      "id": "db86b14b-2f93-43ab-b9cb-c01157cf04db",
-      "name": "Process Pages One by One"
+      ]
     },
     {
       "parameters": {
@@ -205,14 +205,14 @@
           "encoding": "utf8"
         }
       },
+      "id": "35b5d1bd-e292-401d-af03-2b854bd2787f",
+      "name": "Convert Transcription to Text File",
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
         -6192,
         -224
-      ],
-      "id": "35b5d1bd-e292-401d-af03-2b854bd2787f",
-      "name": "Convert Transcription to Text File"
+      ]
     },
     {
       "parameters": {
@@ -220,28 +220,28 @@
         "fileName": "=/home/node/project/temp/{{$('Set Page Number').item.json.pageNumber}}_transcription.txt",
         "options": {}
       },
+      "id": "94de2d31-18e9-4502-a4b0-6566b66e7507",
+      "name": "Create Temporary Text File on Disk",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -5968,
         -224
-      ],
-      "id": "94de2d31-18e9-4502-a4b0-6566b66e7507",
-      "name": "Create Temporary Text File on Disk"
+      ]
     },
     {
       "parameters": {
         "fileSelector": "=/home/node/project/temp/{{$('Set Page Number').item.json.pageNumber}}_transcription.txt",
         "options": {}
       },
+      "id": "384d6717-1c80-4b31-8f6f-77783551ed8a",
+      "name": "Read Temporary Text File from Disk",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -5744,
         -160
-      ],
-      "id": "384d6717-1c80-4b31-8f6f-77783551ed8a",
-      "name": "Read Temporary Text File from Disk"
+      ]
     },
     {
       "parameters": {
@@ -251,14 +251,14 @@
           "encoding": "utf8"
         }
       },
+      "id": "6b54b028-b46a-47a8-ac4a-e1073980d3eb",
+      "name": "Extract Transcription from Text File",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
         -5520,
         -160
-      ],
-      "id": "6b54b028-b46a-47a8-ac4a-e1073980d3eb",
-      "name": "Extract Transcription from Text File"
+      ]
     },
     {
       "parameters": {
@@ -268,14 +268,14 @@
           "encoding": "utf8"
         }
       },
+      "id": "837a24a3-e583-4fbe-8e1a-5b17ae35e099",
+      "name": "Convert Updated Transcription to Text File",
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
         -4848,
         -32
-      ],
-      "id": "837a24a3-e583-4fbe-8e1a-5b17ae35e099",
-      "name": "Convert Updated Transcription to Text File"
+      ]
     },
     {
       "parameters": {
@@ -285,7 +285,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "=export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH && mkdir -p output && find temp -maxdepth 1 -name \"*_clip.mp4\" | sort -V | while read f; do b=$(basename \"$f\" _clip.mp4); case \"$b\" in *_knit) echo \"file '$PWD/$f'\";; *) ls \"temp/${b}-\"*\"_knit_clip.mp4\" 2>/dev/null | grep -q . || ls \"temp/\"*\"-${b}_knit_clip.mp4\" 2>/dev/null | grep -q . || echo \"file '$PWD/$f'\";; esac; done > temp/concat_list.txt && MAX_W=0 && for f in temp/*_knit_clip.mp4; do [ -f \"$f\" ] || break; W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$f\" | head -1); if [ \"$W\" -gt \"$MAX_W\" ]; then MAX_W=$W; fi; done && SINGLE=$(find temp -maxdepth 1 -name \"*_clip.mp4\" ! -name \"*_knit_clip.mp4\" | sort -V | head -1) && if [ -n \"$SINGLE\" ]; then CLIP_W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$SINGLE\" | head -1); PAGE_W=$((CLIP_W/2)); if [ \"$PAGE_W\" -gt \"$MAX_W\" ]; then MAX_W=$PAGE_W; fi; else CLIP_W=$MAX_W; fi && TARGET_W=$MAX_W && if [ \"$CLIP_W\" -eq \"$TARGET_W\" ]; then ffmpeg -y -f concat -safe 0 -i temp/concat_list.txt -i temp/final_video_chapters.ffmeta -map_metadata 1 -c copy output/final_video.mp4; elif [ \"$CLIP_W\" -gt \"$TARGET_W\" ]; then X=$(( (CLIP_W - TARGET_W) / 2 )) && ffmpeg -y -f concat -safe 0 -i temp/concat_list.txt -i temp/final_video_chapters.ffmeta -map_metadata 1 -vf \"crop=${TARGET_W}:ih:${X}:0\" -c:v libx264 -preset ultrafast -c:a copy -pix_fmt yuv420p output/final_video.mp4; else OX=$(( (TARGET_W - CLIP_W) / 2 )) && ffmpeg -y -f concat -safe 0 -i temp/concat_list.txt -i temp/final_video_chapters.ffmeta -map_metadata 1 -vf \"split[bg][fg];[bg]scale=${TARGET_W}:ih,boxblur=20:3[bg_b];[fg][bg_b]overlay=${OX}:0\" -c:v libx264 -preset ultrafast -c:a copy -pix_fmt yuv420p output/final_video.mp4; fi && xattr -d com.apple.quarantine \"$PWD/output/final_video.mp4\" 2>/dev/null; true"
+              "value": "={{ (() => {\n    const basename = $('Determine Output Basename').item.json.outputBasename;\n    const clipGlob = $('Determine Output Basename').item.json.tempClipGlob;\n    const chaptersFile = $('Determine Output Basename').item.json.chaptersFile;\n    const simple = $('Determine Output Basename').item.json.useSimpleConcat;\n\n    const simpleCmds = [\n      'mkdir -p output',\n      `find temp -maxdepth 1 -name \"${clipGlob}\" | sort -V | while read f; do echo \"file '$PWD/$f'\"; done > temp/${basename}_concat_list.txt`,\n      `ffmpeg -y -f concat -safe 0 -i temp/${basename}_concat_list.txt -i temp/${chaptersFile} -map_metadata 1 -c copy output/${basename}.mp4`,\n      `xattr -d com.apple.quarantine \"$PWD/output/${basename}.mp4\" 2>/dev/null; true`\n    ];\n\n    const complexCmds = [\n      'mkdir -p output',\n      `find temp -maxdepth 1 -name \"${clipGlob}\" | sort -V | while read f; do b=$(basename \"$f\" _clip.mp4); case \"$b\" in *_knit) echo \"file '$PWD/$f'\";; *) ls \"temp/\\${b}-\"*\"_knit_clip.mp4\" 2>/dev/null | grep -q . || ls \"temp/\"*\"-\\${b}_knit_clip.mp4\" 2>/dev/null | grep -q . || echo \"file '$PWD/$f'\";; esac; done > temp/${basename}_concat_list.txt`,\n      'MAX_W=0',\n      'for f in temp/*_knit_clip.mp4; do [ -f \"$f\" ] || break; W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$f\" | head -1); if [ \"$W\" -gt \"$MAX_W\" ]; then MAX_W=$W; fi; done',\n      `SINGLE=$(find temp -maxdepth 1 -name \"${clipGlob}\" ! -name \"*_knit_clip.mp4\" | sort -V | head -1)`,\n      'if [ -n \"$SINGLE\" ]; then CLIP_W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$SINGLE\" | head -1); PAGE_W=$((CLIP_W/2)); if [ \"$PAGE_W\" -gt \"$MAX_W\" ]; then MAX_W=$PAGE_W; fi; else CLIP_W=$MAX_W; fi',\n      'TARGET_W=$MAX_W',\n      `if [ \"$CLIP_W\" -eq \"$TARGET_W\" ]; then ffmpeg -y -f concat -safe 0 -i temp/${basename}_concat_list.txt -i temp/${chaptersFile} -map_metadata 1 -c copy output/${basename}.mp4; elif [ \"$CLIP_W\" -gt \"$TARGET_W\" ]; then X=$(( (CLIP_W - TARGET_W) / 2 )) && ffmpeg -y -f concat -safe 0 -i temp/${basename}_concat_list.txt -i temp/${chaptersFile} -map_metadata 1 -vf \"crop=\\${TARGET_W}:ih:\\${X}:0\" -c:v libx264 -preset ultrafast -c:a copy -pix_fmt yuv420p output/${basename}.mp4; else OX=$(( (TARGET_W - CLIP_W) / 2 )) && ffmpeg -y -f concat -safe 0 -i temp/${basename}_concat_list.txt -i temp/${chaptersFile} -map_metadata 1 -vf \"split[bg][fg];[bg]scale=\\${TARGET_W}:ih,boxblur=20:3[bg_b];[fg][bg_b]overlay=\\${OX}:0\" -c:v libx264 -preset ultrafast -c:a copy -pix_fmt yuv420p output/${basename}.mp4; fi`,\n      `xattr -d com.apple.quarantine \"$PWD/output/${basename}.mp4\" 2>/dev/null; true`\n    ];\n\n    return ['export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH', ...(simple ? simpleCmds : complexCmds)].join(' && ');\n  })() }}"
             }
           ]
         },
@@ -298,14 +298,14 @@
           "timeout": 3600000
         }
       },
+      "id": "a1aa3900-7c65-4216-9b0b-e6965f3dc6e5",
+      "name": "Request Final Video Assembly",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
         80,
         -80
-      ],
-      "id": "a1aa3900-7c65-4216-9b0b-e6965f3dc6e5",
-      "name": "Request Final Video Assembly"
+      ]
     },
     {
       "parameters": {
@@ -314,14 +314,14 @@
         "destinationKey": "imageBase64",
         "options": {}
       },
+      "id": "62fe1db6-505c-43ba-a902-0dcf670139d1",
+      "name": "Extract from File",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
         -6640,
         -224
-      ],
-      "id": "62fe1db6-505c-43ba-a902-0dcf670139d1",
-      "name": "Extract from File"
+      ]
     },
     {
       "parameters": {
@@ -330,28 +330,28 @@
         "dataPropertyName": "={{ Object.keys($binary)[0] }}",
         "options": {}
       },
+      "id": "b19e93dc-5348-4514-8de7-cea14d8fa172",
+      "name": "Save PDF File to Disk",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -10672,
         -16
-      ],
-      "id": "b19e93dc-5348-4514-8de7-cea14d8fa172",
-      "name": "Save PDF File to Disk"
+      ]
     },
     {
       "parameters": {
         "fileSelector": "=/home/node/project/temp/{{ $binary[Object.keys($binary)[0]].fileName }}",
         "options": {}
       },
+      "id": "fd760034-346e-4ce1-a30e-101286b88beb",
+      "name": "Read PDF File from Disk",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -10448,
         -16
-      ],
-      "id": "fd760034-346e-4ce1-a30e-101286b88beb",
-      "name": "Read PDF File from Disk"
+      ]
     },
     {
       "parameters": {
@@ -368,29 +368,29 @@
         },
         "options": {}
       },
+      "id": "b39d727f-1355-41de-a799-963f87f8dc1c",
+      "name": "Select PDF File",
+      "webhookId": "16ff899e-2f38-4b1e-9eb1-164f02db5a03",
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
         -10896,
         -16
-      ],
-      "id": "b39d727f-1355-41de-a799-963f87f8dc1c",
-      "name": "Select PDF File",
-      "webhookId": "16ff899e-2f38-4b1e-9eb1-164f02db5a03"
+      ]
     },
     {
       "parameters": {
         "fileSelector": "/home/node/project/temp/*.pdf",
         "options": {}
       },
+      "id": "92234fd2-b714-42ce-996e-bfc1e278f7dd",
+      "name": "Verify if PDF Is Uploaded",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -11568,
         752
       ],
-      "id": "92234fd2-b714-42ce-996e-bfc1e278f7dd",
-      "name": "Verify if PDF Is Uploaded",
       "onError": "continueRegularOutput"
     },
     {
@@ -417,14 +417,14 @@
         },
         "options": {}
       },
+      "id": "70df9400-575c-4f08-b7a1-d03ad638247a",
+      "name": "Previous PDF Is Uploaded",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
         -11344,
         752
-      ],
-      "id": "70df9400-575c-4f08-b7a1-d03ad638247a",
-      "name": "Previous PDF Is Uploaded"
+      ]
     },
     {
       "parameters": {
@@ -432,15 +432,15 @@
           "formDescription": "No PDF file was selected, please click Submit below to continue to upload a PDF and start a new conversion."
         }
       },
+      "id": "64f860fb-7e4e-478b-8a1a-db53e5b5fe88",
+      "name": "Error Message [\"No PDF File Found\"]",
+      "webhookId": "289755c0-98be-4489-8f8c-6c7ab2bc8509",
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
         -11120,
         832
-      ],
-      "id": "64f860fb-7e4e-478b-8a1a-db53e5b5fe88",
-      "name": "Error Message [\"No PDF File Found\"]",
-      "webhookId": "289755c0-98be-4489-8f8c-6c7ab2bc8509"
+      ]
     },
     {
       "parameters": {
@@ -475,29 +475,29 @@
         },
         "options": {}
       },
+      "id": "e30640c2-0bae-4918-8c6f-96e9ceb44d5e",
+      "name": "Select Mode",
+      "webhookId": "45abbea5-383f-44f2-be82-57b15da3786d",
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.5,
       "position": [
         -12016,
         752
-      ],
-      "id": "e30640c2-0bae-4918-8c6f-96e9ceb44d5e",
-      "name": "Select Mode",
-      "webhookId": "45abbea5-383f-44f2-be82-57b15da3786d"
+      ]
     },
     {
       "parameters": {
         "fileSelector": "=/home/node/project/temp/{{$('Set Page Number').item.json.pageNumber}}_transcription.txt",
         "options": {}
       },
+      "id": "60772388-5cff-4834-a5e3-00e4270594aa",
+      "name": "Check if Transcription Exists",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -7312,
         16
       ],
-      "id": "60772388-5cff-4834-a5e3-00e4270594aa",
-      "name": "Check if Transcription Exists",
       "onError": "continueRegularOutput"
     },
     {
@@ -525,28 +525,28 @@
         },
         "options": {}
       },
+      "id": "e3d8248e-0d1f-4f00-b216-3992eaeac6ea",
+      "name": "Transcription Done Already",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
         -7088,
         16
-      ],
-      "id": "e3d8248e-0d1f-4f00-b216-3992eaeac6ea",
-      "name": "Transcription Done Already"
+      ]
     },
     {
       "parameters": {
         "fileSelector": "=/home/node/project/temp/{{$('Set Page Number').item.json.pageNumber}}_audio.wav",
         "options": {}
       },
+      "id": "164c4e24-3fd4-486a-8565-f51a710d8d7b",
+      "name": "Check if Audio Exists",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -8208,
         80
       ],
-      "id": "164c4e24-3fd4-486a-8565-f51a710d8d7b",
-      "name": "Check if Audio Exists",
       "onError": "continueRegularOutput"
     },
     {
@@ -574,28 +574,28 @@
         },
         "options": {}
       },
+      "id": "6ad1eece-9b53-48d5-9af8-fec6358f05c0",
+      "name": "TTS Done Already",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
         -7984,
         80
-      ],
-      "id": "6ad1eece-9b53-48d5-9af8-fec6358f05c0",
-      "name": "TTS Done Already"
+      ]
     },
     {
       "parameters": {
         "fileSelector": "=/home/node/project/temp/{{$('Set Page Number').item.json.pageNumber}}_clip.mp4",
         "options": {}
       },
+      "id": "09d18025-db7b-432a-83a8-0341dba01c1a",
+      "name": "Check if Clip Exists",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -8656,
         -16
       ],
-      "id": "09d18025-db7b-432a-83a8-0341dba01c1a",
-      "name": "Check if Clip Exists",
       "onError": "continueRegularOutput"
     },
     {
@@ -623,28 +623,28 @@
         },
         "options": {}
       },
+      "id": "f424927d-9d76-44d2-9581-ffc957339662",
+      "name": "Clip Assembly Done Already",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
         -8432,
         -16
-      ],
-      "id": "f424927d-9d76-44d2-9581-ffc957339662",
-      "name": "Clip Assembly Done Already"
+      ]
     },
     {
       "parameters": {
         "fileSelector": "=/home/node/project/temp/{{$('Set Page Number').item.json.pageNumber}}_image.png",
         "options": {}
       },
+      "id": "0377fffd-2335-4579-bbe4-79dc86c5d1cc",
+      "name": "Read Temporary Image File from Disk",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -6864,
         -224
-      ],
-      "id": "0377fffd-2335-4579-bbe4-79dc86c5d1cc",
-      "name": "Read Temporary Image File from Disk"
+      ]
     },
     {
       "parameters": {
@@ -652,28 +652,28 @@
         "fileName": "=/home/node/project/temp/{{\n  $('Set Page Number').isExecuted\n    ? ($('Set Page Number').item.json.pageNumber + '_transcription_normalized.txt')\n    : ($('Set Sample Voice Number').isExecuted\n        ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_transcription_normalized.txt')\n        : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_transcription_normalized.txt')\n      )\n}}",
         "options": {}
       },
+      "id": "9ac766e8-fef2-462f-9834-d27e5d4dc1a2",
+      "name": "Create Normalized Temporary Text File on Disk",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -4624,
         -32
-      ],
-      "id": "9ac766e8-fef2-462f-9834-d27e5d4dc1a2",
-      "name": "Create Normalized Temporary Text File on Disk"
+      ]
     },
     {
       "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{ $('Set Page Number').isExecuted ? ($('Set Page Number').item.json.pageNumber + '_transcription_normalized.txt') : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_transcription_normalized.txt') }}",
+        "fileSelector": "=/home/node/project/temp/{{\n  $('Set Page Number').isExecuted\n    ? ($('Set Page Number').item.json.pageNumber + '_transcription_normalized.txt')\n    : ($('Set Change-Voice Page Number').isExecuted\n        ? ($('Set Change-Voice Page Number').item.json.pageNumber + '_transcription_normalized.txt')\n        : ($('Set Sample Voice Number').isExecuted\n            ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_transcription_normalized.txt')\n            : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_transcription_normalized.txt')\n          )\n      )\n}}",
         "options": {}
       },
+      "id": "8210fbd1-1dbf-4cfd-a548-596c1e917ba0",
+      "name": "Read Normalized Temporary Text File from Disk",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -4400,
         -32
-      ],
-      "id": "8210fbd1-1dbf-4cfd-a548-596c1e917ba0",
-      "name": "Read Normalized Temporary Text File from Disk"
+      ]
     },
     {
       "parameters": {
@@ -681,14 +681,14 @@
         "destinationKey": "text",
         "options": {}
       },
+      "id": "df8796cf-26c4-45f4-b221-7b46967d5229",
+      "name": "Extract Normalized Transcription from Text File",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
         -4176,
         -32
-      ],
-      "id": "df8796cf-26c4-45f4-b221-7b46967d5229",
-      "name": "Extract Normalized Transcription from Text File"
+      ]
     },
     {
       "parameters": {
@@ -711,14 +711,14 @@
           "timeout": 3600000
         }
       },
+      "id": "0e5f6212-20e6-4acb-961e-ed28a51afdd6",
+      "name": "Request Transcript Normalization",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
         -5296,
         -160
-      ],
-      "id": "0e5f6212-20e6-4acb-961e-ed28a51afdd6",
-      "name": "Request Transcript Normalization"
+      ]
     },
     {
       "parameters": {
@@ -745,14 +745,14 @@
         },
         "options": {}
       },
+      "id": "16df4896-36f0-4c2b-a9eb-0e2b142a5529",
+      "name": "New Mode Selected 2",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
         -8880,
         -80
-      ],
-      "id": "16df4896-36f0-4c2b-a9eb-0e2b142a5529",
-      "name": "New Mode Selected 2"
+      ]
     },
     {
       "parameters": {
@@ -775,14 +775,14 @@
           "timeout": 3600000
         }
       },
+      "id": "0e416aa8-3241-4e14-8bce-4d9dc133d91d",
+      "name": "Request TTS with Timestamps",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
         -3952,
         -32
-      ],
-      "id": "0e416aa8-3241-4e14-8bce-4d9dc133d91d",
-      "name": "Request TTS with Timestamps"
+      ]
     },
     {
       "parameters": {
@@ -791,7 +791,7 @@
             {
               "id": "87d8b8eb-bb8a-48da-8237-869892a6ce76",
               "name": "timestampsJson",
-              "value": "={{ JSON.stringify({\n    pageIndex: $('Set Page Number').isExecuted ? $('Set Page Number').item.json.pageNumber : ($('Set Change-Voice Page Number').isExecuted ? $('Set Change-Voice Page Number').item.json.pageNumber : $('Set Knit Page Number').item.json.pageNumber),\n    knitPages: ($('Set Page Number').isExecuted || $('Set Change-Voice Page Number').isExecuted) ? null : [$('Page Knitting Configuration').item.json['⬅️ Left Page Number'], $('Page Knitting Configuration').item.json['Right Page Number ➡️']],\n    audioDuration: null,\n    timestamps: $('Request TTS with Timestamps').item.json.timestamps,\n    wordMap: JSON.parse($json.text)\n  }) }}",
+              "value": "={{ JSON.stringify({\n    pageIndex: $('Set Page Number').isExecuted\n      ? $('Set Page Number').item.json.pageNumber\n      : ($('Set Change-Voice Page Number').isExecuted\n          ? $('Set Change-Voice Page Number').item.json.pageNumber\n          : ($('Set Sample Voice Number').isExecuted\n              ? $('Set Sample Voice Number').item.json.voiceIndex\n              : $('Set Knit Page Number').item.json.pageNumber\n            )\n        ),\n    knitPages: ($('Set Page Number').isExecuted || $('Set Change-Voice Page Number').isExecuted || $('Set Sample Voice Number').isExecuted)\n      ? null\n      : [$('Page Knitting Configuration').item.json['⬅️ Left Page Number'], $('Page Knitting Configuration').item.json['Right Page Number ➡️']],\n    audioDuration: null,\n    timestamps: $('Request TTS with Timestamps').item.json.timestamps,\n    wordMap: JSON.parse($json.text)\n  }) }}",
               "type": "string"
             },
             {
@@ -811,14 +811,14 @@
         "includeOtherFields": true,
         "options": {}
       },
+      "id": "6af65ae0-d648-4f2a-9536-e6ad53759884",
+      "name": "Add Page Index to Audio Timestamps",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
         -3280,
         64
-      ],
-      "id": "6af65ae0-d648-4f2a-9536-e6ad53759884",
-      "name": "Add Page Index to Audio Timestamps"
+      ]
     },
     {
       "parameters": {
@@ -828,29 +828,29 @@
           "encoding": "utf8"
         }
       },
+      "id": "7fb9918c-40ba-4776-b5f4-ba7ebb09277d",
+      "name": "Convert Timestamps to File",
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
         -3056,
         64
-      ],
-      "id": "7fb9918c-40ba-4776-b5f4-ba7ebb09277d",
-      "name": "Convert Timestamps to File"
+      ]
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/temp/{{ ($('Set Page Number').isExecuted || $('Set Change-Voice Page Number').isExecuted) ? ($('Set Page Number').isExecuted ? $('Set Page Number').item.json.pageNumber : $('Set Change-Voice Page Number').item.json.pageNumber) + '_timestamps.json' : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_timestamps.json') }}",
+        "fileName": "=/home/node/project/temp/{{\n  ($('Set Page Number').isExecuted || $('Set Change-Voice Page Number').isExecuted)\n    ? (($('Set Page Number').isExecuted ? $('Set Page Number').item.json.pageNumber : $('Set Change-Voice Page Number').item.json.pageNumber) + '_timestamps.json')\n    : ($('Set Sample Voice Number').isExecuted\n        ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_timestamps.json')\n        : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_timestamps.json')\n      )\n}}",
         "options": {}
       },
+      "id": "0a861c0e-859b-4849-a6e6-efc437699497",
+      "name": "Save Timestamps to Disk",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -2832,
         64
-      ],
-      "id": "0a861c0e-859b-4849-a6e6-efc437699497",
-      "name": "Save Timestamps to Disk"
+      ]
     },
     {
       "parameters": {
@@ -860,28 +860,28 @@
           "mimeType": "audio/wav"
         }
       },
+      "id": "e88f9b03-a71a-4b8e-9b24-bf1612abcdcf",
+      "name": "Convert Base64 to Audio File",
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
         -3056,
         -128
-      ],
-      "id": "e88f9b03-a71a-4b8e-9b24-bf1612abcdcf",
-      "name": "Convert Base64 to Audio File"
+      ]
     },
     {
       "parameters": {
-        "fileSelector": "/home/node/project/temp/*_timestamps.json",
+        "fileSelector": "=/home/node/project/temp/{{ $('Determine Output Basename').item.json.tempTimestampGlob }}",
         "options": {}
       },
+      "id": "cd86ac56-a3d9-47eb-bd4a-9bf0648db288",
+      "name": "Read All Timestamps from Disk",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -1936,
         -80
-      ],
-      "id": "cd86ac56-a3d9-47eb-bd4a-9bf0648db288",
-      "name": "Read All Timestamps from Disk"
+      ]
     },
     {
       "parameters": {
@@ -889,14 +889,14 @@
         "destinationKey": "text",
         "options": {}
       },
+      "id": "b29ec909-a627-442d-b587-b5eb85cb2574",
+      "name": "Extract Timestamps Text",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
         -1712,
         -80
-      ],
-      "id": "b29ec909-a627-442d-b587-b5eb85cb2574",
-      "name": "Extract Timestamps Text"
+      ]
     },
     {
       "parameters": {
@@ -912,14 +912,14 @@
         },
         "options": {}
       },
+      "id": "525af04d-21b1-4920-b95b-ecd998621646",
+      "name": "Parse Timestamps JSON",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
         -1488,
         -80
-      ],
-      "id": "525af04d-21b1-4920-b95b-ecd998621646",
-      "name": "Parse Timestamps JSON"
+      ]
     },
     {
       "parameters": {
@@ -927,14 +927,14 @@
         "destinationFieldName": "pages",
         "options": {}
       },
+      "id": "3aea40bc-4fe3-4b53-84d7-468095345f73",
+      "name": "Aggregate All Timestamps",
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
         -1264,
         -80
-      ],
-      "id": "3aea40bc-4fe3-4b53-84d7-468095345f73",
-      "name": "Aggregate All Timestamps"
+      ]
     },
     {
       "parameters": {
@@ -956,14 +956,14 @@
         },
         "options": {}
       },
+      "id": "511103b3-8179-475c-a0a7-8a856f1c8dd7",
+      "name": "Generate Subtitle File and Video Chapters",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
         -1040,
         -80
-      ],
-      "id": "511103b3-8179-475c-a0a7-8a856f1c8dd7",
-      "name": "Generate Subtitle File and Video Chapters"
+      ]
     },
     {
       "parameters": {
@@ -973,14 +973,14 @@
           "encoding": "utf8"
         }
       },
+      "id": "8de182f8-3454-4498-a737-47ab2ecabf38",
+      "name": "Convert Subtitles to File",
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
         -592,
         -176
-      ],
-      "id": "8de182f8-3454-4498-a737-47ab2ecabf38",
-      "name": "Convert Subtitles to File"
+      ]
     },
     {
       "parameters": {
@@ -990,43 +990,43 @@
           "encoding": "utf8"
         }
       },
+      "id": "a5b82290-809d-415f-83b7-cdbb34575e7a",
+      "name": "Convert Chapters to File",
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
         -592,
         16
-      ],
-      "id": "a5b82290-809d-415f-83b7-cdbb34575e7a",
-      "name": "Convert Chapters to File"
+      ]
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "/home/node/project/temp/final_video_chapters.ffmeta",
+        "fileName": "=/home/node/project/temp/{{ $('Determine Output Basename').item.json.chaptersFile }}",
         "options": {}
       },
+      "id": "5932d857-856b-4307-a922-eae4f4a9b499",
+      "name": "Save Chapters to Disk",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -368,
         16
-      ],
-      "id": "5932d857-856b-4307-a922-eae4f4a9b499",
-      "name": "Save Chapters to Disk"
+      ]
     },
     {
       "parameters": {
         "fileSelector": "=/home/node/project/temp/{{$('Set Page Number').item.json.pageNumber}}_timestamps.json",
         "options": {}
       },
+      "id": "cc13ee98-4752-4617-b387-a1388f713bb0",
+      "name": "Check if Timestamps Exist",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -7760,
         160
       ],
-      "id": "cc13ee98-4752-4617-b387-a1388f713bb0",
-      "name": "Check if Timestamps Exist",
       "onError": "continueRegularOutput"
     },
     {
@@ -1054,14 +1054,14 @@
         },
         "options": {}
       },
+      "id": "c9b9e503-13e2-4b84-bccf-3ff39023f4cf",
+      "name": "Timestamps Already Saved",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
         -7536,
         160
-      ],
-      "id": "c9b9e503-13e2-4b84-bccf-3ff39023f4cf",
-      "name": "Timestamps Already Saved"
+      ]
     },
     {
       "parameters": {
@@ -1069,29 +1069,29 @@
         "combineBy": "combineByPosition",
         "options": {}
       },
+      "id": "0a85c2c1-4ed6-4fd9-9e1f-a2b9ea0b8eae",
+      "name": "Merge",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
         -2608,
         -32
-      ],
-      "id": "0a85c2c1-4ed6-4fd9-9e1f-a2b9ea0b8eae",
-      "name": "Merge"
+      ]
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "/home/node/project/output/final_video.srt",
+        "fileName": "=/home/node/project/output/{{ $('Determine Output Basename').item.json.outputBasename }}.srt",
         "options": {}
       },
+      "id": "43a9add9-c4e6-41f8-8a1e-41ae735171a2",
+      "name": "Save Subtitles to Disk",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -368,
         -176
-      ],
-      "id": "43a9add9-c4e6-41f8-8a1e-41ae735171a2",
-      "name": "Save Subtitles to Disk"
+      ]
     },
     {
       "parameters": {
@@ -1099,14 +1099,14 @@
         "combineBy": "combineByPosition",
         "options": {}
       },
+      "id": "46c88e05-2bfd-4c0b-9ec8-dc9c841fc635",
+      "name": "Merge1",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
         -144,
         -80
-      ],
-      "id": "46c88e05-2bfd-4c0b-9ec8-dc9c841fc635",
-      "name": "Merge1"
+      ]
     },
     {
       "parameters": {
@@ -1114,14 +1114,14 @@
         "destinationFieldName": "trigger",
         "options": {}
       },
+      "id": "0ff3a528-cdd3-4571-bf97-3008bf93a61c",
+      "name": "Aggregate",
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
         -2160,
         -400
-      ],
-      "id": "0ff3a528-cdd3-4571-bf97-3008bf93a61c",
-      "name": "Aggregate"
+      ]
     },
     {
       "parameters": {
@@ -1137,14 +1137,14 @@
         },
         "options": {}
       },
+      "id": "ec91e12f-1e66-46df-8ed2-f77195e93742",
+      "name": "Generate final subtitles",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
         -816,
         -176
-      ],
-      "id": "ec91e12f-1e66-46df-8ed2-f77195e93742",
-      "name": "Generate final subtitles"
+      ]
     },
     {
       "parameters": {
@@ -1160,14 +1160,14 @@
         },
         "options": {}
       },
+      "id": "398e2d1b-cdfc-4b54-84f4-c94485385807",
+      "name": "Strip Binary Before Next Iteration",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
         -8208,
         -128
-      ],
-      "id": "398e2d1b-cdfc-4b54-84f4-c94485385807",
-      "name": "Strip Binary Before Next Iteration"
+      ]
     },
     {
       "parameters": {
@@ -1189,14 +1189,14 @@
         },
         "options": {}
       },
+      "id": "5f6fa4e9-18da-4512-b1f2-93376fdab3a0",
+      "name": "Assemble Normalized Text and Configure Word Map",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
         -5072,
         -160
-      ],
-      "id": "5f6fa4e9-18da-4512-b1f2-93376fdab3a0",
-      "name": "Assemble Normalized Text and Configure Word Map"
+      ]
     },
     {
       "parameters": {
@@ -1206,14 +1206,14 @@
           "encoding": "utf8"
         }
       },
+      "id": "96280d0d-3829-42a5-8322-a6ad126e24eb",
+      "name": "Convert Word Map to File",
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
         -4848,
         -256
-      ],
-      "id": "96280d0d-3829-42a5-8322-a6ad126e24eb",
-      "name": "Convert Word Map to File"
+      ]
     },
     {
       "parameters": {
@@ -1221,28 +1221,28 @@
         "fileName": "=/home/node/project/temp/{{\n  $('Set Page Number').isExecuted\n    ? ($('Set Page Number').item.json.pageNumber + '_wordmap.json')\n    : ($('Set Sample Voice Number').isExecuted\n        ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_wordmap.json')\n        : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_wordmap.json')\n      )\n}}",
         "options": {}
       },
+      "id": "d8a9e5a9-de94-46a6-8eec-0ade0f39b774",
+      "name": "Save Word Map to Disk",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -4624,
         -256
-      ],
-      "id": "d8a9e5a9-de94-46a6-8eec-0ade0f39b774",
-      "name": "Save Word Map to Disk"
+      ]
     },
     {
       "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{ $('Set Page Number').isExecuted ? ($('Set Page Number').item.json.pageNumber + '_wordmap.json') : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_wordmap.json') }}",
+        "fileSelector": "=/home/node/project/temp/{{\n  $('Set Page Number').isExecuted\n    ? ($('Set Page Number').item.json.pageNumber + '_wordmap.json')\n    : ($('Set Change-Voice Page Number').isExecuted\n        ? ($('Set Change-Voice Page Number').item.json.pageNumber + '_wordmap.json')\n        : ($('Set Sample Voice Number').isExecuted\n            ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_wordmap.json')\n            : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_wordmap.json')\n          )\n      )\n}}",
         "options": {}
       },
+      "id": "d5a067ce-d69a-40a0-a872-b631a2f5fbf7",
+      "name": "Read Word Map from Disk",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -3728,
         64
-      ],
-      "id": "d5a067ce-d69a-40a0-a872-b631a2f5fbf7",
-      "name": "Read Word Map from Disk"
+      ]
     },
     {
       "parameters": {
@@ -1250,14 +1250,14 @@
         "destinationKey": "text",
         "options": {}
       },
+      "id": "8f0d9b8e-22a5-4498-ab7c-653655b23891",
+      "name": "Extract Word Map from File",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
         -3504,
         64
-      ],
-      "id": "8f0d9b8e-22a5-4498-ab7c-653655b23891",
-      "name": "Extract Word Map from File"
+      ]
     },
     {
       "parameters": {
@@ -1274,28 +1274,28 @@
         "includeOtherFields": true,
         "options": {}
       },
+      "id": "3bbeba09-a786-4aaf-88c2-ef52e1275642",
+      "name": "Set Page Number",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
         -9328,
         -80
-      ],
-      "id": "3bbeba09-a786-4aaf-88c2-ef52e1275642",
-      "name": "Set Page Number"
+      ]
     },
     {
       "parameters": {
         "fileSelector": "=/home/node/project/temp/{{$('Page Knitting Configuration').item.json['⬅️ Left Page Number']}}_transcription.txt",
         "options": {}
       },
+      "id": "34033c1e-8ea6-406c-8692-559a8ee14094",
+      "name": "Read Left Page Transcription from Disk",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -7984,
         640
-      ],
-      "id": "34033c1e-8ea6-406c-8692-559a8ee14094",
-      "name": "Read Left Page Transcription from Disk"
+      ]
     },
     {
       "parameters": {
@@ -1305,28 +1305,28 @@
           "encoding": "utf8"
         }
       },
+      "id": "b55dd822-6a36-4db9-9e57-7fe232d0350e",
+      "name": "Extract Left Page Transcription from File",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
         -7760,
         640
-      ],
-      "id": "b55dd822-6a36-4db9-9e57-7fe232d0350e",
-      "name": "Extract Left Page Transcription from File"
+      ]
     },
     {
       "parameters": {
         "fileSelector": "=/home/node/project/temp/{{$('Page Knitting Configuration').item.json['Right Page Number ➡️']}}_transcription.txt",
         "options": {}
       },
+      "id": "ac49d3de-3c4e-4b43-b351-09d0ac385243",
+      "name": "Read Right Page Transcription from Disk",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -7536,
         640
-      ],
-      "id": "ac49d3de-3c4e-4b43-b351-09d0ac385243",
-      "name": "Read Right Page Transcription from Disk"
+      ]
     },
     {
       "parameters": {
@@ -1336,28 +1336,28 @@
           "encoding": "utf8"
         }
       },
+      "id": "be697eda-9a3f-4f77-864b-da5c58ca73cf",
+      "name": "Extract Right Page Transcription from File",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
         -7312,
         640
-      ],
-      "id": "be697eda-9a3f-4f77-864b-da5c58ca73cf",
-      "name": "Extract Right Page Transcription from File"
+      ]
     },
     {
       "parameters": {
         "fileSelector": "=/home/node/project/temp/{{$('Page Knitting Configuration').item.json['⬅️ Left Page Number']}}-{{$('Page Knitting Configuration').item.json['Right Page Number ➡️']}}_knit_image.png",
         "options": {}
       },
+      "id": "33d02734-00b9-4a71-93ec-1df5cb30a777",
+      "name": "Read Knitted Image from Disk",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -7088,
         640
-      ],
-      "id": "33d02734-00b9-4a71-93ec-1df5cb30a777",
-      "name": "Read Knitted Image from Disk"
+      ]
     },
     {
       "parameters": {
@@ -1377,15 +1377,15 @@
         },
         "options": {}
       },
+      "id": "0a341644-cb35-465b-993c-8788c356a6f5",
+      "name": "Page Knitting Configuration",
+      "webhookId": "b6c2ed1a-c196-4079-ba1d-41c055ed1832",
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
         -8880,
         560
-      ],
-      "id": "0a341644-cb35-465b-993c-8788c356a6f5",
-      "name": "Page Knitting Configuration",
-      "webhookId": "b6c2ed1a-c196-4079-ba1d-41c055ed1832"
+      ]
     },
     {
       "parameters": {
@@ -1401,14 +1401,14 @@
         },
         "options": {}
       },
+      "id": "8764539e-e318-4e17-bfc1-9adadaf03f0a",
+      "name": "Knit Images",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
         -8656,
         560
-      ],
-      "id": "8764539e-e318-4e17-bfc1-9adadaf03f0a",
-      "name": "Knit Images"
+      ]
     },
     {
       "parameters": {
@@ -1417,14 +1417,14 @@
         "destinationKey": "imageBase64",
         "options": {}
       },
+      "id": "25a8edf8-7ad9-41e6-991c-855997c3defc",
+      "name": "Extract Knitted Image to Base64",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
         -6864,
         640
-      ],
-      "id": "25a8edf8-7ad9-41e6-991c-855997c3defc",
-      "name": "Extract Knitted Image to Base64"
+      ]
     },
     {
       "parameters": {
@@ -1437,14 +1437,14 @@
           "timeout": 3600000
         }
       },
+      "id": "46692609-688b-4f3b-88b6-0daaa14b1d96",
+      "name": "Knit Transcriptions",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
         -6640,
         640
-      ],
-      "id": "46692609-688b-4f3b-88b6-0daaa14b1d96",
-      "name": "Knit Transcriptions"
+      ]
     },
     {
       "parameters": {
@@ -1454,14 +1454,14 @@
           "encoding": "utf8"
         }
       },
+      "id": "04378658-7dab-42e4-9676-2fdfe547673d",
+      "name": "Convert Knitted Transcription to Text File",
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
         -6416,
         640
-      ],
-      "id": "04378658-7dab-42e4-9676-2fdfe547673d",
-      "name": "Convert Knitted Transcription to Text File"
+      ]
     },
     {
       "parameters": {
@@ -1469,28 +1469,28 @@
         "fileName": "=/home/node/project/temp/{{$('Page Knitting Configuration').item.json['⬅️ Left Page Number']}}-{{$('Page Knitting Configuration').item.json['Right Page Number ➡️']}}_knit_transcription.txt",
         "options": {}
       },
+      "id": "d65954a8-d998-4d57-9556-dcaa657ec252",
+      "name": "Create Temporary Knitted Text File on Disk",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -6192,
         640
-      ],
-      "id": "d65954a8-d998-4d57-9556-dcaa657ec252",
-      "name": "Create Temporary Knitted Text File on Disk"
+      ]
     },
     {
       "parameters": {
         "fileSelector": "=/home/node/project/temp/{{$('Page Knitting Configuration').item.json['⬅️ Left Page Number']}}-{{$('Page Knitting Configuration').item.json['Right Page Number ➡️']}}_knit_transcription.txt",
         "options": {}
       },
+      "id": "f774a94d-d2d3-4dab-bd16-6c43c7bcf1d0",
+      "name": "Check if Knitted Transcription Exists",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -8432,
         560
       ],
-      "id": "f774a94d-d2d3-4dab-bd16-6c43c7bcf1d0",
-      "name": "Check if Knitted Transcription Exists",
       "onError": "continueRegularOutput"
     },
     {
@@ -1518,28 +1518,28 @@
         },
         "options": {}
       },
+      "id": "4bf3a017-2bd3-46dd-bea9-3bc68a923659",
+      "name": "Knitted Transcription Done Already",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
         -8208,
         560
-      ],
-      "id": "4bf3a017-2bd3-46dd-bea9-3bc68a923659",
-      "name": "Knitted Transcription Done Already"
+      ]
     },
     {
       "parameters": {
         "fileSelector": "=/home/node/project/temp/{{$('Page Knitting Configuration').item.json['⬅️ Left Page Number']}}-{{$('Page Knitting Configuration').item.json['Right Page Number ➡️']}}_knit_transcription.txt",
         "options": {}
       },
+      "id": "28cdd014-aeff-4fff-aeb6-b71c21a9d420",
+      "name": "Read Temporary Knitted Text File from Disk",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -5968,
         560
-      ],
-      "id": "28cdd014-aeff-4fff-aeb6-b71c21a9d420",
-      "name": "Read Temporary Knitted Text File from Disk"
+      ]
     },
     {
       "parameters": {
@@ -1547,14 +1547,14 @@
         "destinationKey": "text",
         "options": {}
       },
+      "id": "63b7c043-b1f3-4021-801c-4909dda61d4b",
+      "name": "Extract Knitted Transcription from Text File",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
         -5744,
         560
-      ],
-      "id": "63b7c043-b1f3-4021-801c-4909dda61d4b",
-      "name": "Extract Knitted Transcription from Text File"
+      ]
     },
     {
       "parameters": {
@@ -1577,14 +1577,14 @@
         "includeOtherFields": true,
         "options": {}
       },
+      "id": "64ab376b-6958-44a3-96ba-983eefe7b767",
+      "name": "Set Knit Page Number",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
         -5520,
         560
-      ],
-      "id": "64ab376b-6958-44a3-96ba-983eefe7b767",
-      "name": "Set Knit Page Number"
+      ]
     },
     {
       "parameters": {
@@ -1718,28 +1718,28 @@
         },
         "options": {}
       },
+      "id": "4fb342a8-6e48-4afd-a09f-739cf85a7d07",
+      "name": "Select Mode Router",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
         -11792,
         704
-      ],
-      "id": "4fb342a8-6e48-4afd-a09f-739cf85a7d07",
-      "name": "Select Mode Router"
+      ]
     },
     {
       "parameters": {
         "url": "http://kokoro:8880/v1/audio/voices",
         "options": {}
       },
+      "id": "edbc78b3-4df0-4fbc-ad3d-e5e624f45f58",
+      "name": "Fetch Available Voices",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.5,
       "position": [
         -11344,
         1312
-      ],
-      "id": "edbc78b3-4df0-4fbc-ad3d-e5e624f45f58",
-      "name": "Fetch Available Voices"
+      ]
     },
     {
       "parameters": {
@@ -1747,15 +1747,15 @@
         "jsonOutput": "={{ [\n  {\n    fieldLabel: \"Which page number has the text you want to change?\",\n    fieldName: \"pageNumber\",\n    fieldType: \"number\",\n    requiredField: true\n  },\n  {\n    fieldLabel: \"Which voice should read this text?\",\n    fieldName: \"voice\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: $('Fetch Available Voices').item.json.voices.map(v => ({ option: v.id }))\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"What text should be read in that voice?\",\n    fieldName: \"textToChange\",\n    fieldType: \"textarea\",\n    requiredField: true\n  }\n] }}",
         "options": {}
       },
+      "id": "99c165d5-b8a7-4517-902f-cd7439b3dd29",
+      "name": "Change Voice Configuration",
+      "webhookId": "4b275d02-b3b2-42f6-a019-5cfbab8d8b0d",
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
         -10896,
         1136
-      ],
-      "id": "99c165d5-b8a7-4517-902f-cd7439b3dd29",
-      "name": "Change Voice Configuration",
-      "webhookId": "4b275d02-b3b2-42f6-a019-5cfbab8d8b0d"
+      ]
     },
     {
       "parameters": {
@@ -1783,28 +1783,28 @@
         },
         "options": {}
       },
+      "id": "850f9621-bd56-4994-b7d7-90d3bf23d247",
+      "name": "Set Change-Voice Page Number",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
         -10672,
         928
-      ],
-      "id": "850f9621-bd56-4994-b7d7-90d3bf23d247",
-      "name": "Set Change-Voice Page Number"
+      ]
     },
     {
       "parameters": {
         "fileSelector": "=temp/{{ $('Set Change-Voice Page Number').item.json.pageNumber }}_transcription_normalized.txt",
         "options": {}
       },
+      "id": "9d9aca69-8e80-4906-8d86-5046bd5aefb4",
+      "name": "Read Normalized Transcript for Voice Change",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -10448,
         928
       ],
-      "id": "9d9aca69-8e80-4906-8d86-5046bd5aefb4",
-      "name": "Read Normalized Transcript for Voice Change",
       "onError": "continueRegularOutput"
     },
     {
@@ -1831,14 +1831,14 @@
         },
         "options": {}
       },
+      "id": "0e5e49fb-3cbc-4315-b6dd-9e2803541f16",
+      "name": "Change Voice Page File Exists?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
         -10224,
         928
-      ],
-      "id": "0e5e49fb-3cbc-4315-b6dd-9e2803541f16",
-      "name": "Change Voice Page File Exists?"
+      ]
     },
     {
       "parameters": {
@@ -1846,14 +1846,14 @@
         "destinationKey": "text",
         "options": {}
       },
+      "id": "0ae68c95-1176-4986-a91b-7fbcb3d05568",
+      "name": "Extract Normalized Transcript for Voice Change",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
         -10000,
         832
-      ],
-      "id": "0ae68c95-1176-4986-a91b-7fbcb3d05568",
-      "name": "Extract Normalized Transcript for Voice Change"
+      ]
     },
     {
       "parameters": {
@@ -1864,15 +1864,15 @@
           "formDescription": "={{ \"Page \" + $('Set Change-Voice Page Number').item.json.pageNumber + \" has no processed transcript yet, please click Submit below to try again.\" }}"
         }
       },
+      "id": "79b32d7f-bf84-4983-909d-cb8224832a75",
+      "name": "Error Message [\"Page Not Found\"]",
+      "webhookId": "dbba5561-3c7e-4e48-81f2-78bde770d831",
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
         -10000,
         1024
-      ],
-      "id": "79b32d7f-bf84-4983-909d-cb8224832a75",
-      "name": "Error Message [\"Page Not Found\"]",
-      "webhookId": "dbba5561-3c7e-4e48-81f2-78bde770d831"
+      ]
     },
     {
       "parameters": {
@@ -1888,14 +1888,14 @@
         },
         "options": {}
       },
+      "id": "619d1030-244b-4c00-9b06-2570bb3b5574",
+      "name": "Find and Wrap Voice Span",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
         -9776,
         832
-      ],
-      "id": "619d1030-244b-4c00-9b06-2570bb3b5574",
-      "name": "Find and Wrap Voice Span"
+      ]
     },
     {
       "parameters": {
@@ -1922,14 +1922,14 @@
         },
         "options": {}
       },
+      "id": "809f180c-1e16-4bfe-b124-281ade989273",
+      "name": "Voice Span Exists?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
         -9552,
         832
-      ],
-      "id": "809f180c-1e16-4bfe-b124-281ade989273",
-      "name": "Voice Span Exists?"
+      ]
     },
     {
       "parameters": {
@@ -1937,15 +1937,15 @@
           "formDescription": "={{ \"The text \\\"\" + $('Set Change-Voice Page Number').item.json.textToChange + \"\\\" wasn't found on page \" + $('Set Change-Voice Page Number').item.json.pageNumber + \". Please try again.\" }}"
         }
       },
+      "id": "17d1ccf2-ae40-42d3-9549-1806742f5441",
+      "name": "Error Message [\"Text Not Found\"]",
+      "webhookId": "88d38d05-7bb2-4e1e-843b-fb007276b3d8",
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
         -9328,
         1120
-      ],
-      "id": "17d1ccf2-ae40-42d3-9549-1806742f5441",
-      "name": "Error Message [\"Text Not Found\"]",
-      "webhookId": "88d38d05-7bb2-4e1e-843b-fb007276b3d8"
+      ]
     },
     {
       "parameters": {
@@ -1953,14 +1953,14 @@
         "sourceProperty": "result",
         "options": {}
       },
+      "id": "9fc25031-8f53-43ae-b458-fd9b4ac81879",
+      "name": "Convert Voice Span Result to File",
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
         -9328,
         784
-      ],
-      "id": "9fc25031-8f53-43ae-b458-fd9b4ac81879",
-      "name": "Convert Voice Span Result to File"
+      ]
     },
     {
       "parameters": {
@@ -1968,47 +1968,14 @@
         "fileName": "=temp/{{ $('Set Change-Voice Page Number').item.json.pageNumber }}_transcription_normalized.txt",
         "options": {}
       },
+      "id": "10b90bd0-238c-4530-bf06-f6dcad15de52",
+      "name": "Save Updated Transcript for Voice Change",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -9104,
         784
-      ],
-      "id": "10b90bd0-238c-4530-bf06-f6dcad15de52",
-      "name": "Save Updated Transcript for Voice Change"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "d0969b53-a837-4ae7-9775-7aeb44939204",
-              "leftValue": "true",
-              "rightValue": "={{ ($('Set Knit Page Number').isExecuted || $('Set Change-Voice Page Number').isExecuted).toString() }}",
-              "operator": {
-                "type": "string",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -2160,
-        112
-      ],
-      "id": "a663aee1-884f-476d-9843-a99eb3c5a959",
-      "name": "Skip Loop for Knit or Voice-Change Modes"
+      ]
     },
     {
       "parameters": {
@@ -2023,15 +1990,15 @@
         },
         "options": {}
       },
+      "id": "4c3bcc17-f301-4989-b51f-89224ac605d4",
+      "name": "Sample Video Configuration",
+      "webhookId": "e909f839-5893-469e-886a-846e2bd15b55",
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
         -11568,
         1024
-      ],
-      "id": "4c3bcc17-f301-4989-b51f-89224ac605d4",
-      "name": "Sample Video Configuration",
-      "webhookId": "e909f839-5893-469e-886a-846e2bd15b55"
+      ]
     },
     {
       "parameters": {
@@ -2090,41 +2057,41 @@
         },
         "options": {}
       },
+      "id": "29c71036-e908-41d5-a403-510eb210f732",
+      "name": "Voice-Fetch Mode Router",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
         -11120,
         1312
-      ],
-      "id": "29c71036-e908-41d5-a403-510eb210f732",
-      "name": "Voice-Fetch Mode Router"
+      ]
     },
     {
       "parameters": {
         "fieldToSplitOut": "voices",
         "options": {}
       },
+      "id": "5a8e687a-7054-4e33-b85f-910442244aab",
+      "name": "Split Out Sample Voices",
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
         -10896,
         1424
-      ],
-      "id": "5a8e687a-7054-4e33-b85f-910442244aab",
-      "name": "Split Out Sample Voices"
+      ]
     },
     {
       "parameters": {
         "options": {}
       },
+      "id": "2b801e96-ae7c-4913-85b1-3f31f6514168",
+      "name": "Process Voices One by One",
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
         -10672,
         1424
-      ],
-      "id": "2b801e96-ae7c-4913-85b1-3f31f6514168",
-      "name": "Process Voices One by One"
+      ]
     },
     {
       "parameters": {
@@ -2147,20 +2114,107 @@
               "name": "text",
               "value": "={{ $('Sample Video Configuration').item.json[\"What phrase should each voice say? Use {voice} where the voice's name should go.\"].replace('{voice}', $json.id.split('_')[1][0].toUpperCase() + $json.id.split('_')[1].slice(1)) }}",
               "type": "string"
+            },
+            {
+              "id": "3f9e9ed6-0eec-43d1-8d5e-10f14624d29e",
+              "name": "voiceIndex",
+              "value": "={{ $node[\"Process Voices One by One\"].context.currentRunIndex + 1 }}",
+              "type": "string"
             }
           ]
         },
         "includeOtherFields": true,
         "options": {}
       },
+      "id": "c6360b25-203d-42aa-bb86-2512835944f5",
+      "name": "Set Sample Voice Number",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
         -10448,
         1424
-      ],
-      "id": "c6360b25-203d-42aa-bb86-2512835944f5",
-      "name": "Set Sample Voice Number"
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d0969b53-a837-4ae7-9775-7aeb44939204",
+              "leftValue": "true",
+              "rightValue": "={{ ($('Set Knit Page Number').isExecuted || $('Set Change-Voice Page Number').isExecuted || $('Set Sample Voice Number').isExecuted).toString() }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a663aee1-884f-476d-9843-a99eb3c5a959",
+      "name": "Skip Loop for One-Off Modes",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2160,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1b2c3d4-0001-4aaa-8000-000000000001",
+              "name": "outputBasename",
+              "value": "={{ $('Set Sample Voice Number').isExecuted ? 'voice_sample' : 'final_video' }}",
+              "type": "string"
+            },
+            {
+              "id": "a1b2c3d4-0002-4aaa-8000-000000000002",
+              "name": "tempClipGlob",
+              "value": "={{ $('Set Sample Voice Number').isExecuted ? 'sample_*_clip.mp4' : '[0-9]*_clip.mp4' }}",
+              "type": "string"
+            },
+            {
+              "id": "a1b2c3d4-0003-4aaa-8000-000000000003",
+              "name": "tempTimestampGlob",
+              "value": "={{ $('Set Sample Voice Number').isExecuted ? 'sample_*_timestamps.json' : '[0-9]*_timestamps.json' }}",
+              "type": "string"
+            },
+            {
+              "id": "a1b2c3d4-0004-4aaa-8000-000000000004",
+              "name": "chaptersFile",
+              "value": "={{ $('Set Sample Voice Number').isExecuted ? 'voice_sample_chapters.ffmeta' : 'final_video_chapters.ffmeta' }}",
+              "type": "string"
+            },
+            {
+              "id": "a1b2c3d4-0005-4aaa-8000-000000000005",
+              "name": "useSimpleConcat",
+              "value": "={{ $('Set Sample Voice Number').isExecuted }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "ff0c9b83-9dac-4695-a975-786b14027dde",
+      "name": "Determine Output Basename",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2048,
+        -16
+      ]
     }
   ],
   "pinData": {},
@@ -2253,7 +2307,7 @@
       "main": [
         [
           {
-            "node": "Skip Loop for Knit or Voice-Change Modes",
+            "node": "Skip Loop for One-Off Modes",
             "type": "main",
             "index": 0
           }
@@ -3246,24 +3300,6 @@
         ]
       ]
     },
-    "Skip Loop for Knit or Voice-Change Modes": {
-      "main": [
-        [
-          {
-            "node": "Read All Timestamps from Disk",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Process Pages One by One",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Sample Video Configuration": {
       "main": [
         [
@@ -3326,6 +3362,35 @@
           }
         ]
       ]
+    },
+    "Skip Loop for One-Off Modes": {
+      "main": [
+        [
+          {
+            "node": "Determine Output Basename",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Process Pages One by One",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Determine Output Basename": {
+      "main": [
+        [
+          {
+            "node": "Read All Timestamps from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -3337,7 +3402,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "246ea675-bd1e-40e4-869b-c0085c87ff02",
+  "versionId": "fabe7696-2411-485e-9ef2-56f9758dd438",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "0d58a7a3f156139856be42466a14e05f00173514ac9794a8494b09c53ea173a0"
