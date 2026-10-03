@@ -15,22 +15,7 @@
       ],
       "id": "8f118542-c9a7-4d7d-a778-7f9296ccc697",
       "name": "Get Request for Assembling Clip",
-      "webhookId": "b9ac835f-0d6d-42e5-862d-bf9b9c9c81e8"
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "{\"status\": \"ok\"}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.5,
-      "position": [
-        448,
-        0
-      ],
-      "id": "0b25ca93-f35e-41db-962f-83deeabd76ff",
-      "name": "Return OK"
+      "webhookId": "b7917a21-6f88-48ff-b989-7b3254cc3882"
     },
     {
       "parameters": {
@@ -39,7 +24,7 @@
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        224,
+        432,
         0
       ],
       "id": "0455176c-4890-4429-afb3-b2a7fa38b26a",
@@ -60,7 +45,7 @@
       ],
       "id": "4b4c66e5-fb20-4bb7-84b9-dc8920d22bf4",
       "name": "Receive Prompt",
-      "webhookId": "b4feb880-5ddc-43d3-be03-42885a483ee1"
+      "webhookId": "b6bd0ddb-3bc7-4bbc-a6ec-fa544436db20"
     },
     {
       "parameters": {
@@ -101,6 +86,101 @@
       ],
       "id": "18e9bbcc-2584-4912-a39e-35d25ae8098c",
       "name": "Return Output"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({\n  status: $json.exitCode === 0 ? \"ok\" : \"error\",\n  exitCode: $json.exitCode,\n  durationSeconds: Math.round(($now.toMillis() - $('Start Timer').item.json.startedAt) / 1000),\n  stdout: $json.stdout,\n  stderr: $json.stderr\n}) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        656,
+        0
+      ],
+      "id": "0b25ca93-f35e-41db-962f-83deeabd76ff",
+      "name": "Return FFMPEG Output"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b6b81ef6-f53d-4530-b0e3-67c97408898b",
+              "name": "startedAt",
+              "value": "={{ $now.toMillis() }}",
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "9cc614b8-bb59-4a8c-994f-605cc6d03bcd",
+      "name": "Start Timer"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tts",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "96f11d2a-decf-49bc-8249-49eb976a2d6b",
+      "name": "Receive TTS Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        448
+      ],
+      "webhookId": "8a0bee15-c5f7-4781-8685-74dd93111ae9"
+    },
+    {
+      "parameters": {
+        "method": "={{ $json.body.method || 'POST' }}",
+        "url": "=http://127.0.0.1:8881{{ $json.body.path }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body.body || {}) }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "a9d7d149-7a15-4d04-a916-a19634f9e62c",
+      "name": "Forward to Native Kokoro",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        224,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "7dc68997-ca5a-4041-bfed-c6e52f377d66",
+      "name": "Return TTS Output",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        448,
+        448
+      ]
     }
   ],
   "pinData": {},
@@ -109,7 +189,7 @@
       "main": [
         [
           {
-            "node": "Run ffmpeg Command",
+            "node": "Start Timer",
             "type": "main",
             "index": 0
           }
@@ -120,7 +200,7 @@
       "main": [
         [
           {
-            "node": "Return OK",
+            "node": "Return FFMPEG Output",
             "type": "main",
             "index": 0
           }
@@ -148,16 +228,55 @@
           }
         ]
       ]
+    },
+    "Start Timer": {
+      "main": [
+        [
+          {
+            "node": "Run ffmpeg Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receive TTS Request": {
+      "main": [
+        [
+          {
+            "node": "Forward to Native Kokoro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Forward to Native Kokoro": {
+      "main": [
+        [
+          {
+            "node": "Return TTS Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
   },
-  "versionId": "883c0a5e-5f0b-48aa-a503-bd196a5408af",
+  "versionId": "4d245029-022b-4090-be2d-70d6db09956a",
   "meta": {
     "instanceId": "ed1f09f33a1c588a9b788156ad40bc434be9b1b6114805fd77608f02e470ebf4"
   },
-  "id": "i5OkrefVqzPUXYDf",
+  "id": "EgnxPB0c3RNOTsbk",
   "tags": []
 }

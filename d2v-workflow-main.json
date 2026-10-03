@@ -55,7 +55,7 @@
       "typeVersion": 4.4,
       "position": [
         -10224,
-        -16
+        80
       ]
     },
     {
@@ -68,7 +68,7 @@
       "typeVersion": 1.1,
       "position": [
         -10000,
-        -16
+        80
       ]
     },
     {
@@ -82,7 +82,7 @@
       "typeVersion": 1,
       "position": [
         -9776,
-        -16
+        80
       ]
     },
     {
@@ -98,7 +98,7 @@
       "typeVersion": 1.1,
       "position": [
         -9104,
-        -80
+        -16
       ]
     },
     {
@@ -148,7 +148,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "={{ (() => {\n    const isPage = $('Set Page Number').isExecuted;\n    const isChangeVoice = $('Set Change-Voice Page Number').isExecuted;\n    const isSample = $('Set Sample Voice Number').isExecuted;\n    const isKnit = !isPage && !isChangeVoice && !isSample;\n    const left = isKnit ? $('Page Knitting Configuration').item.json['⬅️ Left Page Number'] : null;\n    const right = isKnit ? $('Page Knitting Configuration').item.json['Right Page Number ➡️'] : null;\n    const p = isKnit\n      ? `${left}-${right}_knit`\n      : (isPage\n          ? $('Set Page Number').item.json.pageNumber\n          : (isChangeVoice\n              ? $('Set Change-Voice Page Number').item.json.pageNumber\n              : 'sample_' + $('Set Sample Voice Number').item.json.voiceId\n            )\n        );\n    const img = isKnit ? `temp/${left}-${right}_knit_image.png` : `temp/${p}_image.png`;\n    const cellFile = `temp/${p}_cell.png`;\n    const name = isSample ? $('Set Sample Voice Number').item.json.friendlyName : null;\n\n    const sampleImageCmds = isSample ? [\n      'REFW=1920',\n      'REFH=1080',\n      'FONTSIZE=$((REFH / 12))',\n      `NAME='${name}'`,\n      'NAMELEN=${#NAME}',\n      'CELLW=$(( (NAMELEN * FONTSIZE * 6 / 10) + FONTSIZE ))',\n      'CELLH=$(( FONTSIZE * 2 ))',\n      'COLS=$(( (REFW + CELLW - 1) / CELLW ))',\n      'ROWS=$(( (REFH + CELLH - 1) / CELLH ))',\n      `ffmpeg -y -f lavfi -i color=white:s=\\${CELLW}x\\${CELLH} -vf \"drawtext=text='\\${NAME}':fontcolor=black:fontsize=\\${FONTSIZE}:x=(w-text_w)/2:y=(h-text_h)/2\" -frames:v 1 ${cellFile}`,\n      `ffmpeg -y -i ${cellFile} -filter_complex \"tile=\\${COLS}x\\${ROWS}\" -vf \"crop=\\${REFW}:\\${REFH}:0:0\" -frames:v 1 ${img}`\n    ] : [];\n\n    const ffmpegCmd = isKnit\n      ? `ffmpeg -y -loop 1 -t \"$DUR\" -i ${img} -i temp/${p}_audio.wav -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/${p}_clip.mp4`\n      : `ffmpeg -y -loop 1 -t \"$DUR\" -i ${img} -i temp/${p}_audio.wav -filter_complex \"[0:v]split[bg_src][fg_src];[bg_src]scale=iw*2:ih,boxblur=20:3[bg];[fg_src]scale=trunc(iw/2)*2:trunc(ih/2)*2[fg];[bg][fg]overlay=(main_w-overlay_w)/2:0[v]\" -map \"[v]\" -map 1:a -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/${p}_clip.mp4`;\n\n    return [\n      'export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH',\n      ...sampleImageCmds,\n      `DUR=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 temp/${p}_audio.wav)`,\n      `sed -i '' 's/\"audioDuration\":null/\"audioDuration\":'\"$DUR\"'/' temp/${p}_timestamps.json`,\n      ffmpegCmd,\n      `xattr -d com.apple.quarantine temp/${p}_clip.mp4`\n    ].join(' && ');\n  })() }}"
+              "value": "={{ (() => {\n    const isPage = $('Set Page Number').isExecuted;\n    const isChangeVoice = $('Set Change-Voice Page Number').isExecuted;\n    const isSample = $('Set Sample Voice Number').isExecuted;\n    const isKnit = !isPage && !isChangeVoice && !isSample;\n    const left = isKnit ? $('Page Knitting Configuration').item.json['⬅️ Left Page Number'] : null;\n    const right = isKnit ? $('Page Knitting Configuration').item.json['Right Page Number ➡️'] : null;\n    const p = isKnit\n      ? `${left}-${right}_knit`\n      : (isPage\n          ? $('Set Page Number').item.json.pageNumber\n          : (isChangeVoice\n              ? $('Set Change-Voice Page Number').item.json.pageNumber\n              : 'sample_' + $('Set Sample Voice Number').item.json.voiceId\n            )\n        );\n    const img = isKnit ? `temp/${left}-${right}_knit_image.png` : `temp/${p}_image.png`;\n    const name = isSample ? $('Set Sample Voice Number').item.json.friendlyName : null;\n\n    const sampleImageCmds = isSample ? [\n      'REFW=1920',\n      'REFH=1080',\n      'FONTSIZE=$((REFH / 12))',\n      `NAME='${name}'`,\n      'NAMELEN=${#NAME}',\n      'CELLW=$(( (NAMELEN * FONTSIZE * 6 / 10) + FONTSIZE ))',\n      'CELLH=$(( FONTSIZE * 2 ))',\n      'COLS=$(( (REFW + CELLW - 1) / CELLW ))',\n      'ROWS=$(( (REFH + CELLH - 1) / CELLH ))',\n      'GRIDW=$((COLS * CELLW))',\n      'OFFSETX=$(( (REFW - GRIDW) / 2 ))',\n      'FILTERS=\"\"',\n      `for ((r=0; r<ROWS; r++)); do for ((c=0; c<COLS; c++)); do CELLX=$((OFFSETX + c*CELLW)); CELLY=$((r*CELLH)); FILTERS=\"\\${FILTERS}drawtext=text='\\${NAME}':fontcolor=black:fontsize=\\${FONTSIZE}:x=\\${CELLX}+(\\${CELLW}-text_w)/2:y=\\${CELLY}+(\\${CELLH}-text_h)/2,\"; done; done`,\n      'FILTERS=\"${FILTERS%,}\"',\n      `ffmpeg -y -f lavfi -i color=white:s=\\${REFW}x\\${REFH} -vf \"$FILTERS\" -frames:v 1 ${img}`\n    ] : [];\n\n    const ffmpegCmd = isKnit\n      ? `ffmpeg -y -loop 1 -t \"$DUR\" -i ${img} -i temp/${p}_audio.wav -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/${p}_clip.mp4`\n      : `ffmpeg -y -loop 1 -t \"$DUR\" -i ${img} -i temp/${p}_audio.wav -filter_complex \"[0:v]split[bg_src][fg_src];[bg_src]scale=iw*2:ih,boxblur=20:3[bg];[fg_src]scale=trunc(iw/2)*2:trunc(ih/2)*2[fg];[bg][fg]overlay=(main_w-overlay_w)/2:0[v]\" -map \"[v]\" -map 1:a -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/${p}_clip.mp4`;\n\n    return [\n      'export PATH=/opt/homebrew/opt/ffmpeg-full/bin:/opt/homebrew/bin:/usr/local/bin:$PATH',\n      ...sampleImageCmds,\n      `DUR=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 temp/${p}_audio.wav)`,\n      `sed -i '' 's/\"audioDuration\":null/\"audioDuration\":'\"$DUR\"'/' temp/${p}_timestamps.json`,\n      ffmpegCmd,\n      `xattr -d com.apple.quarantine temp/${p}_clip.mp4 2>/dev/null || true`\n    ].join(' && ');\n  })() }}"
             }
           ]
         },
@@ -156,6 +156,11 @@
           "batching": {
             "batch": {
               "batchSize": 1
+            }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "json"
             }
           }
         }
@@ -166,7 +171,7 @@
       "typeVersion": 4.4,
       "position": [
         -2384,
-        32
+        -64
       ]
     },
     {
@@ -194,7 +199,7 @@
       "typeVersion": 3,
       "position": [
         -9552,
-        -16
+        80
       ]
     },
     {
@@ -240,7 +245,7 @@
       "typeVersion": 1.1,
       "position": [
         -5744,
-        -160
+        -80
       ]
     },
     {
@@ -257,7 +262,7 @@
       "typeVersion": 1.1,
       "position": [
         -5520,
-        -160
+        -80
       ]
     },
     {
@@ -274,7 +279,7 @@
       "typeVersion": 1.1,
       "position": [
         -4848,
-        -32
+        -64
       ]
     },
     {
@@ -285,7 +290,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "={{ (() => {\n    const basename = $('Determine Output Basename').item.json.outputBasename;\n    const clipGlob = $('Determine Output Basename').item.json.tempClipGlob;\n    const chaptersFile = $('Determine Output Basename').item.json.chaptersFile;\n    const simple = $('Determine Output Basename').item.json.useSimpleConcat;\n\n    const simpleCmds = [\n      'mkdir -p output',\n      `find temp -maxdepth 1 -name \"${clipGlob}\" | sort -V | while read f; do echo \"file '$PWD/$f'\"; done > temp/${basename}_concat_list.txt`,\n      `ffmpeg -y -f concat -safe 0 -i temp/${basename}_concat_list.txt -i temp/${chaptersFile} -map_metadata 1 -c copy output/${basename}.mp4`,\n      `xattr -d com.apple.quarantine \"$PWD/output/${basename}.mp4\" 2>/dev/null; true`\n    ];\n\n    const complexCmds = [\n      'mkdir -p output',\n      `find temp -maxdepth 1 -name \"${clipGlob}\" | sort -V | while read f; do b=$(basename \"$f\" _clip.mp4); case \"$b\" in *_knit) echo \"file '$PWD/$f'\";; *) ls \"temp/\\${b}-\"*\"_knit_clip.mp4\" 2>/dev/null | grep -q . || ls \"temp/\"*\"-\\${b}_knit_clip.mp4\" 2>/dev/null | grep -q . || echo \"file '$PWD/$f'\";; esac; done > temp/${basename}_concat_list.txt`,\n      'MAX_W=0',\n      'for f in temp/*_knit_clip.mp4; do [ -f \"$f\" ] || break; W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$f\" | head -1); if [ \"$W\" -gt \"$MAX_W\" ]; then MAX_W=$W; fi; done',\n      `SINGLE=$(find temp -maxdepth 1 -name \"${clipGlob}\" ! -name \"*_knit_clip.mp4\" | sort -V | head -1)`,\n      'if [ -n \"$SINGLE\" ]; then CLIP_W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$SINGLE\" | head -1); PAGE_W=$((CLIP_W/2)); if [ \"$PAGE_W\" -gt \"$MAX_W\" ]; then MAX_W=$PAGE_W; fi; else CLIP_W=$MAX_W; fi',\n      'TARGET_W=$MAX_W',\n      `if [ \"$CLIP_W\" -eq \"$TARGET_W\" ]; then ffmpeg -y -f concat -safe 0 -i temp/${basename}_concat_list.txt -i temp/${chaptersFile} -map_metadata 1 -c copy output/${basename}.mp4; elif [ \"$CLIP_W\" -gt \"$TARGET_W\" ]; then X=$(( (CLIP_W - TARGET_W) / 2 )) && ffmpeg -y -f concat -safe 0 -i temp/${basename}_concat_list.txt -i temp/${chaptersFile} -map_metadata 1 -vf \"crop=\\${TARGET_W}:ih:\\${X}:0\" -c:v libx264 -preset ultrafast -c:a copy -pix_fmt yuv420p output/${basename}.mp4; else OX=$(( (TARGET_W - CLIP_W) / 2 )) && ffmpeg -y -f concat -safe 0 -i temp/${basename}_concat_list.txt -i temp/${chaptersFile} -map_metadata 1 -vf \"split[bg][fg];[bg]scale=\\${TARGET_W}:ih,boxblur=20:3[bg_b];[fg][bg_b]overlay=\\${OX}:0\" -c:v libx264 -preset ultrafast -c:a copy -pix_fmt yuv420p output/${basename}.mp4; fi`,\n      `xattr -d com.apple.quarantine \"$PWD/output/${basename}.mp4\" 2>/dev/null; true`\n    ];\n\n    return ['export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH', ...(simple ? simpleCmds : complexCmds)].join(' && ');\n  })() }}"
+              "value": "={{ (() => {\n    const basename = $('Determine Output Basename').item.json.outputBasename;\n    const clipGlob = $('Determine Output Basename').item.json.tempClipGlob;\n    const chaptersFile = $('Determine Output Basename').item.json.chaptersFile;\n    const simple = $('Determine Output Basename').item.json.useSimpleConcat;\n\n    const sortedVoiceIds = $('Aggregate All Timestamps').item.json.pages\n      .map(x => x.data)\n      .filter(d => d.voiceId)\n      .sort((a, b) => (a.voiceId < b.voiceId ? -1 : (a.voiceId > b.voiceId ? 1 : 0)))\n      .map(d => d.voiceId);\n\n    const simpleCmds = [\n      'mkdir -p output',\n      `: > temp/${basename}_concat_list.txt`,\n      ...sortedVoiceIds.map(id => `echo \"file '$PWD/temp/sample_${id}_clip.mp4'\" >> temp/${basename}_concat_list.txt`),\n      `ffmpeg -y -f concat -safe 0 -i temp/${basename}_concat_list.txt -i temp/${chaptersFile} -map_metadata 1 -c copy output/${basename}.mp4`,\n      `xattr -d com.apple.quarantine \"$PWD/output/${basename}.mp4\" 2>/dev/null || true`\n    ];\n\n    const complexCmds = [\n      'mkdir -p output',\n      `find temp -maxdepth 1 -name \"${clipGlob}\" | sort -V | while read f; do b=$(basename \"$f\" _clip.mp4); case \"$b\" in *_knit) echo \"file '$PWD/$f'\";; *) ls \"temp/\\${b}-\"*\"_knit_clip.mp4\" 2>/dev/null | grep -q . || ls \"temp/\"*\"-\\${b}_knit_clip.mp4\" 2>/dev/null | grep -q . || echo \"file '$PWD/$f'\";; esac; done > temp/${basename}_concat_list.txt`,\n      'MAX_W=0',\n      'for f in temp/*_knit_clip.mp4; do [ -f \"$f\" ] || break; W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$f\" | head -1); if [ \"$W\" -gt \"$MAX_W\" ]; then MAX_W=$W; fi; done',\n      `SINGLE=$(find temp -maxdepth 1 -name \"${clipGlob}\" ! -name \"*_knit_clip.mp4\" | sort -V | head -1)`,\n      'if [ -n \"$SINGLE\" ]; then CLIP_W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$SINGLE\" | head -1); PAGE_W=$((CLIP_W/2)); if [ \"$PAGE_W\" -gt \"$MAX_W\" ]; then MAX_W=$PAGE_W; fi; else CLIP_W=$MAX_W; fi',\n      'TARGET_W=$MAX_W',\n      `if [ \"$CLIP_W\" -eq \"$TARGET_W\" ]; then ffmpeg -y -f concat -safe 0 -i temp/${basename}_concat_list.txt -i temp/${chaptersFile} -map_metadata 1 -c copy output/${basename}.mp4; elif [ \"$CLIP_W\" -gt \"$TARGET_W\" ]; then X=$(( (CLIP_W - TARGET_W) / 2 )) && ffmpeg -y -f concat -safe 0 -i temp/${basename}_concat_list.txt -i temp/${chaptersFile} -map_metadata 1 -vf \"crop=\\${TARGET_W}:ih:\\${X}:0\" -c:v libx264 -preset ultrafast -c:a copy -pix_fmt yuv420p output/${basename}.mp4; else OX=$(( (TARGET_W - CLIP_W) / 2 )) && ffmpeg -y -f concat -safe 0 -i temp/${basename}_concat_list.txt -i temp/${chaptersFile} -map_metadata 1 -vf \"split[bg][fg];[bg]scale=\\${TARGET_W}:ih,boxblur=20:3[bg_b];[fg][bg_b]overlay=\\${OX}:0\" -c:v libx264 -preset ultrafast -c:a copy -pix_fmt yuv420p output/${basename}.mp4; fi`,\n      `xattr -d com.apple.quarantine \"$PWD/output/${basename}.mp4\" 2>/dev/null || true`\n    ];\n\n    return ['export PATH=/opt/homebrew/opt/ffmpeg-full/bin:/opt/homebrew/bin:/usr/local/bin:$PATH', ...(simple ? simpleCmds : complexCmds)].join(' && ');\n  })() }}"
             }
           ]
         },
@@ -303,8 +308,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        80,
-        -80
+        752,
+        -320
       ]
     },
     {
@@ -336,7 +341,7 @@
       "typeVersion": 1.1,
       "position": [
         -10672,
-        -16
+        80
       ]
     },
     {
@@ -350,7 +355,7 @@
       "typeVersion": 1.1,
       "position": [
         -10448,
-        -16
+        80
       ]
     },
     {
@@ -375,7 +380,7 @@
       "typeVersion": 2.5,
       "position": [
         -10896,
-        -16
+        80
       ]
     },
     {
@@ -389,7 +394,7 @@
       "typeVersion": 1.1,
       "position": [
         -11568,
-        752
+        896
       ],
       "onError": "continueRegularOutput"
     },
@@ -423,7 +428,7 @@
       "typeVersion": 2.3,
       "position": [
         -11344,
-        752
+        896
       ]
     },
     {
@@ -439,7 +444,7 @@
       "typeVersion": 2.5,
       "position": [
         -11120,
-        832
+        976
       ]
     },
     {
@@ -482,7 +487,7 @@
       "typeVersion": 2.5,
       "position": [
         -12016,
-        752
+        1024
       ]
     },
     {
@@ -496,7 +501,7 @@
       "typeVersion": 1.1,
       "position": [
         -7312,
-        16
+        160
       ],
       "onError": "continueRegularOutput"
     },
@@ -531,7 +536,7 @@
       "typeVersion": 2.3,
       "position": [
         -7088,
-        16
+        160
       ]
     },
     {
@@ -545,7 +550,7 @@
       "typeVersion": 1.1,
       "position": [
         -8208,
-        80
+        208
       ],
       "onError": "continueRegularOutput"
     },
@@ -580,7 +585,7 @@
       "typeVersion": 2.3,
       "position": [
         -7984,
-        80
+        208
       ]
     },
     {
@@ -594,7 +599,7 @@
       "typeVersion": 1.1,
       "position": [
         -8656,
-        -16
+        112
       ],
       "onError": "continueRegularOutput"
     },
@@ -629,7 +634,7 @@
       "typeVersion": 2.3,
       "position": [
         -8432,
-        -16
+        112
       ]
     },
     {
@@ -658,7 +663,7 @@
       "typeVersion": 1.1,
       "position": [
         -4624,
-        -32
+        -64
       ]
     },
     {
@@ -672,7 +677,7 @@
       "typeVersion": 1.1,
       "position": [
         -4400,
-        -32
+        -64
       ]
     },
     {
@@ -687,7 +692,7 @@
       "typeVersion": 1.1,
       "position": [
         -4176,
-        -32
+        -64
       ]
     },
     {
@@ -717,7 +722,7 @@
       "typeVersion": 4.4,
       "position": [
         -5296,
-        -160
+        -80
       ]
     },
     {
@@ -751,7 +756,7 @@
       "typeVersion": 2.3,
       "position": [
         -8880,
-        -80
+        -16
       ]
     },
     {
@@ -760,7 +765,7 @@
         "url": "http://kokoro:8880/dev/captioned_speech",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n    model: \"kokoro\",\n    voice: \"af_heart\",\n    input: JSON.parse($json.text).text,\n    response_format: \"wav\",\n    return_timestamps: true,\n    stream: false,\n    allow_voice_tags: true\n  }) }}",
+        "jsonBody": "={{ JSON.stringify({\n    model: \"kokoro\",\n    voice: $('Set Sample Voice Number').isExecuted ? $('Set Sample Voice Number').item.json.voiceId : \"af_heart\",\n    input: JSON.parse($json.text).text,\n    response_format: \"wav\",\n    return_timestamps: true,\n    stream: false,\n    allow_voice_tags: true\n  }) }}",
         "options": {
           "batching": {
             "batch": {
@@ -781,7 +786,7 @@
       "typeVersion": 4.4,
       "position": [
         -3952,
-        -32
+        -64
       ]
     },
     {
@@ -791,7 +796,7 @@
             {
               "id": "87d8b8eb-bb8a-48da-8237-869892a6ce76",
               "name": "timestampsJson",
-              "value": "={{ JSON.stringify({\n    pageIndex: $('Set Page Number').isExecuted\n      ? $('Set Page Number').item.json.pageNumber\n      : ($('Set Change-Voice Page Number').isExecuted\n          ? $('Set Change-Voice Page Number').item.json.pageNumber\n          : ($('Set Sample Voice Number').isExecuted\n              ? $('Set Sample Voice Number').item.json.voiceIndex\n              : $('Set Knit Page Number').item.json.pageNumber\n            )\n        ),\n    knitPages: ($('Set Page Number').isExecuted || $('Set Change-Voice Page Number').isExecuted || $('Set Sample Voice Number').isExecuted)\n      ? null\n      : [$('Page Knitting Configuration').item.json['⬅️ Left Page Number'], $('Page Knitting Configuration').item.json['Right Page Number ➡️']],\n    audioDuration: null,\n    timestamps: $('Request TTS with Timestamps').item.json.timestamps,\n    wordMap: JSON.parse($json.text)\n  }) }}",
+              "value": "={{ JSON.stringify({\n    pageIndex: $('Set Page Number').isExecuted\n      ? $('Set Page Number').item.json.pageNumber\n      : ($('Set Change-Voice Page Number').isExecuted\n          ? $('Set Change-Voice Page Number').item.json.pageNumber\n          : ($('Set Sample Voice Number').isExecuted\n              ? $('Set Sample Voice Number').item.json.voiceIndex\n              : $('Set Knit Page Number').item.json.pageNumber\n            )\n        ),\n    knitPages: ($('Set Page Number').isExecuted || $('Set Change-Voice Page Number').isExecuted || $('Set Sample Voice Number').isExecuted)\n      ? null\n      : [$('Page Knitting Configuration').item.json['⬅️ Left Page Number'], $('Page Knitting Configuration').item.json['Right Page Number ➡️']],\n    voiceId: $('Set Sample Voice Number').isExecuted ? $('Set Sample Voice Number').item.json.voiceId : null,\n    voiceLabel: $('Set Sample Voice Number').isExecuted\n      ? (() => {\n          const id = $('Set Sample Voice Number').item.json.voiceId;\n          const langMap = { a: 'English (US)', b: 'English (UK)', e: 'Spanish', f: 'French', h: 'Hindi', i: 'Italian', j: 'Japanese', p: 'Portuguese (BR)', z: 'Chinese' };\n          const genderMap = { f: 'Female', m: 'Male' };\n          const lang = langMap[id[0]] || id[0];\n          const gender = genderMap[id[1]] || id[1];\n          return $('Set Sample Voice Number').item.json.friendlyName + ' ' + gender + ' ' + lang;\n        })()\n      : null,\n    audioDuration: null,\n    timestamps: $('Request TTS with Timestamps').item.json.timestamps,\n    wordMap: JSON.parse($json.text)\n  }) }}",
               "type": "string"
             },
             {
@@ -817,7 +822,7 @@
       "typeVersion": 3.4,
       "position": [
         -3280,
-        64
+        80
       ]
     },
     {
@@ -834,7 +839,7 @@
       "typeVersion": 1.1,
       "position": [
         -3056,
-        64
+        80
       ]
     },
     {
@@ -849,7 +854,7 @@
       "typeVersion": 1.1,
       "position": [
         -2832,
-        64
+        80
       ]
     },
     {
@@ -879,8 +884,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -1936,
-        -80
+        -1264,
+        -320
       ]
     },
     {
@@ -894,8 +899,8 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -1712,
-        -80
+        -1040,
+        -320
       ]
     },
     {
@@ -917,8 +922,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1488,
-        -80
+        -816,
+        -320
       ]
     },
     {
@@ -932,8 +937,8 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        -1264,
-        -80
+        -592,
+        -320
       ]
     },
     {
@@ -943,13 +948,13 @@
             {
               "id": "7533fc03-f9f5-467a-a7ad-9c8db4565d1f",
               "name": "subtitleChunks",
-              "value": "={{ (() => {\n      function formatSrtTimestamp(seconds) {\n        seconds = Math.max(0, seconds);\n        const hours = String(Math.floor(seconds / 3600)).padStart(2, '0');\n        const minutes = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');\n        const secs = String(Math.floor(seconds % 60)).padStart(2, '0');\n        const ms = String(Math.round((seconds % 1) * 1000)).padStart(3, '0');\n        return hours + ':' + minutes + ':' + secs + ',' + ms;\n      }\n\n      function stripNonAlphanumeric(word) {\n        return word.toLowerCase().replace(/[^a-z0-9]/g, '');\n      }\n\n      function buildNormalizedWordList(wordMap) {\n        const normList = [];\n        for (let origIdx = 0; origIdx < wordMap.length; origIdx++) {\n          const normalizedTokens = wordMap[origIdx].normalized.split(/\\s+/).filter(w => /\\w/.test(w));\n          if (normalizedTokens.length > 0) {\n            for (const token of normalizedTokens) normList.push({ word: token.toLowerCase(), origIdx });\n          } else {\n            normList.push({ word: '', origIdx });\n          }\n        }\n        return normList;\n      }\n\n      function alignTimestampsToOriginalWords(timestamps, normList) {\n        let cursor = 0;\n        return timestamps.map(t => {\n          const cleanedWord = stripNonAlphanumeric(t.word);\n          for (let j = cursor; j < Math.min(cursor + 60, normList.length); j++) {\n            if (stripNonAlphanumeric(normList[j].word) === cleanedWord) {\n              cursor = j + 1;\n              return normList[j].origIdx;\n            }\n          }\n          return normList[Math.min(cursor, normList.length - 1)].origIdx;\n        });\n      }\n\n      function buildSubtitleChunksForPage(page, timeOffset, startIdx) {\n        const timestamps = page.timestamps.filter(t => /\\w/.test(t.word));\n        const pageDuration = page.audioDuration ?? page.timestamps[page.timestamps.length - 1].end_time;\n        const originalWords = page.wordMap.map(w => w.original);\n\n        const normList = buildNormalizedWordList(page.wordMap);\n        const alignedOrigIdx = alignTimestampsToOriginalWords(timestamps, normList);\n\n        const numChunks = Math.max(1, Math.ceil(pageDuration / 4));\n        const wordsPerChunk = Math.ceil(timestamps.length / numChunks);\n\n        const chunks = [];\n        let i = 0, chunkIdx = startIdx;\n        while (i < timestamps.length) {\n          const isLastChunk = i + wordsPerChunk >= timestamps.length;\n          const chunkStart = timestamps[i].start_time;\n          const chunkEnd = isLastChunk ? pageDuration : timestamps[i + wordsPerChunk].start_time;\n          const startOrigIdx = alignedOrigIdx[i];\n          const endOrigIdx = isLastChunk ? originalWords.length - 1 : alignedOrigIdx[Math.min(i + wordsPerChunk - 1, alignedOrigIdx.length - 1)];\n          chunks.push({\n            idx: chunkIdx,\n            start: formatSrtTimestamp(chunkStart + timeOffset),\n            end: formatSrtTimestamp(chunkEnd + timeOffset),\n            text: originalWords.slice(startOrigIdx, endOrigIdx + 1).join(' ')\n          });\n          chunkIdx++;\n          i += wordsPerChunk;\n        }\n        return { chunks, pageDuration };\n      }\n\n      const allPages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n      const knitCovered = new Set(allPages.filter(p => p.knitPages).flatMap(p => p.knitPages));\n      const pages = allPages.filter(p => p.knitPages || !knitCovered.has(p.pageIndex));\n      const allChunks = [];\n      let timeOffset = 0, chunkIdx = 1;\n      for (const page of pages) {\n        const { chunks, pageDuration } = buildSubtitleChunksForPage(page, timeOffset, chunkIdx);\n        allChunks.push(...chunks);\n        chunkIdx += chunks.length;\n        timeOffset += pageDuration;\n      }\n      return allChunks;\n    })() }}",
+              "value": "={{ (() => {\n      function formatSrtTimestamp(seconds) {\n        seconds = Math.max(0, seconds);\n        const hours = String(Math.floor(seconds / 3600)).padStart(2, '0');\n        const minutes = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');\n        const secs = String(Math.floor(seconds % 60)).padStart(2, '0');\n        const ms = String(Math.round((seconds % 1) * 1000)).padStart(3, '0');\n        return hours + ':' + minutes + ':' + secs + ',' + ms;\n      }\n\n      function stripNonAlphanumeric(word) {\n        return word.toLowerCase().replace(/[^a-z0-9]/g, '');\n      }\n\n      function buildNormalizedWordList(wordMap) {\n        const normList = [];\n        for (let origIdx = 0; origIdx < wordMap.length; origIdx++) {\n          const normalizedTokens = wordMap[origIdx].normalized.split(/\\s+/).filter(w => /\\w/.test(w));\n          if (normalizedTokens.length > 0) {\n            for (const token of normalizedTokens) normList.push({ word: token.toLowerCase(), origIdx });\n          } else {\n            normList.push({ word: '', origIdx });\n          }\n        }\n        return normList;\n      }\n\n      function alignTimestampsToOriginalWords(timestamps, normList) {\n        let cursor = 0;\n        return timestamps.map(t => {\n          const cleanedWord = stripNonAlphanumeric(t.word);\n          for (let j = cursor; j < Math.min(cursor + 60, normList.length); j++) {\n            if (stripNonAlphanumeric(normList[j].word) === cleanedWord) {\n              cursor = j + 1;\n              return normList[j].origIdx;\n            }\n          }\n          return normList[Math.min(cursor, normList.length - 1)].origIdx;\n        });\n      }\n\n      function buildSubtitleChunksForPage(page, timeOffset, startIdx) {\n        const timestamps = page.timestamps.filter(t => /\\w/.test(t.word));\n        const pageDuration = page.audioDuration ?? page.timestamps[page.timestamps.length - 1].end_time;\n        const originalWords = page.wordMap.map(w => w.original);\n\n        const normList = buildNormalizedWordList(page.wordMap);\n        const alignedOrigIdx = alignTimestampsToOriginalWords(timestamps, normList);\n\n        const numChunks = Math.max(1, Math.ceil(pageDuration / 4));\n        const wordsPerChunk = Math.ceil(timestamps.length / numChunks);\n\n        const chunks = [];\n        let i = 0, chunkIdx = startIdx;\n        while (i < timestamps.length) {\n          const isLastChunk = i + wordsPerChunk >= timestamps.length;\n          const chunkStart = timestamps[i].start_time;\n          const chunkEnd = isLastChunk ? pageDuration : timestamps[i + wordsPerChunk].start_time;\n          const startOrigIdx = alignedOrigIdx[i];\n          const endOrigIdx = isLastChunk ? originalWords.length - 1 : alignedOrigIdx[Math.min(i + wordsPerChunk - 1, alignedOrigIdx.length - 1)];\n          chunks.push({\n            idx: chunkIdx,\n            start: formatSrtTimestamp(chunkStart + timeOffset),\n            end: formatSrtTimestamp(chunkEnd + timeOffset),\n            text: originalWords.slice(startOrigIdx, endOrigIdx + 1).join(' ')\n          });\n          chunkIdx++;\n          i += wordsPerChunk;\n        }\n        return { chunks, pageDuration };\n      }\n\n      const allPages = $json.pages.map(p => p.data).sort((a, b) => (a.voiceId && b.voiceId) ? (a.voiceId < b.voiceId ? -1 : (a.voiceId > b.voiceId ? 1 : 0)) : (a.pageIndex - b.pageIndex));\n      const knitCovered = new Set(allPages.filter(p => p.knitPages).flatMap(p => p.knitPages));\n      const pages = allPages.filter(p => p.knitPages || !knitCovered.has(p.pageIndex));\n      const allChunks = [];\n      let timeOffset = 0, chunkIdx = 1;\n      for (const page of pages) {\n        const { chunks, pageDuration } = buildSubtitleChunksForPage(page, timeOffset, chunkIdx);\n        allChunks.push(...chunks);\n        chunkIdx += chunks.length;\n        timeOffset += pageDuration;\n      }\n      return allChunks;\n    })() }}",
               "type": "array"
             },
             {
               "id": "b49b8042-e188-4a3f-aa09-7799a268fd15",
               "name": "chaptersContent",
-              "value": "={{ (() => {\n      const allPages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n      const knitCovered = new Set(allPages.filter(p => p.knitPages).flatMap(p => p.knitPages.map(Number)));\n      const pages = allPages.filter(p => p.knitPages || !knitCovered.has(Number(p.pageIndex)));\n\n      let meta = ';FFMETADATA1\\n', offset = 0;\n\n      for (const page of pages) {\n        const dur = page.audioDuration ?? page.timestamps[page.timestamps.length - 1].end_time;\n        const title = page.knitPages ? `Pages ${page.knitPages[0]} & ${page.knitPages[1]}` : `Page ${page.pageIndex}`;\n        meta += `\\n[CHAPTER]\\nTIMEBASE=1/1000\\nSTART=${Math.round(offset * 1000)}\\nEND=${Math.round((offset + dur) * 1000)}\\ntitle=${title}\\n`;\n        offset += dur;\n      }\n\n      return meta;\n    })() }}",
+              "value": "={{ (() => {\n      const allPages = $json.pages.map(p => p.data).sort((a, b) => (a.voiceId && b.voiceId) ? (a.voiceId < b.voiceId ? -1 : (a.voiceId > b.voiceId ? 1 : 0)) : (a.pageIndex - b.pageIndex));\n      const knitCovered = new Set(allPages.filter(p => p.knitPages).flatMap(p => p.knitPages.map(Number)));\n      const pages = allPages.filter(p => p.knitPages || !knitCovered.has(Number(p.pageIndex)));\n\n      let meta = ';FFMETADATA1\\n', offset = 0;\n\n      for (const page of pages) {\n        const dur = page.audioDuration ?? page.timestamps[page.timestamps.length - 1].end_time;\n        const title = page.voiceLabel ? page.voiceLabel : (page.knitPages ? `Pages ${page.knitPages[0]} & ${page.knitPages[1]}` : `Page ${page.pageIndex}`);\n        meta += `\\n[CHAPTER]\\nTIMEBASE=1/1000\\nSTART=${Math.round(offset * 1000)}\\nEND=${Math.round((offset + dur) * 1000)}\\ntitle=${title}\\n`;\n        offset += dur;\n      }\n\n      return meta;\n    })() }}",
               "type": "string"
             }
           ]
@@ -961,8 +966,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1040,
-        -80
+        -368,
+        -320
       ]
     },
     {
@@ -978,8 +983,8 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -592,
-        -176
+        80,
+        -400
       ]
     },
     {
@@ -995,8 +1000,8 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -592,
-        16
+        80,
+        -208
       ]
     },
     {
@@ -1010,8 +1015,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -368,
-        16
+        304,
+        -208
       ]
     },
     {
@@ -1025,7 +1030,7 @@
       "typeVersion": 1.1,
       "position": [
         -7760,
-        160
+        304
       ],
       "onError": "continueRegularOutput"
     },
@@ -1060,7 +1065,7 @@
       "typeVersion": 2.3,
       "position": [
         -7536,
-        160
+        304
       ]
     },
     {
@@ -1075,7 +1080,7 @@
       "typeVersion": 3.2,
       "position": [
         -2608,
-        -32
+        -64
       ]
     },
     {
@@ -1089,8 +1094,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -368,
-        -176
+        304,
+        -400
       ]
     },
     {
@@ -1104,8 +1109,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -144,
-        -80
+        528,
+        -320
       ]
     },
     {
@@ -1119,7 +1124,7 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        -2160,
+        -1712,
         -400
       ]
     },
@@ -1142,8 +1147,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -816,
-        -176
+        -144,
+        -400
       ]
     },
     {
@@ -1166,7 +1171,7 @@
       "typeVersion": 3.4,
       "position": [
         -8208,
-        -128
+        -64
       ]
     },
     {
@@ -1241,7 +1246,7 @@
       "typeVersion": 1.1,
       "position": [
         -3728,
-        64
+        80
       ]
     },
     {
@@ -1256,7 +1261,7 @@
       "typeVersion": 1.1,
       "position": [
         -3504,
-        64
+        80
       ]
     },
     {
@@ -1280,7 +1285,7 @@
       "typeVersion": 3.4,
       "position": [
         -9328,
-        -80
+        -16
       ]
     },
     {
@@ -1294,7 +1299,7 @@
       "typeVersion": 1.1,
       "position": [
         -7984,
-        640
+        784
       ]
     },
     {
@@ -1311,7 +1316,7 @@
       "typeVersion": 1.1,
       "position": [
         -7760,
-        640
+        784
       ]
     },
     {
@@ -1325,7 +1330,7 @@
       "typeVersion": 1.1,
       "position": [
         -7536,
-        640
+        784
       ]
     },
     {
@@ -1342,7 +1347,7 @@
       "typeVersion": 1.1,
       "position": [
         -7312,
-        640
+        784
       ]
     },
     {
@@ -1356,7 +1361,7 @@
       "typeVersion": 1.1,
       "position": [
         -7088,
-        640
+        784
       ]
     },
     {
@@ -1384,7 +1389,7 @@
       "typeVersion": 2.5,
       "position": [
         -8880,
-        560
+        704
       ]
     },
     {
@@ -1395,7 +1400,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "={{ (() => {\n    const left = $json['⬅️ Left Page Number'];\n    const right = $json['Right Page Number ➡️'];\n    return [\n      'export PATH=/opt/homebrew/bin:/usr/local/bin:$PATH',\n      `ffmpeg -y -i temp/${left}_image.png -i temp/${right}_image.png -filter_complex hstack temp/${left}-${right}_knit_image.png`\n    ].join(' && ');\n  })() }}"
+              "value": "={{ (() => {\n    const left = $json['⬅️ Left Page Number'];\n    const right = $json['Right Page Number ➡️'];\n    return [\n      'export PATH=/opt/homebrew/opt/ffmpeg-full/bin:/opt/homebrew/bin:/usr/local/bin:$PATH',\n      `ffmpeg -y -i temp/${left}_image.png -i temp/${right}_image.png -filter_complex hstack temp/${left}-${right}_knit_image.png`\n    ].join(' && ');\n  })() }}"
             }
           ]
         },
@@ -1407,7 +1412,7 @@
       "typeVersion": 4.4,
       "position": [
         -8656,
-        560
+        704
       ]
     },
     {
@@ -1423,7 +1428,7 @@
       "typeVersion": 1.1,
       "position": [
         -6864,
-        640
+        784
       ]
     },
     {
@@ -1443,7 +1448,7 @@
       "typeVersion": 4.4,
       "position": [
         -6640,
-        640
+        784
       ]
     },
     {
@@ -1460,7 +1465,7 @@
       "typeVersion": 1.1,
       "position": [
         -6416,
-        640
+        784
       ]
     },
     {
@@ -1475,7 +1480,7 @@
       "typeVersion": 1.1,
       "position": [
         -6192,
-        640
+        784
       ]
     },
     {
@@ -1489,7 +1494,7 @@
       "typeVersion": 1.1,
       "position": [
         -8432,
-        560
+        704
       ],
       "onError": "continueRegularOutput"
     },
@@ -1524,7 +1529,7 @@
       "typeVersion": 2.3,
       "position": [
         -8208,
-        560
+        704
       ]
     },
     {
@@ -1538,7 +1543,7 @@
       "typeVersion": 1.1,
       "position": [
         -5968,
-        560
+        704
       ]
     },
     {
@@ -1553,7 +1558,7 @@
       "typeVersion": 1.1,
       "position": [
         -5744,
-        560
+        704
       ]
     },
     {
@@ -1583,7 +1588,7 @@
       "typeVersion": 3.4,
       "position": [
         -5520,
-        560
+        704
       ]
     },
     {
@@ -1724,7 +1729,7 @@
       "typeVersion": 3.4,
       "position": [
         -11792,
-        704
+        976
       ]
     },
     {
@@ -1738,7 +1743,7 @@
       "typeVersion": 4.5,
       "position": [
         -11344,
-        1312
+        1376
       ]
     },
     {
@@ -1753,8 +1758,8 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -10896,
-        1136
+        -6416,
+        1216
       ]
     },
     {
@@ -1788,8 +1793,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -10672,
-        928
+        -6192,
+        1072
       ]
     },
     {
@@ -1802,8 +1807,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -10448,
-        928
+        -5968,
+        1072
       ],
       "onError": "continueRegularOutput"
     },
@@ -1836,8 +1841,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -10224,
-        928
+        -5744,
+        1072
       ]
     },
     {
@@ -1851,8 +1856,8 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -10000,
-        832
+        -5520,
+        976
       ]
     },
     {
@@ -1870,8 +1875,8 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -10000,
-        1024
+        -5520,
+        1168
       ]
     },
     {
@@ -1893,8 +1898,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -9776,
-        832
+        -5296,
+        976
       ]
     },
     {
@@ -1927,8 +1932,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -9552,
-        832
+        -5072,
+        976
       ]
     },
     {
@@ -1943,8 +1948,8 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -9328,
-        1120
+        -4848,
+        1264
       ]
     },
     {
@@ -1958,8 +1963,8 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -9328,
-        784
+        -4848,
+        832
       ]
     },
     {
@@ -1973,8 +1978,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -9104,
-        784
+        -4624,
+        832
       ]
     },
     {
@@ -1984,7 +1989,7 @@
             {
               "fieldLabel": "What phrase should each voice say? Use {voice} where the voice's name should go.",
               "fieldType": "textarea",
-              "defaultValue": "This is what {voice} sounds like."
+              "defaultValue": "This is what {voice} sounds like. The North Wind and the Sun were disputing which was the stronger, when a traveler came along wrapped in a warm cloak. They agreed that the one who first succeeded in making the traveler take his cloak off should be considered stronger than the other. Then the North Wind blew as hard as he could, but the more he blew the more closely did the traveler fold his cloak around him; and at last the North Wind gave up the attempt. Then the Sun shone out warmly, and immediately the traveler took off his cloak. And so the North Wind was obliged to confess that the Sun was the stronger of the two."
             }
           ]
         },
@@ -1997,7 +2002,7 @@
       "typeVersion": 2.5,
       "position": [
         -11568,
-        1024
+        1136
       ]
     },
     {
@@ -2062,8 +2067,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -11120,
-        1312
+        -6640,
+        1376
       ]
     },
     {
@@ -2076,8 +2081,8 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        -10896,
-        1424
+        -2160,
+        1504
       ]
     },
     {
@@ -2089,8 +2094,8 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -10672,
-        1424
+        -1936,
+        64
       ]
     },
     {
@@ -2131,8 +2136,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -10448,
-        1424
+        -1712,
+        176
       ]
     },
     {
@@ -2164,8 +2169,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -2160,
-        112
+        -1936,
+        -128
       ]
     },
     {
@@ -2212,8 +2217,42 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -2048,
-        -16
+        -1488,
+        -320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b2c3d4e5-0001-4bbb-9000-000000000001",
+              "leftValue": "={{ $('Set Sample Voice Number').isExecuted }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "324d22cd-95fb-418f-9533-46976ac94449",
+      "name": "Route Sample Loop Back",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2160,
+        -64
       ]
     }
   ],
@@ -2297,17 +2336,6 @@
         [
           {
             "node": "Set Page Number",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Request Clip Assembly": {
-      "main": [
-        [
-          {
-            "node": "Skip Loop for One-Off Modes",
             "type": "main",
             "index": 0
           }
@@ -2839,17 +2867,6 @@
         ]
       ]
     },
-    "Aggregate": {
-      "main": [
-        [
-          {
-            "node": "Read All Timestamps from Disk",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Generate final subtitles": {
       "main": [
         [
@@ -3342,7 +3359,13 @@
     },
     "Process Voices One by One": {
       "main": [
-        [],
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "Set Sample Voice Number",
@@ -3391,6 +3414,46 @@
           }
         ]
       ]
+    },
+    "Request Clip Assembly": {
+      "main": [
+        [
+          {
+            "node": "Route Sample Loop Back",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Sample Loop Back": {
+      "main": [
+        [
+          {
+            "node": "Process Voices One by One",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Skip Loop for One-Off Modes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Determine Output Basename",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -3402,7 +3465,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "fabe7696-2411-485e-9ef2-56f9758dd438",
+  "versionId": "f1c0ab25-b08a-4702-97eb-42b903ff2330",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "0d58a7a3f156139856be42466a14e05f00173514ac9794a8494b09c53ea173a0"
