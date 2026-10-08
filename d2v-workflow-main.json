@@ -4,7 +4,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://stirling-pdf:8080/api/v1/convert/pdf/img",
+        "url": "={{ $('Populate Variables').item.json.stirlingPdfUrl }}",
         "sendQuery": true,
         "queryParameters": {
           "parameters": [
@@ -54,8 +54,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -10224,
-        128
+        -7312,
+        1984
       ]
     },
     {
@@ -67,8 +67,8 @@
       "type": "n8n-nodes-base.compression",
       "typeVersion": 1.1,
       "position": [
-        -10000,
-        128
+        -7088,
+        1984
       ]
     },
     {
@@ -81,14 +81,14 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        -9776,
-        128
+        -6864,
+        1984
       ]
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/temp/{{$('Set Page Number').item.json.pageNumber}}_image.png",
+        "fileName": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/{{$('Set Page Number').item.json.pageNumber}}_image.png",
         "dataPropertyName": "={{Object.keys($binary)[0]}}",
         "options": {}
       },
@@ -97,14 +97,14 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -9104,
-        32
+        -816,
+        -288
       ]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "http://host.docker.internal:5679/webhook/prompt",
+        "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/prompt",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -116,7 +116,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n    model: \"gemma4:31b\",\n    prompt: [\n      \"You are a precise document transcription assistant. Look at this page visually and transcribe all text exactly as it appears, from top to bottom, left to right. Rules:\",\n      \"1. Transcribe all text verbatim — preserve numbers, symbols, currencies, dates, codes, and abbreviations exactly as written.\",\n      \"2. If there are charts, graphs, or diagrams, describe them in plain natural language within the flow of the text. If there are images or photographs, describe them in plain natural language but place the description at the end of the transcription, including where on the page the image appears, for example: 'The image in the top left displays...'.\",\n      \"3. Ignore page numbers, headers, and footers unless critical to understanding the content.\",\n      \"4. Do not use Markdown formatting, bullet points, or stage directions. Return only plain text.\",\n      \"5. Do not summarize, explain, skip, or shorten any text.\",\n      \"6. End every sentence with a period.\",\n      \"7. For tables, first write one sentence summarizing what the table contains. Then transcribe each data row by pairing each cell with its column header, in the format \\\"Header: Value.\\\" for every column in that row, left to right. Repeat this for every row until the entire table is transcribed. Do not skip any rows or columns.\"\n    ].join(\"\\n\"),\n    imageBase64: $json.imageBase64\n  }) }}",
+        "jsonBody": "={{ JSON.stringify({\n    model: $('Populate Variables').item.json.ollamaModel,\n    prompt: [\n      \"You are a precise document transcription assistant. Look at this page visually and transcribe all text exactly as it appears, from top to bottom, left to right. Rules:\",\n      \"1. Transcribe all text verbatim — preserve numbers, symbols, currencies, dates, codes, and abbreviations exactly as written.\",\n      \"2. If there are charts, graphs, or diagrams, describe them in plain natural language within the flow of the text. If there are images or photographs, describe them in plain natural language but place the description at the end of the transcription, including where on the page the image appears, for example: 'The image in the top left displays...'.\",\n      \"3. Ignore page numbers, headers, and footers unless critical to understanding the content.\",\n      \"4. Do not use Markdown formatting, bullet points, or stage directions. Return only plain text.\",\n      \"5. Do not summarize, explain, skip, or shorten any text.\",\n      \"6. End every sentence with a period.\",\n      \"7. For tables, first write one sentence summarizing what the table contains. Then transcribe each data row by pairing each cell with its column header, in the format \\\"Header: Value.\\\" for every column in that row, left to right. Repeat this for every row until the entire table is transcribed. Do not skip any rows or columns.\"\n    ].join(\"\\n\"),\n    imageBase64: $json.imageBase64\n  }) }}",
         "options": {
           "batching": {
             "batch": {
@@ -136,19 +136,19 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -6416,
-        -224
+        1872,
+        -336
       ]
     },
     {
       "parameters": {
-        "url": "http://host.docker.internal:5679/webhook/clip",
+        "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/clip",
         "sendBody": true,
         "bodyParameters": {
           "parameters": [
             {
               "name": "command",
-              "value": "={{ (() => {\n    const isPage = $('Set Page Number').isExecuted;\n    const isChangeVoice = $('Set Change-Voice Page Number').isExecuted;\n    const isSample = $('Set Sample Voice Number').isExecuted;\n    const isKnit = !isPage && !isChangeVoice && !isSample;\n    const left = isKnit ? $('Page Knitting Configuration').item.json['⬅️ Left Page Number'] : null;\n    const right = isKnit ? $('Page Knitting Configuration').item.json['Right Page Number ➡️'] : null;\n    const p = isKnit\n      ? `${left}-${right}_knit`\n      : (isPage\n          ? $('Set Page Number').item.json.pageNumber\n          : (isChangeVoice\n              ? $('Set Change-Voice Page Number').item.json.pageNumber\n              : 'sample_' + $('Set Sample Voice Number').item.json.voiceId\n            )\n        );\n    const img = isKnit ? `temp/${left}-${right}_knit_image.png` : `temp/${p}_image.png`;\n    const name = isSample ? $('Set Sample Voice Number').item.json.friendlyName : null;\n\n    const sampleImageCmds = isSample ? [\n      'REFW=1920',\n      'REFH=1080',\n      'FONTSIZE=$((REFH / 12))',\n      `NAME='${name}'`,\n      'NAMELEN=${#NAME}',\n      'CELLW=$(( (NAMELEN * FONTSIZE * 6 / 10) + FONTSIZE ))',\n      'CELLH=$(( FONTSIZE * 2 ))',\n      'COLS=$(( (REFW + CELLW - 1) / CELLW ))',\n      'ROWS=$(( (REFH + CELLH - 1) / CELLH ))',\n      'GRIDW=$((COLS * CELLW))',\n      'OFFSETX=$(( (REFW - GRIDW) / 2 ))',\n      'FILTERS=\"\"',\n      `for ((r=0; r<ROWS; r++)); do for ((c=0; c<COLS; c++)); do CELLX=$((OFFSETX + c*CELLW)); CELLY=$((r*CELLH)); FILTERS=\"\\${FILTERS}drawtext=text='\\${NAME}':fontcolor=black:fontsize=\\${FONTSIZE}:x=\\${CELLX}+(\\${CELLW}-text_w)/2:y=\\${CELLY}+(\\${CELLH}-text_h)/2,\"; done; done`,\n      'FILTERS=\"${FILTERS%,}\"',\n      `ffmpeg -y -f lavfi -i color=white:s=\\${REFW}x\\${REFH} -vf \"$FILTERS\" -frames:v 1 ${img}`\n    ] : [];\n\n    const ffmpegCmd = isKnit\n      ? `ffmpeg -y -loop 1 -t \"$DUR\" -i ${img} -i temp/${p}_audio.wav -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/${p}_clip.mp4`\n      : `ffmpeg -y -loop 1 -t \"$DUR\" -i ${img} -i temp/${p}_audio.wav -filter_complex \"[0:v]split[bg_src][fg_src];[bg_src]scale=iw*2:ih,boxblur=20:3[bg];[fg_src]scale=trunc(iw/2)*2:trunc(ih/2)*2[fg];[bg][fg]overlay=(main_w-overlay_w)/2:0[v]\" -map \"[v]\" -map 1:a -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/${p}_clip.mp4`;\n\n    return [\n      'export PATH=/opt/homebrew/opt/ffmpeg-full/bin:/opt/homebrew/bin:/usr/local/bin:$PATH',\n      ...sampleImageCmds,\n      `DUR=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 temp/${p}_audio.wav)`,\n      `sed -i '' 's/\"audioDuration\":null/\"audioDuration\":'\"$DUR\"'/' temp/${p}_timestamps.json`,\n      ffmpegCmd,\n      `xattr -d com.apple.quarantine temp/${p}_clip.mp4 2>/dev/null || true`\n    ].join(' && ');\n  })() }}"
+              "value": "={{ (() => {\n    const isPage = $('Set Page Number').isExecuted;\n    const isChangeVoice = $('Set Change-Voice Page Number').isExecuted;\n    const isSample = $('Set Sample Voice Number').isExecuted;\n    const isNormalKnit = !isPage && !isChangeVoice && !isSample;\n    const isChangeVoiceKnit = isChangeVoice && $('Set Change-Voice Page Number').item.json.isKnit;\n    const isKnitRender = isNormalKnit || isChangeVoiceKnit;\n    const docPrefix = isSample ? '' : ($('Set Document Folder').item.json.docFolder + '/');\n    const left = isNormalKnit ? $('Page Knitting Configuration').item.json['⬅️ Left Page Number'] : null;\n    const right = isNormalKnit ? $('Page Knitting Configuration').item.json['Right Page Number ➡️'] : null;\n    const p = isNormalKnit\n      ? `${left}-${right}_knit`\n      : (isPage\n          ? $('Set Page Number').item.json.pageNumber\n          : (isChangeVoice\n              ? $('Set Change-Voice Page Number').item.json.fileBasename\n              : 'sample_' + $('Set Sample Voice Number').item.json.voiceId\n            )\n        );\n    const img = `temp/${docPrefix}${p}_image.png`;\n    const name = isSample ? $('Set Sample Voice Number').item.json.friendlyName : null;\n\n    const sampleImageCmds = isSample ? [\n      'REFW=1920',\n      'REFH=1080',\n      'FONTSIZE=$((REFH / 12))',\n      `NAME='${name}'`,\n      'NAMELEN=${#NAME}',\n      'CELLW=$(( (NAMELEN * FONTSIZE * 6 / 10) + FONTSIZE ))',\n      'CELLH=$(( FONTSIZE * 2 ))',\n      'COLS=$(( (REFW + CELLW - 1) / CELLW ))',\n      'ROWS=$(( (REFH + CELLH - 1) / CELLH ))',\n      'GRIDW=$((COLS * CELLW))',\n      'OFFSETX=$(( (REFW - GRIDW) / 2 ))',\n      'FILTERS=\"\"',\n      `for ((r=0; r<ROWS; r++)); do for ((c=0; c<COLS; c++)); do CELLX=$((OFFSETX + c*CELLW)); CELLY=$((r*CELLH)); FILTERS=\"\\${FILTERS}drawtext=text='\\${NAME}':fontcolor=black:fontsize=\\${FONTSIZE}:x=\\${CELLX}+(\\${CELLW}-text_w)/2:y=\\${CELLY}+(\\${CELLH}-text_h)/2,\"; done; done`,\n      'FILTERS=\"${FILTERS%,}\"',\n      `ffmpeg -y -f lavfi -i color=white:s=\\${REFW}x\\${REFH} -vf \"$FILTERS\" -frames:v 1 ${img}`\n    ] : [];\n\n    const ffmpegCmd = isKnitRender\n      ? `ffmpeg -y -loop 1 -t \"$DUR\" -i ${img} -i temp/${docPrefix}${p}_audio.wav -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/${docPrefix}${p}_clip.mp4`\n      : `ffmpeg -y -loop 1 -t \"$DUR\" -i ${img} -i temp/${docPrefix}${p}_audio.wav -filter_complex \"[0:v]split[bg_src][fg_src];[bg_src]scale=iw*2:trunc(ih/2)*2,boxblur=20:3[bg];[fg_src]scale=trunc(iw/2)*2:trunc(ih/2)*2[fg];[bg][fg]overlay=(main_w-overlay_w)/2:0[v]\" -map \"[v]\" -map 1:a -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/${docPrefix}${p}_clip.mp4`;\n\n    return [\n      'set -e',\n      `export PATH=${$('Populate Variables').item.json.ffmpegPath}:$PATH`,\n      ...sampleImageCmds,\n      `DUR=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 temp/${docPrefix}${p}_audio.wav)`,\n      `sed -i '' 's/\"audioDuration\":null/\"audioDuration\":'\"$DUR\"'/' temp/${docPrefix}${p}_timestamps.json`,\n      ffmpegCmd,\n      `(xattr -d com.apple.quarantine temp/${docPrefix}${p}_clip.mp4 2>/dev/null || true)`\n    ].join(' && ');\n  })() }}"
             }
           ]
         },
@@ -162,7 +162,8 @@
             "response": {
               "responseFormat": "json"
             }
-          }
+          },
+          "timeout": 3600000
         }
       },
       "id": "22e75862-805e-4f69-b09f-cf72c820ff7e",
@@ -170,14 +171,14 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -2384,
-        -64
+        -1936,
+        -272
       ]
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/temp/{{\n  ($('Set Page Number').isExecuted || $('Set Change-Voice Page Number').isExecuted)\n    ? (($('Set Page Number').isExecuted ? $('Set Page Number').item.json.pageNumber : $('Set Change-Voice Page Number').item.json.pageNumber) + '_audio.wav')\n    : ($('Set Sample Voice Number').isExecuted\n        ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_audio.wav')\n        : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_audio.wav')\n      )\n}}",
+        "fileName": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Sample Voice Number').isExecuted ? '' : ($('Set Document Folder').item.json.docFolder + '/') }}{{\n  $('Set Page Number').isExecuted\n    ? ($('Set Page Number').item.json.pageNumber + '_audio.wav')\n    : ($('Set Change-Voice Page Number').isExecuted\n        ? ($('Set Change-Voice Page Number').item.json.fileBasename + '_audio.wav')\n        : ($('Set Sample Voice Number').isExecuted\n            ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_audio.wav')\n            : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_audio.wav')\n          )\n      )\n}}",
         "options": {}
       },
       "id": "2d844c92-584d-498e-b943-70c9ce934f51",
@@ -185,8 +186,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -2832,
-        -128
+        -2384,
+        -368
       ]
     },
     {
@@ -198,8 +199,8 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -9552,
-        128
+        -1264,
+        -288
       ]
     },
     {
@@ -215,14 +216,14 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -6192,
-        -224
+        2096,
+        -336
       ]
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/temp/{{$('Set Page Number').item.json.pageNumber}}_transcription.txt",
+        "fileName": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/{{$('Set Page Number').item.json.pageNumber}}_transcription.txt",
         "options": {}
       },
       "id": "94de2d31-18e9-4502-a4b0-6566b66e7507",
@@ -230,13 +231,13 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -5968,
-        -224
+        2320,
+        -336
       ]
     },
     {
       "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{$('Set Page Number').item.json.pageNumber}}_transcription.txt",
+        "fileSelector": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/{{$('Set Page Number').item.json.pageNumber}}_transcription.txt",
         "options": {}
       },
       "id": "384d6717-1c80-4b31-8f6f-77783551ed8a",
@@ -244,8 +245,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -5744,
-        -80
+        2544,
+        -96
       ]
     },
     {
@@ -261,8 +262,8 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -5520,
-        -80
+        2768,
+        -32
       ]
     },
     {
@@ -278,19 +279,19 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -4848,
-        -64
+        -4400,
+        -272
       ]
     },
     {
       "parameters": {
-        "url": "http://host.docker.internal:5679/webhook/clip",
+        "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/clip",
         "sendBody": true,
         "bodyParameters": {
           "parameters": [
             {
               "name": "command",
-              "value": "={{ (() => {\n    const basename = $('Determine Output Basename').item.json.outputBasename;\n    const clipGlob = $('Determine Output Basename').item.json.tempClipGlob;\n    const chaptersFile = $('Determine Output Basename').item.json.chaptersFile;\n    const simple = $('Determine Output Basename').item.json.useSimpleConcat;\n\n    const sortedVoiceIds = $('Aggregate All Timestamps').item.json.pages\n      .map(x => x.data)\n      .filter(d => d.voiceId)\n      .sort((a, b) => (a.voiceId < b.voiceId ? -1 : (a.voiceId > b.voiceId ? 1 : 0)))\n      .map(d => d.voiceId);\n\n    const simpleCmds = [\n      'mkdir -p output',\n      `: > temp/${basename}_concat_list.txt`,\n      ...sortedVoiceIds.map(id => `echo \"file '$PWD/temp/sample_${id}_clip.mp4'\" >> temp/${basename}_concat_list.txt`),\n      `ffmpeg -y -f concat -safe 0 -i temp/${basename}_concat_list.txt -i temp/${chaptersFile} -map_metadata 1 -c copy output/${basename}.mp4`,\n      `xattr -d com.apple.quarantine \"$PWD/output/${basename}.mp4\" 2>/dev/null || true`\n    ];\n\n    const complexCmds = [\n      'mkdir -p output',\n      `find temp -maxdepth 1 -name \"${clipGlob}\" | sort -V | while read f; do b=$(basename \"$f\" _clip.mp4); case \"$b\" in *_knit) echo \"file '$PWD/$f'\";; *) ls \"temp/\\${b}-\"*\"_knit_clip.mp4\" 2>/dev/null | grep -q . || ls \"temp/\"*\"-\\${b}_knit_clip.mp4\" 2>/dev/null | grep -q . || echo \"file '$PWD/$f'\";; esac; done > temp/${basename}_concat_list.txt`,\n      'MAX_W=0',\n      'for f in temp/*_knit_clip.mp4; do [ -f \"$f\" ] || break; W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$f\" | head -1); if [ \"$W\" -gt \"$MAX_W\" ]; then MAX_W=$W; fi; done',\n      `SINGLE=$(find temp -maxdepth 1 -name \"${clipGlob}\" ! -name \"*_knit_clip.mp4\" | sort -V | head -1)`,\n      'if [ -n \"$SINGLE\" ]; then CLIP_W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$SINGLE\" | head -1); PAGE_W=$((CLIP_W/2)); if [ \"$PAGE_W\" -gt \"$MAX_W\" ]; then MAX_W=$PAGE_W; fi; else CLIP_W=$MAX_W; fi',\n      'TARGET_W=$MAX_W',\n      `if [ \"$CLIP_W\" -eq \"$TARGET_W\" ]; then ffmpeg -y -f concat -safe 0 -i temp/${basename}_concat_list.txt -i temp/${chaptersFile} -map_metadata 1 -c copy output/${basename}.mp4; elif [ \"$CLIP_W\" -gt \"$TARGET_W\" ]; then X=$(( (CLIP_W - TARGET_W) / 2 )) && ffmpeg -y -f concat -safe 0 -i temp/${basename}_concat_list.txt -i temp/${chaptersFile} -map_metadata 1 -vf \"crop=\\${TARGET_W}:ih:\\${X}:0\" -c:v libx264 -preset ultrafast -c:a copy -pix_fmt yuv420p output/${basename}.mp4; else OX=$(( (TARGET_W - CLIP_W) / 2 )) && ffmpeg -y -f concat -safe 0 -i temp/${basename}_concat_list.txt -i temp/${chaptersFile} -map_metadata 1 -vf \"split[bg][fg];[bg]scale=\\${TARGET_W}:ih,boxblur=20:3[bg_b];[fg][bg_b]overlay=\\${OX}:0\" -c:v libx264 -preset ultrafast -c:a copy -pix_fmt yuv420p output/${basename}.mp4; fi`,\n      `xattr -d com.apple.quarantine \"$PWD/output/${basename}.mp4\" 2>/dev/null || true`\n    ];\n\n    return ['export PATH=/opt/homebrew/opt/ffmpeg-full/bin:/opt/homebrew/bin:/usr/local/bin:$PATH', ...(simple ? simpleCmds : complexCmds)].join(' && ');\n  })() }}"
+              "value": "={{ (() => {\n    const basename = $('Determine Output Basename').item.json.outputBasename;\n    const clipGlob = $('Determine Output Basename').item.json.tempClipGlob;\n    const chaptersFile = $('Determine Output Basename').item.json.chaptersFile;\n    const simple = $('Determine Output Basename').item.json.useSimpleConcat;\n    const docPrefix = simple ? '' : ($('Set Document Folder').item.json.docFolder + '/');\n    const tempDir = $('Populate Variables').item.json.tempDirRelative;\n    const outputDir = $('Populate Variables').item.json.outputDirRelative;\n\n    const sortedVoiceIds = $('Aggregate All Timestamps').item.json.pages\n      .map(x => x.data)\n      .filter(d => d.voiceId)\n      .sort((a, b) => (a.voiceId < b.voiceId ? -1 : (a.voiceId > b.voiceId ? 1 : 0)))\n      .map(d => d.voiceId);\n\n    const concatListCheck = `[ -s ${tempDir}/${docPrefix}${basename}_concat_list.txt ] || { echo \"ERROR: concat list ${tempDir}/${docPrefix}${basename}_concat_list.txt is empty, no clips matched\" >&2; exit 1; }`;\n\n    const simpleCmds = [\n      `mkdir -p ${outputDir}`,\n      `: > ${tempDir}/${docPrefix}${basename}_concat_list.txt`,\n      ...sortedVoiceIds.map(id => `echo \"file '$PWD/${tempDir}/sample_${id}_clip.mp4'\" >> ${tempDir}/${docPrefix}${basename}_concat_list.txt`),\n      concatListCheck,\n      `ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy ${outputDir}/${docPrefix}${basename}.mp4`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    const complexCmds = [\n      `mkdir -p ${outputDir}/${docPrefix}`,\n      `find ${tempDir}/${docPrefix} -maxdepth 1 -name \"${clipGlob}\" | sort -V | while read f; do b=$(basename \"$f\" _clip.mp4); case \"$b\" in *_knit) echo \"file '$PWD/$f'\";; *) ls \"${tempDir}/${docPrefix}${b}-\"*\"_knit_clip.mp4\" 2>/dev/null | grep -q . || ls \"${tempDir}/${docPrefix}\"*\"-${b}_knit_clip.mp4\" 2>/dev/null | grep -q . || echo \"file '$PWD/$f'\";; esac; done > ${tempDir}/${docPrefix}${basename}_concat_list.txt`,\n      concatListCheck,\n      'MAX_W=0',\n      `for f in ${tempDir}/${docPrefix}*_knit_clip.mp4; do [ -f \"$f\" ] || break; W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$f\" | head -1); if [ \"$W\" -gt \"$MAX_W\" ]; then MAX_W=$W; fi; done`,\n      `SINGLE=$(find ${tempDir}/${docPrefix} -maxdepth 1 -name \"${clipGlob}\" ! -name \"*_knit_clip.mp4\" | sort -V | head -1)`,\n      'if [ -n \"$SINGLE\" ]; then CLIP_W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$SINGLE\" | head -1); PAGE_W=$((CLIP_W/2)); if [ \"$PAGE_W\" -gt \"$MAX_W\" ]; then MAX_W=$PAGE_W; fi; else CLIP_W=$MAX_W; fi',\n      'TARGET_W=$MAX_W',\n      `if [ \"$CLIP_W\" -eq \"$TARGET_W\" ]; then ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy ${outputDir}/${docPrefix}${basename}.mp4; elif [ \"$CLIP_W\" -gt \"$TARGET_W\" ]; then X=$(( (CLIP_W - TARGET_W) / 2 )) && ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"crop=\\${TARGET_W}:ih:\\${X}:0\" -c:v libx264 -preset ultrafast -c:a copy -pix_fmt yuv420p ${outputDir}/${docPrefix}${basename}.mp4; else OX=$(( (TARGET_W - CLIP_W) / 2 )) && ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"split[bg][fg];[bg]scale=\\${TARGET_W}:ih,boxblur=20:3[bg_b];[fg][bg_b]overlay=\\${OX}:0\" -c:v libx264 -preset ultrafast -c:a copy -pix_fmt yuv420p ${outputDir}/${docPrefix}${basename}.mp4; fi`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    return ['set -e', `export PATH=${$('Populate Variables').item.json.ffmpegPath}:$PATH`, ...(simple ? simpleCmds : complexCmds)].join(' && ');\n  })() }}"
             }
           ]
         },
@@ -308,8 +309,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        976,
-        -320
+        -7312,
+        1296
       ]
     },
     {
@@ -324,14 +325,14 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -6640,
-        -224
+        1648,
+        -336
       ]
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/temp/{{ $binary[Object.keys($binary)[0]].fileName }}",
+        "fileName": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/{{ $binary[Object.keys($binary)[0]].fileName }}",
         "dataPropertyName": "={{ Object.keys($binary)[0] }}",
         "options": {}
       },
@@ -340,13 +341,13 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -10672,
-        128
+        -7760,
+        2160
       ]
     },
     {
       "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{ $binary[Object.keys($binary)[0]].fileName }}",
+        "fileSelector": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/{{ $binary[Object.keys($binary)[0]].fileName }}",
         "options": {}
       },
       "id": "fd760034-346e-4ce1-a30e-101286b88beb",
@@ -354,8 +355,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -10448,
-        128
+        -7536,
+        1984
       ]
     },
     {
@@ -379,13 +380,13 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -10896,
-        128
+        -9328,
+        2176
       ]
     },
     {
       "parameters": {
-        "fileSelector": "/home/node/project/temp/*.pdf",
+        "fileSelector": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/*.pdf",
         "options": {}
       },
       "id": "92234fd2-b714-42ce-996e-bfc1e278f7dd",
@@ -393,8 +394,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -11568,
-        992
+        -7984,
+        1920
       ],
       "onError": "continueRegularOutput"
     },
@@ -427,8 +428,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -11344,
-        992
+        -7760,
+        1920
       ]
     },
     {
@@ -443,56 +444,13 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -11120,
-        1072
+        -7536,
+        2240
       ]
     },
     {
       "parameters": {
-        "formTitle": "D2V - Document to Video",
-        "formFields": {
-          "values": [
-            {
-              "fieldLabel": "Select Mode",
-              "fieldType": "radio",
-              "fieldOptions": {
-                "values": [
-                  {
-                    "option": "🆕 Start a New Conversion"
-                  },
-                  {
-                    "option": "🔁 Continue Previous Conversion"
-                  },
-                  {
-                    "option": "🧶 Knit Pages Together"
-                  },
-                  {
-                    "option": "🎙️ Read with a Different Voice"
-                  },
-                  {
-                    "option": "🔊 Create Sample Video"
-                  }
-                ]
-              },
-              "requiredField": true
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "e30640c2-0bae-4918-8c6f-96e9ceb44d5e",
-      "name": "Select Mode",
-      "webhookId": "45abbea5-383f-44f2-be82-57b15da3786d",
-      "type": "n8n-nodes-base.formTrigger",
-      "typeVersion": 2.5,
-      "position": [
-        -12016,
-        1120
-      ]
-    },
-    {
-      "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{$('Set Page Number').item.json.pageNumber}}_transcription.txt",
+        "fileSelector": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/{{$('Set Page Number').item.json.pageNumber}}_transcription.txt",
         "options": {}
       },
       "id": "60772388-5cff-4834-a5e3-00e4270594aa",
@@ -500,8 +458,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7312,
-        176
+        976,
+        112
       ],
       "onError": "continueRegularOutput"
     },
@@ -535,13 +493,13 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -7088,
-        176
+        1200,
+        112
       ]
     },
     {
       "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{$('Set Page Number').item.json.pageNumber}}_audio.wav",
+        "fileSelector": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/{{$('Set Page Number').item.json.pageNumber}}_audio.wav",
         "options": {}
       },
       "id": "164c4e24-3fd4-486a-8565-f51a710d8d7b",
@@ -549,8 +507,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -8208,
-        272
+        80,
+        48
       ],
       "onError": "continueRegularOutput"
     },
@@ -584,13 +542,13 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -7984,
-        272
+        304,
+        48
       ]
     },
     {
       "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{$('Set Page Number').item.json.pageNumber}}_clip.mp4",
+        "fileSelector": "={{ (() => {\n  const tempDir = $('Populate Variables').item.json.tempDir;\n  const docFolder = $('Set Document Folder').item.json.docFolder;\n  const p = $('Set Page Number').item.json.pageNumber;\n  return `${tempDir}/${docFolder}/{${p}_clip.mp4,${p}-*_knit_clip.mp4,*-${p}_knit_clip.mp4}`;\n})() }}",
         "options": {}
       },
       "id": "09d18025-db7b-432a-83a8-0341dba01c1a",
@@ -598,8 +556,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -8656,
-        176
+        -368,
+        -224
       ],
       "onError": "continueRegularOutput"
     },
@@ -633,13 +591,13 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -8432,
-        176
+        -144,
+        -224
       ]
     },
     {
       "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{$('Set Page Number').item.json.pageNumber}}_image.png",
+        "fileSelector": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/{{$('Set Page Number').item.json.pageNumber}}_image.png",
         "options": {}
       },
       "id": "0377fffd-2335-4579-bbe4-79dc86c5d1cc",
@@ -647,14 +605,14 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -6864,
-        -224
+        1424,
+        -336
       ]
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/temp/{{\n  $('Set Page Number').isExecuted\n    ? ($('Set Page Number').item.json.pageNumber + '_transcription_normalized.txt')\n    : ($('Set Sample Voice Number').isExecuted\n        ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_transcription_normalized.txt')\n        : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_transcription_normalized.txt')\n      )\n}}",
+        "fileName": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Sample Voice Number').isExecuted ? '' : ($('Set Document Folder').item.json.docFolder + '/') }}{{\n  $('Set Page Number').isExecuted\n    ? ($('Set Page Number').item.json.pageNumber + '_transcription_normalized.txt')\n    : ($('Set Sample Voice Number').isExecuted\n        ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_transcription_normalized.txt')\n        : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_transcription_normalized.txt')\n      )\n}}",
         "options": {}
       },
       "id": "9ac766e8-fef2-462f-9834-d27e5d4dc1a2",
@@ -662,13 +620,13 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -4624,
-        -64
+        -4176,
+        -272
       ]
     },
     {
       "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{\n  $('Set Page Number').isExecuted\n    ? ($('Set Page Number').item.json.pageNumber + '_transcription_normalized.txt')\n    : ($('Set Change-Voice Page Number').isExecuted\n        ? ($('Set Change-Voice Page Number').item.json.pageNumber + '_transcription_normalized.txt')\n        : ($('Set Sample Voice Number').isExecuted\n            ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_transcription_normalized.txt')\n            : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_transcription_normalized.txt')\n          )\n      )\n}}",
+        "fileSelector": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Sample Voice Number').isExecuted ? '' : ($('Set Document Folder').item.json.docFolder + '/') }}{{\n  $('Set Page Number').isExecuted\n    ? ($('Set Page Number').item.json.pageNumber + '_transcription_normalized.txt')\n    : ($('Set Change-Voice Page Number').isExecuted\n        ? ($('Set Change-Voice Page Number').item.json.fileBasename + '_transcription_normalized.txt')\n        : ($('Set Sample Voice Number').isExecuted\n            ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_transcription_normalized.txt')\n            : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_transcription_normalized.txt')\n          )\n      )\n}}",
         "options": {}
       },
       "id": "8210fbd1-1dbf-4cfd-a548-596c1e917ba0",
@@ -676,8 +634,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -4400,
-        -64
+        -3952,
+        -272
       ]
     },
     {
@@ -691,14 +649,14 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -4176,
-        -64
+        -3728,
+        -272
       ]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "http://nemo-normalizer:8000/normalize_words",
+        "url": "={{ $('Populate Variables').item.json.nemoNormalizerUrl }}",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({\n    words: $json.text\n      .replace(/\\|/g, ',')\n      .replace(/ > /g, ', ')\n      .replace(/[–—]/g, ' ')\n      .split(/\\s+/)\n      .filter(w => w)\n  }) }}",
@@ -721,8 +679,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -5296,
-        -80
+        -4848,
+        128
       ]
     },
     {
@@ -737,7 +695,7 @@
           "conditions": [
             {
               "id": "a32fa826-3ff4-4a0e-9c41-657434253881",
-              "leftValue": "🆕 Start a New Conversion",
+              "leftValue": "={{ $('Populate Variables').item.json.modeNewConversion }}",
               "rightValue": "={{ $('Select Mode').first().json['Select Mode'] }}",
               "operator": {
                 "type": "string",
@@ -755,17 +713,17 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -8880,
-        32
+        -592,
+        -288
       ]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "http://host.docker.internal:5679/webhook/tts",
+        "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/tts",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n    path: \"/dev/captioned_speech\",\n    body: {\n      model: \"kokoro\",\n      voice: $('Set Sample Voice Number').isExecuted ? $('Set Sample Voice Number').item.json.voiceId : \"af_heart\",\n      lang_code: \"a\",\n      input: JSON.parse($json.text).text,\n      response_format: \"wav\",\n      return_timestamps: true,\n      stream: false,\n      allow_voice_tags: true\n    }\n  }) }}",
+        "jsonBody": "={{ JSON.stringify({\n    path: \"/dev/captioned_speech\",\n    body: {\n      model: \"kokoro\",\n      voice: $('Set Sample Voice Number').isExecuted\n        ? $('Set Sample Voice Number').item.json.voiceId\n        : ($('Set Knit Page Number').isExecuted\n            ? $('Set Knit Page Number').item.json.voice\n            : ($('Set Default Voice').isExecuted\n                ? $('Set Default Voice').item.json.voice\n                : ((Object.keys($('Read Default Voice').item.binary || {}).length > 0)\n                    ? $('Extract Default Voice').item.json.text.trim()\n                    : $('Populate Variables').item.json.defaultFallbackVoice)\n              )\n          ),\n      lang_code: \"a\",\n      input: JSON.parse($json.text).text,\n      response_format: \"wav\",\n      return_timestamps: true,\n      stream: false,\n      allow_voice_tags: true\n    }\n  }) }}",
         "options": {
           "batching": {
             "batch": {
@@ -785,8 +743,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -3952,
-        -64
+        -3504,
+        -272
       ]
     },
     {
@@ -796,7 +754,7 @@
             {
               "id": "87d8b8eb-bb8a-48da-8237-869892a6ce76",
               "name": "timestampsJson",
-              "value": "={{ JSON.stringify({\n    pageIndex: $('Set Page Number').isExecuted\n      ? $('Set Page Number').item.json.pageNumber\n      : ($('Set Change-Voice Page Number').isExecuted\n          ? $('Set Change-Voice Page Number').item.json.pageNumber\n          : ($('Set Sample Voice Number').isExecuted\n              ? $('Set Sample Voice Number').item.json.voiceIndex\n              : $('Set Knit Page Number').item.json.pageNumber\n            )\n        ),\n    knitPages: ($('Set Page Number').isExecuted || $('Set Change-Voice Page Number').isExecuted || $('Set Sample Voice Number').isExecuted)\n      ? null\n      : [$('Page Knitting Configuration').item.json['⬅️ Left Page Number'], $('Page Knitting Configuration').item.json['Right Page Number ➡️']],\n    voiceId: $('Set Sample Voice Number').isExecuted ? $('Set Sample Voice Number').item.json.voiceId : null,\n    voiceLabel: $('Set Sample Voice Number').isExecuted\n      ? (() => {\n          const id = $('Set Sample Voice Number').item.json.voiceId;\n          const langMap = { a: 'English (US)', b: 'English (UK)', e: 'Spanish', f: 'French', h: 'Hindi', i: 'Italian', j: 'Japanese', p: 'Portuguese (BR)', z: 'Chinese' };\n          const genderMap = { f: 'Female', m: 'Male' };\n          const lang = langMap[id[0]] || id[0];\n          const gender = genderMap[id[1]] || id[1];\n          return $('Set Sample Voice Number').item.json.friendlyName + ' ' + gender + ' ' + lang;\n        })()\n      : null,\n    audioDuration: null,\n    timestamps: $('Request TTS with Timestamps').item.json.timestamps,\n    wordMap: JSON.parse($json.text)\n  }) }}",
+              "value": "={{ JSON.stringify({\n    pageIndex: $('Set Page Number').isExecuted\n      ? $('Set Page Number').item.json.pageNumber\n      : ($('Set Change-Voice Page Number').isExecuted\n          ? $('Set Change-Voice Page Number').item.json.pageNumber\n          : ($('Set Sample Voice Number').isExecuted\n              ? $('Set Sample Voice Number').item.json.voiceIndex\n              : $('Set Knit Page Number').item.json.pageNumber\n            )\n        ),\n    knitPages: $('Set Page Number').isExecuted\n      ? null\n      : ($('Set Change-Voice Page Number').isExecuted\n          ? ($('Set Change-Voice Page Number').item.json.isKnit\n              ? [$('Set Change-Voice Page Number').item.json.pageNumber, $('Set Change-Voice Page Number').item.json.rightPageNumber]\n              : null\n            )\n          : ($('Set Sample Voice Number').isExecuted\n              ? null\n              : [$('Page Knitting Configuration').item.json['⬅️ Left Page Number'], $('Page Knitting Configuration').item.json['Right Page Number ➡️']]\n            )\n        ),\n    voiceId: $('Set Sample Voice Number').isExecuted ? $('Set Sample Voice Number').item.json.voiceId : null,\n    voiceLabel: $('Set Sample Voice Number').isExecuted\n      ? (() => {\n          const id = $('Set Sample Voice Number').item.json.voiceId;\n          const langMap = { a: 'English (US)', b: 'English (UK)', e: 'Spanish', f: 'French', h: 'Hindi', i: 'Italian', j: 'Japanese', p: 'Portuguese (BR)', z: 'Chinese' };\n          const genderMap = { f: 'Female', m: 'Male' };\n          const lang = langMap[id[0]] || id[0];\n          const gender = genderMap[id[1]] || id[1];\n          return $('Set Sample Voice Number').item.json.friendlyName + ' ' + gender + ' ' + lang;\n        })()\n      : null,\n    audioDuration: null,\n    timestamps: $('Request TTS with Timestamps').item.json.timestamps,\n    wordMap: JSON.parse($json.text)\n  }) }}",
               "type": "string"
             },
             {
@@ -821,8 +779,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -3280,
-        80
+        -2832,
+        304
       ]
     },
     {
@@ -838,14 +796,14 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -3056,
-        80
+        -2608,
+        304
       ]
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/temp/{{\n  ($('Set Page Number').isExecuted || $('Set Change-Voice Page Number').isExecuted)\n    ? (($('Set Page Number').isExecuted ? $('Set Page Number').item.json.pageNumber : $('Set Change-Voice Page Number').item.json.pageNumber) + '_timestamps.json')\n    : ($('Set Sample Voice Number').isExecuted\n        ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_timestamps.json')\n        : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_timestamps.json')\n      )\n}}",
+        "fileName": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Sample Voice Number').isExecuted ? '' : ($('Set Document Folder').item.json.docFolder + '/') }}{{\n  $('Set Page Number').isExecuted\n    ? ($('Set Page Number').item.json.pageNumber + '_timestamps.json')\n    : ($('Set Change-Voice Page Number').isExecuted\n        ? ($('Set Change-Voice Page Number').item.json.fileBasename + '_timestamps.json')\n        : ($('Set Sample Voice Number').isExecuted\n            ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_timestamps.json')\n            : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_timestamps.json')\n          )\n      )\n}}",
         "options": {}
       },
       "id": "0a861c0e-859b-4849-a6e6-efc437699497",
@@ -853,8 +811,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -2832,
-        80
+        -2384,
+        304
       ]
     },
     {
@@ -870,13 +828,13 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -3056,
-        -128
+        -2608,
+        -368
       ]
     },
     {
       "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{ $('Determine Output Basename').item.json.tempTimestampGlob }}",
+        "fileSelector": "={{ $('Determine Output Basename').isExecuted\n  ? ($('Populate Variables').item.json.tempDir + '/' + ($('Set Sample Voice Number').isExecuted ? '' : ($('Set Document Folder').item.json.docFolder + '/')) + $('Determine Output Basename').item.json.tempTimestampGlob)\n  : ($('Populate Variables').item.json.tempDir + '/' + $('Set Document Folder').item.json.docFolder + '/{0,1,2,3,4,5,6,7,8,9}*_timestamps.json')\n}}",
         "options": {}
       },
       "id": "cd86ac56-a3d9-47eb-bd4a-9bf0648db288",
@@ -884,9 +842,10 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -1040,
-        -320
-      ]
+        -10224,
+        1472
+      ],
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -899,8 +858,8 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -816,
-        -320
+        -9776,
+        976
       ]
     },
     {
@@ -922,8 +881,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -592,
-        -320
+        -9552,
+        976
       ]
     },
     {
@@ -937,8 +896,8 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        -368,
-        -320
+        -9328,
+        976
       ]
     },
     {
@@ -966,8 +925,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -144,
-        -320
+        -8432,
+        1296
       ]
     },
     {
@@ -983,8 +942,8 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        304,
-        -400
+        -7984,
+        1200
       ]
     },
     {
@@ -1000,14 +959,14 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        304,
-        -208
+        -7984,
+        1392
       ]
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/temp/{{ $('Determine Output Basename').item.json.chaptersFile }}",
+        "fileName": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Sample Voice Number').isExecuted ? '' : ($('Set Document Folder').item.json.docFolder + '/') }}{{ $('Determine Output Basename').item.json.chaptersFile }}",
         "options": {}
       },
       "id": "5932d857-856b-4307-a922-eae4f4a9b499",
@@ -1015,13 +974,13 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        528,
-        -208
+        -7760,
+        1392
       ]
     },
     {
       "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{$('Set Page Number').item.json.pageNumber}}_timestamps.json",
+        "fileSelector": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/{{$('Set Page Number').item.json.pageNumber}}_timestamps.json",
         "options": {}
       },
       "id": "cc13ee98-4752-4617-b387-a1388f713bb0",
@@ -1029,8 +988,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7760,
-        400
+        528,
+        192
       ],
       "onError": "continueRegularOutput"
     },
@@ -1064,8 +1023,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -7536,
-        400
+        752,
+        256
       ]
     },
     {
@@ -1079,14 +1038,14 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -2608,
-        -64
+        -2160,
+        -272
       ]
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/output/{{ $('Determine Output Basename').item.json.outputBasename }}.srt",
+        "fileName": "={{ $('Populate Variables').item.json.outputDir }}/{{ $('Set Sample Voice Number').isExecuted ? '' : ($('Set Document Folder').item.json.docFolder + '/') }}{{ $('Determine Output Basename').item.json.outputBasename }}.srt",
         "options": {}
       },
       "id": "43a9add9-c4e6-41f8-8a1e-41ae735171a2",
@@ -1094,8 +1053,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        528,
-        -400
+        -7760,
+        1200
       ]
     },
     {
@@ -1109,8 +1068,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        752,
-        -320
+        -7536,
+        1296
       ]
     },
     {
@@ -1124,8 +1083,8 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        -1488,
-        -400
+        -1040,
+        -480
       ]
     },
     {
@@ -1147,8 +1106,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        80,
-        -400
+        -8208,
+        1200
       ]
     },
     {
@@ -1170,8 +1129,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -8208,
-        -32
+        80,
+        -144
       ]
     },
     {
@@ -1199,8 +1158,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -5072,
-        -160
+        -4624,
+        -368
       ]
     },
     {
@@ -1216,14 +1175,14 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -4848,
-        -256
+        -4400,
+        -464
       ]
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/temp/{{\n  $('Set Page Number').isExecuted\n    ? ($('Set Page Number').item.json.pageNumber + '_wordmap.json')\n    : ($('Set Sample Voice Number').isExecuted\n        ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_wordmap.json')\n        : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_wordmap.json')\n      )\n}}",
+        "fileName": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Sample Voice Number').isExecuted ? '' : ($('Set Document Folder').item.json.docFolder + '/') }}{{\n  $('Set Page Number').isExecuted\n    ? ($('Set Page Number').item.json.pageNumber + '_wordmap.json')\n    : ($('Set Sample Voice Number').isExecuted\n        ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_wordmap.json')\n        : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_wordmap.json')\n      )\n}}",
         "options": {}
       },
       "id": "d8a9e5a9-de94-46a6-8eec-0ade0f39b774",
@@ -1231,13 +1190,13 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -4624,
-        -256
+        -4176,
+        -464
       ]
     },
     {
       "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{\n  $('Set Page Number').isExecuted\n    ? ($('Set Page Number').item.json.pageNumber + '_wordmap.json')\n    : ($('Set Change-Voice Page Number').isExecuted\n        ? ($('Set Change-Voice Page Number').item.json.pageNumber + '_wordmap.json')\n        : ($('Set Sample Voice Number').isExecuted\n            ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_wordmap.json')\n            : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_wordmap.json')\n          )\n      )\n}}",
+        "fileSelector": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Sample Voice Number').isExecuted ? '' : ($('Set Document Folder').item.json.docFolder + '/') }}{{\n  $('Set Page Number').isExecuted\n    ? ($('Set Page Number').item.json.pageNumber + '_wordmap.json')\n    : ($('Set Change-Voice Page Number').isExecuted\n        ? ($('Set Change-Voice Page Number').item.json.fileBasename + '_wordmap.json')\n        : ($('Set Sample Voice Number').isExecuted\n            ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_wordmap.json')\n            : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_wordmap.json')\n          )\n      )\n}}",
         "options": {}
       },
       "id": "d5a067ce-d69a-40a0-a872-b631a2f5fbf7",
@@ -1245,8 +1204,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -3728,
-        80
+        -3280,
+        304
       ]
     },
     {
@@ -1260,8 +1219,8 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -3504,
-        80
+        -3056,
+        304
       ]
     },
     {
@@ -1284,13 +1243,13 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -9328,
-        32
+        -1040,
+        -288
       ]
     },
     {
       "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{$('Page Knitting Configuration').item.json['⬅️ Left Page Number']}}_transcription.txt",
+        "fileSelector": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/{{$('Page Knitting Configuration').item.json['⬅️ Left Page Number']}}_transcription.txt",
         "options": {}
       },
       "id": "34033c1e-8ea6-406c-8692-559a8ee14094",
@@ -1298,8 +1257,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7984,
-        880
+        -7536,
+        528
       ]
     },
     {
@@ -1315,13 +1274,13 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -7760,
-        880
+        -7312,
+        528
       ]
     },
     {
       "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{$('Page Knitting Configuration').item.json['Right Page Number ➡️']}}_transcription.txt",
+        "fileSelector": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/{{$('Page Knitting Configuration').item.json['Right Page Number ➡️']}}_transcription.txt",
         "options": {}
       },
       "id": "ac49d3de-3c4e-4b43-b351-09d0ac385243",
@@ -1329,8 +1288,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7536,
-        880
+        -7088,
+        528
       ]
     },
     {
@@ -1346,13 +1305,13 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -7312,
-        880
+        -6864,
+        528
       ]
     },
     {
       "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{$('Page Knitting Configuration').item.json['⬅️ Left Page Number']}}-{{$('Page Knitting Configuration').item.json['Right Page Number ➡️']}}_knit_image.png",
+        "fileSelector": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/{{$('Page Knitting Configuration').item.json['⬅️ Left Page Number']}}-{{$('Page Knitting Configuration').item.json['Right Page Number ➡️']}}_knit_image.png",
         "options": {}
       },
       "id": "33d02734-00b9-4a71-93ec-1df5cb30a777",
@@ -1360,26 +1319,14 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7088,
-        880
+        -6640,
+        528
       ]
     },
     {
       "parameters": {
-        "formFields": {
-          "values": [
-            {
-              "fieldLabel": "⬅️ Left Page Number",
-              "fieldType": "number",
-              "requiredField": true
-            },
-            {
-              "fieldLabel": "Right Page Number ➡️",
-              "fieldType": "number",
-              "requiredField": true
-            }
-          ]
-        },
+        "defineForm": "json",
+        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"⬅️ Left Page Number\",\n    fieldName: \"⬅️ Left Page Number\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: (() => {\n        const allPages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n        const knitCovered = new Set(allPages.filter(p => p.knitPages).flatMap(p => p.knitPages.map(Number)));\n        const singlePages = allPages.filter(p => !p.knitPages && !knitCovered.has(Number(p.pageIndex)));\n        return singlePages.map(p => ({ option: String(p.pageIndex) }));\n      })()\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"Right Page Number ➡️\",\n    fieldName: \"Right Page Number ➡️\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: (() => {\n        const allPages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n        const knitCovered = new Set(allPages.filter(p => p.knitPages).flatMap(p => p.knitPages.map(Number)));\n        const singlePages = allPages.filter(p => !p.knitPages && !knitCovered.has(Number(p.pageIndex)));\n        return singlePages.map(p => ({ option: String(p.pageIndex) }));\n      })()\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"In what voice?\",\n    fieldName: \"voice\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: $('Fetch Available Voices').item.json.voices.map(v => {\n        const langMap = { a: 'English (US)', b: 'English (UK)', e: 'Spanish', f: 'French', h: 'Hindi', i: 'Italian', j: 'Japanese', p: 'Portuguese (BR)', z: 'Chinese' };\n        const genderMap = { f: 'Female', m: 'Male' };\n        const lang = langMap[v.id[0]] || v.id[0];\n        const gender = genderMap[v.id[1]] || v.id[1];\n        const friendlyName = v.id.split('_')[1][0].toUpperCase() + v.id.split('_')[1].slice(1);\n        return { option: v.id + \" - \" + friendlyName + \" \" + gender + \" \" + lang };\n      })\n    },\n    requiredField: true\n  }\n] }}",
         "options": {}
       },
       "id": "0a341644-cb35-465b-993c-8788c356a6f5",
@@ -1388,19 +1335,19 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -8880,
-        800
+        -8432,
+        128
       ]
     },
     {
       "parameters": {
-        "url": "http://host.docker.internal:5679/webhook/clip",
+        "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/clip",
         "sendBody": true,
         "bodyParameters": {
           "parameters": [
             {
               "name": "command",
-              "value": "={{ (() => {\n    const left = $json['⬅️ Left Page Number'];\n    const right = $json['Right Page Number ➡️'];\n    return [\n      'export PATH=/opt/homebrew/opt/ffmpeg-full/bin:/opt/homebrew/bin:/usr/local/bin:$PATH',\n      `ffmpeg -y -i temp/${left}_image.png -i temp/${right}_image.png -filter_complex hstack temp/${left}-${right}_knit_image.png`\n    ].join(' && ');\n  })() }}"
+              "value": "={{ (() => {\n    const left = $json['⬅️ Left Page Number'];\n    const right = $json['Right Page Number ➡️'];\n    const docFolder = $('Set Document Folder').item.json.docFolder;\n    return [\n      'set -e',\n      `export PATH=${$('Populate Variables').item.json.ffmpegPath}:$PATH`,\n      `ffmpeg -y -i temp/${docFolder}/${left}_image.png -i temp/${docFolder}/${right}_image.png -filter_complex hstack temp/${docFolder}/${left}-${right}_knit_image.png`\n    ].join(' && ');\n  })() }}"
             }
           ]
         },
@@ -1411,8 +1358,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -8656,
-        800
+        -8208,
+        128
       ]
     },
     {
@@ -1427,17 +1374,17 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -6864,
-        880
+        -6416,
+        528
       ]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "http://host.docker.internal:5679/webhook/prompt",
+        "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/prompt",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n    model: \"gemma4:31b\",\n    imageBase64: $json.imageBase64,\n    prompt: [\n      \"You are given two consecutive page transcriptions from a document and a combined image showing both pages side by side. Merge them into one transcription following these rules:\",\n      \"1. Assume all transcribed text is completely correct. Do not change, correct, or paraphrase any words.\",\n      \"2. Reorder the text if necessary so it reads naturally across the full double-page spread, left to right, top to bottom, as a reader would experience it.\",\n      \"3. Always place image descriptions at the end of the transcription, including where on the spread the image appears, for example: 'The image in the top left displays...'. Descriptions of charts, graphs, tables, and other visual data should remain where they appear in the reading order.\",\n      \"4. Only rewrite descriptions of images, charts, graphs, or tables that clearly span both pages and can be better described when seen as a whole.\",\n      \"5. If data values on one page lack labels because the legend or column headers appear on the other page, use those labels to identify all unlabeled values across both pages.\",\n      \"6. Preserve all numbers, names, dates, abbreviations, and symbols exactly as written.\",\n      \"7. Return only the merged transcription as plain text, nothing else.\",\n      \"Left page:\",\n      $('Extract Left Page Transcription from File').item.json.text,\n      \"Right page:\",\n      $('Extract Right Page Transcription from File').item.json.text\n    ].join(\"\\n\")\n  }) }}",
+        "jsonBody": "={{ JSON.stringify({\n    model: $('Populate Variables').item.json.ollamaModel,\n    imageBase64: $json.imageBase64,\n    prompt: [\n      \"You are given two consecutive page transcriptions from a document and a combined image showing both pages side by side. Merge them into one transcription following these rules:\",\n      \"1. Assume all transcribed text is completely correct. Do not change, correct, or paraphrase any words.\",\n      \"2. Reorder the text if necessary so it reads naturally across the full double-page spread, left to right, top to bottom, as a reader would experience it.\",\n      \"3. Always place image descriptions at the end of the transcription, including where on the spread the image appears, for example: 'The image in the top left displays...'. Descriptions of charts, graphs, tables, and other visual data should remain where they appear in the reading order.\",\n      \"4. Only rewrite descriptions of images, charts, graphs, or tables that clearly span both pages and can be better described when seen as a whole.\",\n      \"5. If data values on one page lack labels because the legend or column headers appear on the other page, use those labels to identify all unlabeled values across both pages.\",\n      \"6. Preserve all numbers, names, dates, abbreviations, and symbols exactly as written.\",\n      \"7. Return only the merged transcription as plain text, nothing else.\",\n      \"Left page:\",\n      $('Extract Left Page Transcription from File').item.json.text,\n      \"Right page:\",\n      $('Extract Right Page Transcription from File').item.json.text\n    ].join(\"\\n\")\n  }) }}",
         "options": {
           "timeout": 3600000
         }
@@ -1447,8 +1394,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -6640,
-        880
+        -6192,
+        528
       ]
     },
     {
@@ -1464,14 +1411,14 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -6416,
-        880
+        -5968,
+        528
       ]
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=/home/node/project/temp/{{$('Page Knitting Configuration').item.json['⬅️ Left Page Number']}}-{{$('Page Knitting Configuration').item.json['Right Page Number ➡️']}}_knit_transcription.txt",
+        "fileName": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/{{$('Page Knitting Configuration').item.json['⬅️ Left Page Number']}}-{{$('Page Knitting Configuration').item.json['Right Page Number ➡️']}}_knit_transcription.txt",
         "options": {}
       },
       "id": "d65954a8-d998-4d57-9556-dcaa657ec252",
@@ -1479,13 +1426,13 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -6192,
-        880
+        -5744,
+        528
       ]
     },
     {
       "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{$('Page Knitting Configuration').item.json['⬅️ Left Page Number']}}-{{$('Page Knitting Configuration').item.json['Right Page Number ➡️']}}_knit_transcription.txt",
+        "fileSelector": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/{{$('Page Knitting Configuration').item.json['⬅️ Left Page Number']}}-{{$('Page Knitting Configuration').item.json['Right Page Number ➡️']}}_knit_transcription.txt",
         "options": {}
       },
       "id": "f774a94d-d2d3-4dab-bd16-6c43c7bcf1d0",
@@ -1493,8 +1440,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -8432,
-        800
+        -7984,
+        128
       ],
       "onError": "continueRegularOutput"
     },
@@ -1528,13 +1475,13 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -8208,
-        800
+        -7760,
+        128
       ]
     },
     {
       "parameters": {
-        "fileSelector": "=/home/node/project/temp/{{$('Page Knitting Configuration').item.json['⬅️ Left Page Number']}}-{{$('Page Knitting Configuration').item.json['Right Page Number ➡️']}}_knit_transcription.txt",
+        "fileSelector": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/{{$('Page Knitting Configuration').item.json['⬅️ Left Page Number']}}-{{$('Page Knitting Configuration').item.json['Right Page Number ➡️']}}_knit_transcription.txt",
         "options": {}
       },
       "id": "28cdd014-aeff-4fff-aeb6-b71c21a9d420",
@@ -1542,8 +1489,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -5968,
-        800
+        -5520,
+        128
       ]
     },
     {
@@ -1557,8 +1504,8 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -5744,
-        800
+        -5296,
+        128
       ]
     },
     {
@@ -1576,6 +1523,12 @@
               "name": "text",
               "value": "={{ $json.text }}",
               "type": "string"
+            },
+            {
+              "id": "sknp-voice-0001",
+              "name": "voice",
+              "value": "={{ $('Page Knitting Configuration').item.json.voice.split(' - ')[0] }}",
+              "type": "string"
             }
           ]
         },
@@ -1587,8 +1540,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -5520,
-        800
+        -5072,
+        128
       ]
     },
     {
@@ -1605,8 +1558,8 @@
                 },
                 "conditions": [
                   {
-                    "leftValue": "={{ $json['Select Mode'] }}",
-                    "rightValue": "🆕 Start a New Conversion",
+                    "leftValue": "={{ $('Select Mode').item.json['Select Mode'] }}",
+                    "rightValue": "={{ $('Populate Variables').item.json.modeNewConversion }}",
                     "operator": {
                       "type": "string",
                       "operation": "equals"
@@ -1630,8 +1583,8 @@
                 "conditions": [
                   {
                     "id": "3aace82a-a406-474a-8b8b-0f5b07303a2d",
-                    "leftValue": "={{ $json['Select Mode'] }}",
-                    "rightValue": "🔁 Continue Previous Conversion",
+                    "leftValue": "={{ $('Select Mode').item.json['Select Mode'] }}",
+                    "rightValue": "={{ $('Populate Variables').item.json.modeContinue }}",
                     "operator": {
                       "type": "string",
                       "operation": "equals",
@@ -1655,8 +1608,8 @@
                 "conditions": [
                   {
                     "id": "3d126da3-df33-48c6-8f86-52b6b3d44f73",
-                    "leftValue": "={{ $json['Select Mode'] }}",
-                    "rightValue": "🧶 Knit Pages Together",
+                    "leftValue": "={{ $('Select Mode').item.json['Select Mode'] }}",
+                    "rightValue": "={{ $('Populate Variables').item.json.modeKnit }}",
                     "operator": {
                       "type": "string",
                       "operation": "equals",
@@ -1680,8 +1633,8 @@
                 "conditions": [
                   {
                     "id": "c1f2d3d2-4478-4bbc-ae5c-a833137d0ea6",
-                    "leftValue": "={{ $json['Select Mode'] }}",
-                    "rightValue": "🎙️ Read with a Different Voice",
+                    "leftValue": "={{ $('Select Mode').item.json['Select Mode'] }}",
+                    "rightValue": "={{ $('Populate Variables').item.json.modeChangeVoice }}",
                     "operator": {
                       "type": "string",
                       "operation": "equals",
@@ -1705,8 +1658,8 @@
                 "conditions": [
                   {
                     "id": "d3acb58b-ee6b-4324-aee2-1c4ff7f099e4",
-                    "leftValue": "={{ $json['Select Mode'] }}",
-                    "rightValue": "🔊 Create Sample Video",
+                    "leftValue": "={{ $('Select Mode').item.json['Select Mode'] }}",
+                    "rightValue": "={{ $('Populate Variables').item.json.modeSample }}",
                     "operator": {
                       "type": "string",
                       "operation": "equals",
@@ -1728,13 +1681,13 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -11792,
-        1072
+        -11120,
+        2992
       ]
     },
     {
       "parameters": {
-        "url": "http://kokoro:8880/v1/audio/voices",
+        "url": "={{ $('Populate Variables').item.json.nativeKokoroBaseUrl }}/v1/audio/voices",
         "options": {}
       },
       "id": "edbc78b3-4df0-4fbc-ad3d-e5e624f45f58",
@@ -1742,14 +1695,14 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.5,
       "position": [
-        -11344,
-        1472
+        -10672,
+        2336
       ]
     },
     {
       "parameters": {
         "defineForm": "json",
-        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"Which page number has the text you want to change?\",\n    fieldName: \"pageNumber\",\n    fieldType: \"number\",\n    requiredField: true\n  },\n  {\n    fieldLabel: \"Which voice should read this text?\",\n    fieldName: \"voice\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: $('Fetch Available Voices').item.json.voices.map(v => ({ option: v.id }))\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"What text should be read in that voice?\",\n    fieldName: \"textToChange\",\n    fieldType: \"textarea\",\n    requiredField: true\n  }\n] }}",
+        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"Which page do you want to convert?\",\n    fieldName: \"pageSelection\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: (() => {\n        const allPages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n        const knitCovered = new Set(allPages.filter(p => p.knitPages).flatMap(p => p.knitPages.map(Number)));\n        const pages = allPages.filter(p => p.knitPages || !knitCovered.has(Number(p.pageIndex)));\n        return pages.map(p => {\n          const label = p.knitPages ? ('Pages ' + p.knitPages[0] + ' & ' + p.knitPages[1]) : ('Page ' + p.pageIndex);\n          return { option: label };\n        });\n      })()\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"In what voice?\",\n    fieldName: \"voice\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: $('Fetch Available Voices').item.json.voices.map(v => {\n        const langMap = { a: 'English (US)', b: 'English (UK)', e: 'Spanish', f: 'French', h: 'Hindi', i: 'Italian', j: 'Japanese', p: 'Portuguese (BR)', z: 'Chinese' };\n        const genderMap = { f: 'Female', m: 'Male' };\n        const lang = langMap[v.id[0]] || v.id[0];\n        const gender = genderMap[v.id[1]] || v.id[1];\n        const friendlyName = v.id.split('_')[1][0].toUpperCase() + v.id.split('_')[1].slice(1);\n        return { option: v.id + \" - \" + friendlyName + \" \" + gender + \" \" + lang };\n      })\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"Apply the voice to:\",\n    fieldName: \"target\",\n    fieldType: \"radio\",\n    fieldOptions: {\n      values: [\n        { option: \"The entire page\" },\n        { option: \"Selected text\" }\n      ]\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"If 'Selected text', what text should be read in that voice? (leave blank if 'The entire page')\",\n    fieldName: \"textToChange\",\n    fieldType: \"textarea\",\n    requiredField: false\n  }\n] }}",
         "options": {}
       },
       "id": "99c165d5-b8a7-4517-902f-cd7439b3dd29",
@@ -1758,8 +1711,8 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -6416,
-        1312
+        -8656,
+        912
       ]
     },
     {
@@ -1769,19 +1722,49 @@
             {
               "id": "4ffa83fb-8f9c-4e82-9d63-1ab36220bb26",
               "name": "pageNumber",
-              "value": "={{ $json.pageNumber }}",
+              "value": "={{ Number($json.pageSelection.match(/\\d+/g)[0]) }}",
               "type": "number"
+            },
+            {
+              "id": "b1b2b3b4-0001-4ccc-9000-000000000001",
+              "name": "rightPageNumber",
+              "value": "={{ (() => { const nums = $json.pageSelection.match(/\\d+/g); return nums.length > 1 ? Number(nums[1]) : null; })() }}",
+              "type": "number"
+            },
+            {
+              "id": "b1b2b3b4-0002-4ccc-9000-000000000002",
+              "name": "isKnit",
+              "value": "={{ ($json.pageSelection.match(/\\d+/g) || []).length > 1 }}",
+              "type": "boolean"
             },
             {
               "id": "94247326-a301-4604-959c-e6e87b60766b",
               "name": "voice",
-              "value": "={{ $json.voice }}",
+              "value": "={{ $json.voice.split(' - ')[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "b1b2b3b4-0003-4ccc-9000-000000000003",
+              "name": "target",
+              "value": "={{ $json.target === 'The entire page' ? 'entire' : 'selected' }}",
               "type": "string"
             },
             {
               "id": "016e2d5e-0f35-4687-81f9-bc5857ec46eb",
               "name": "textToChange",
-              "value": "={{ $json.textToChange }}",
+              "value": "={{ $json.textToChange || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "b1b2b3b4-0004-4ccc-9000-000000000004",
+              "name": "fileBasename",
+              "value": "={{ (() => { const nums = $json.pageSelection.match(/\\d+/g); return nums.length > 1 ? (nums[0] + '-' + nums[1] + '_knit') : nums[0]; })() }}",
+              "type": "string"
+            },
+            {
+              "id": "b1b2b3b4-0005-4ccc-9000-000000000005",
+              "name": "pageLabel",
+              "value": "={{ $json.pageSelection }}",
               "type": "string"
             }
           ]
@@ -1793,13 +1776,13 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -6192,
-        1168
+        -8432,
+        912
       ]
     },
     {
       "parameters": {
-        "fileSelector": "=temp/{{ $('Set Change-Voice Page Number').item.json.pageNumber }}_transcription_normalized.txt",
+        "fileSelector": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/{{ $('Set Change-Voice Page Number').item.json.fileBasename }}_transcription_normalized.txt",
         "options": {}
       },
       "id": "9d9aca69-8e80-4906-8d86-5046bd5aefb4",
@@ -1807,8 +1790,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -5968,
-        1168
+        -8208,
+        912
       ],
       "onError": "continueRegularOutput"
     },
@@ -1841,8 +1824,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -5744,
-        1168
+        -7984,
+        912
       ]
     },
     {
@@ -1856,8 +1839,8 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -5520,
-        1072
+        -7760,
+        816
       ]
     },
     {
@@ -1866,7 +1849,7 @@
           "values": []
         },
         "options": {
-          "formDescription": "={{ \"Page \" + $('Set Change-Voice Page Number').item.json.pageNumber + \" has no processed transcript yet, please click Submit below to try again.\" }}"
+          "formDescription": "={{ $('Set Change-Voice Page Number').item.json.pageLabel + \" has no processed transcript yet, please click Submit below to try again.\" }}"
         }
       },
       "id": "79b32d7f-bf84-4983-909d-cb8224832a75",
@@ -1875,8 +1858,8 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -5520,
-        1264
+        -7760,
+        1008
       ]
     },
     {
@@ -1886,7 +1869,7 @@
             {
               "id": "30fb269e-c925-43c7-bc91-d9e48894a533",
               "name": "result",
-              "value": "={{\n(() => {\n  const parsed = JSON.parse($json.text);\n  const wordMap = parsed.wordMap;\n  const target = $('Set Change-Voice Page Number').item.json.textToChange.trim().split(/\\s+/).filter(w => w);\n  const voice = $('Set Change-Voice Page Number').item.json.voice;\n\n  let matchStart = -1;\n  for (let i = 0; i <= wordMap.length - target.length; i++) {\n    let ok = true;\n    for (let k = 0; k < target.length; k++) {\n      if (wordMap[i + k].original.toLowerCase() !== target[k].toLowerCase()) { ok = false; break; }\n    }\n    if (ok) { matchStart = i; break; }\n  }\n  if (matchStart === -1) return JSON.stringify({ found: false });\n\n  const matchEnd = matchStart + target.length;\n  const before = wordMap.slice(0, matchStart).map(w => w.normalized).join(' ');\n  const middle = wordMap.slice(matchStart, matchEnd).map(w => w.normalized).join(' ');\n  const after = wordMap.slice(matchEnd).map(w => w.normalized).join(' ');\n  const wrapped = [before, `[voice:${voice}] ${middle} [voice:af_heart]`, after].filter(Boolean).join(' ');\n\n  return JSON.stringify({ found: true, text: wrapped, wordMap: wordMap });\n})()\n}}",
+              "value": "={{\n(() => {\n  const parsed = JSON.parse($json.text);\n  const wordMap = parsed.wordMap;\n  const existingSpans = parsed.voiceSpans || [];\n  const voice = $('Set Change-Voice Page Number').item.json.voice;\n  const target = $('Set Change-Voice Page Number').item.json.target;\n  const defaultVoice = $('Set Default Voice').isExecuted\n    ? $('Set Default Voice').item.json.voice\n    : ((Object.keys($('Read Default Voice').item.binary || {}).length > 0)\n        ? $('Extract Default Voice').item.json.text.trim()\n        : $('Populate Variables').item.json.defaultFallbackVoice);\n\n  let newStart, newEnd;\n  if (target === 'entire') {\n    newStart = 0;\n    newEnd = wordMap.length - 1;\n  } else {\n    const words = $('Set Change-Voice Page Number').item.json.textToChange\n      .replace(/\\|/g, ',')\n      .replace(/ > /g, ', ')\n      .replace(/[–—]/g, ' ')\n      .trim().split(/\\s+/).filter(w => w);\n    if (words.length === 0) return JSON.stringify({ found: false });\n\n    let matchStart = -1;\n    for (let i = 0; i <= wordMap.length - words.length; i++) {\n      let ok = true;\n      for (let k = 0; k < words.length; k++) {\n        if (wordMap[i + k].original.toLowerCase() !== words[k].toLowerCase()) { ok = false; break; }\n      }\n      if (ok) { matchStart = i; break; }\n    }\n    if (matchStart === -1) return JSON.stringify({ found: false });\n    newStart = matchStart;\n    newEnd = matchStart + words.length - 1;\n  }\n\n  const survivingSpans = existingSpans.filter(s => s.end < newStart || s.start > newEnd);\n  const allSpans = [...survivingSpans, { start: newStart, end: newEnd, voice }].sort((a, b) => a.start - b.start);\n\n  const parts = [];\n  let cursor = 0;\n  for (const span of allSpans) {\n    if (span.start > cursor) {\n      parts.push(wordMap.slice(cursor, span.start).map(w => w.normalized).join(' '));\n    }\n    parts.push(`[voice:${span.voice}] ${wordMap.slice(span.start, span.end + 1).map(w => w.normalized).join(' ')} [voice:${defaultVoice}]`);\n    cursor = span.end + 1;\n  }\n  if (cursor < wordMap.length) {\n    parts.push(wordMap.slice(cursor).map(w => w.normalized).join(' '));\n  }\n  const wrapped = parts.filter(Boolean).join(' ');\n\n  return JSON.stringify({ found: true, text: wrapped, wordMap: wordMap, voiceSpans: allSpans });\n})()\n}}",
               "type": "string"
             }
           ]
@@ -1898,8 +1881,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -5296,
-        1072
+        -7536,
+        816
       ]
     },
     {
@@ -1932,14 +1915,14 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -5072,
-        1072
+        -7312,
+        816
       ]
     },
     {
       "parameters": {
         "options": {
-          "formDescription": "={{ \"The text \\\"\" + $('Set Change-Voice Page Number').item.json.textToChange + \"\\\" wasn't found on page \" + $('Set Change-Voice Page Number').item.json.pageNumber + \". Please try again.\" }}"
+          "formDescription": "={{ ($('Set Change-Voice Page Number').item.json.target === 'entire' ? \"No text was found to change (the page appears to be empty)\" : (\"The text \\\"\" + $('Set Change-Voice Page Number').item.json.textToChange + \"\\\" wasn't found on \" + $('Set Change-Voice Page Number').item.json.pageLabel.replace(/^Page/, 'page').replace(/^Pages/, 'pages'))) + \". Please try again.\" }}"
         }
       },
       "id": "17d1ccf2-ae40-42d3-9549-1806742f5441",
@@ -1948,8 +1931,8 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -4848,
-        1360
+        -7088,
+        1104
       ]
     },
     {
@@ -1963,14 +1946,14 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -4848,
-        928
+        -7088,
+        720
       ]
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "=temp/{{ $('Set Change-Voice Page Number').item.json.pageNumber }}_transcription_normalized.txt",
+        "fileName": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/{{ $('Set Change-Voice Page Number').item.json.fileBasename }}_transcription_normalized.txt",
         "options": {}
       },
       "id": "10b90bd0-238c-4530-bf06-f6dcad15de52",
@@ -1978,8 +1961,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -4624,
-        928
+        -6864,
+        720
       ]
     },
     {
@@ -2001,8 +1984,8 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -11568,
-        1232
+        -10896,
+        3232
       ]
     },
     {
@@ -2020,7 +2003,31 @@
                 "conditions": [
                   {
                     "leftValue": "={{ $('Select Mode').item.json['Select Mode'] }}",
-                    "rightValue": "🎙️ Read with a Different Voice",
+                    "rightValue": "={{ $('Populate Variables').item.json.modeNewConversion }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "e1e2e3e4-0001-4eee-9000-000000000001"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "New"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Select Mode').item.json['Select Mode'] }}",
+                    "rightValue": "={{ $('Populate Variables').item.json.modeChangeVoice }}",
                     "operator": {
                       "type": "string",
                       "operation": "equals"
@@ -2045,7 +2052,7 @@
                   {
                     "id": "49187e11-bbbf-428d-9af8-bb300077f256",
                     "leftValue": "={{ $('Select Mode').item.json['Select Mode'] }}",
-                    "rightValue": "🔊 Create Sample Video",
+                    "rightValue": "={{ $('Populate Variables').item.json.modeSample }}",
                     "operator": {
                       "type": "string",
                       "operation": "equals",
@@ -2057,6 +2064,30 @@
               },
               "renameOutput": true,
               "outputKey": "SampleVideo"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "vfmr-knit-0001",
+                    "leftValue": "={{ $('Select Mode').item.json['Select Mode'] }}",
+                    "rightValue": "={{ $('Populate Variables').item.json.modeKnit }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Knit"
             }
           ]
         },
@@ -2067,8 +2098,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -6640,
-        1472
+        -10448,
+        2112
       ]
     },
     {
@@ -2081,8 +2112,8 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        -1936,
-        1600
+        -1488,
+        2672
       ]
     },
     {
@@ -2094,8 +2125,8 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -1712,
-        64
+        -1264,
+        144
       ]
     },
     {
@@ -2136,8 +2167,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -1488,
-        176
+        -1040,
+        192
       ]
     },
     {
@@ -2169,8 +2200,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1936,
-        -128
+        -1488,
+        -464
       ]
     },
     {
@@ -2192,7 +2223,7 @@
             {
               "id": "a1b2c3d4-0003-4aaa-8000-000000000003",
               "name": "tempTimestampGlob",
-              "value": "={{ $('Set Sample Voice Number').isExecuted ? 'sample_*_timestamps.json' : '[0-9]*_timestamps.json' }}",
+              "value": "={{ $('Set Sample Voice Number').isExecuted ? 'sample_*_timestamps.json' : '{0,1,2,3,4,5,6,7,8,9}*_timestamps.json' }}",
               "type": "string"
             },
             {
@@ -2217,8 +2248,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1264,
-        -320
+        -816,
+        -560
       ]
     },
     {
@@ -2251,8 +2282,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -2160,
-        -64
+        -1712,
+        -352
       ]
     },
     {
@@ -2274,8 +2305,925 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1936,
-        64
+        -1488,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "defineForm": "json",
+        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"Which voice should narrate this document by default?\",\n    fieldName: \"voice\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: $('Fetch Available Voices').item.json.voices.map(v => {\n        const langMap = { a: 'English (US)', b: 'English (UK)', e: 'Spanish', f: 'French', h: 'Hindi', i: 'Italian', j: 'Japanese', p: 'Portuguese (BR)', z: 'Chinese' };\n        const genderMap = { f: 'Female', m: 'Male' };\n        const lang = langMap[v.id[0]] || v.id[0];\n        const gender = genderMap[v.id[1]] || v.id[1];\n        const friendlyName = v.id.split('_')[1][0].toUpperCase() + v.id.split('_')[1].slice(1);\n        return { option: v.id + \" - \" + friendlyName + \" \" + gender + \" \" + lang };\n      })\n    },\n    requiredField: true\n  }\n] }}",
+        "options": {}
+      },
+      "id": "24b05ae8-fd9a-4ee5-85f6-bf023beaaa2a",
+      "name": "Select Default Voice",
+      "webhookId": "3b8d0b5d-4b63-4d2a-a0ed-e192c5110ccc",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        -10224,
+        2176
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c1c2c3c4-0001-4ddd-9000-000000000001",
+              "name": "voice",
+              "value": "={{ $json.voice.split(' - ')[0] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ccb99f79-1578-477d-93dc-a9d6ab78febd",
+      "name": "Set Default Voice",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -10000,
+        2176
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "voice",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
+      "id": "f423e9c8-3abd-43df-a0a2-33023df7ce79",
+      "name": "Convert Default Voice to File",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -9776,
+        2176
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Populate Variables').item.json.defaultVoiceFileName }}",
+        "options": {}
+      },
+      "id": "0c692900-a64b-4a84-aeba-437bea824d5b",
+      "name": "Save Default Voice to Disk",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -9552,
+        2176
+      ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Populate Variables').item.json.defaultVoiceFileName }}",
+        "options": {}
+      },
+      "id": "d1074198-3c0d-46ef-8386-d0d8a50e71f4",
+      "name": "Read Default Voice",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -11568,
+        3040
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "destinationKey": "text",
+        "options": {}
+      },
+      "id": "cd6e8ae5-1894-47e9-a22c-72ecf2eae0d8",
+      "name": "Extract Default Voice",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -11344,
+        3040
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "pv-0001",
+              "name": "tempDir",
+              "value": "/home/node/project/temp",
+              "type": "string"
+            },
+            {
+              "id": "pv-0002",
+              "name": "outputDir",
+              "value": "/home/node/project/output",
+              "type": "string"
+            },
+            {
+              "id": "pv-0003",
+              "name": "defaultVoiceFileName",
+              "value": "default_voice.txt",
+              "type": "string"
+            },
+            {
+              "id": "pv-0004",
+              "name": "documentMetaFileName",
+              "value": "meta.json",
+              "type": "string"
+            },
+            {
+              "id": "pv-0005",
+              "name": "ffmpegPath",
+              "value": "/opt/homebrew/opt/ffmpeg-full/bin:/opt/homebrew/bin:/usr/local/bin",
+              "type": "string"
+            },
+            {
+              "id": "pv-0006",
+              "name": "bareMetalBaseUrl",
+              "value": "http://host.docker.internal:5679",
+              "type": "string"
+            },
+            {
+              "id": "pv-0007",
+              "name": "nativeKokoroBaseUrl",
+              "value": "http://host.docker.internal:8881",
+              "type": "string"
+            },
+            {
+              "id": "pv-0008",
+              "name": "nemoNormalizerUrl",
+              "value": "http://nemo-normalizer:8000/normalize_words",
+              "type": "string"
+            },
+            {
+              "id": "pv-0009",
+              "name": "stirlingPdfUrl",
+              "value": "http://stirling-pdf:8080/api/v1/convert/pdf/img",
+              "type": "string"
+            },
+            {
+              "id": "pv-0010",
+              "name": "ollamaModel",
+              "value": "gemma4:31b",
+              "type": "string"
+            },
+            {
+              "id": "pv-0011",
+              "name": "defaultFallbackVoice",
+              "value": "af_heart",
+              "type": "string"
+            },
+            {
+              "id": "pv-0012",
+              "name": "tempDirRelative",
+              "value": "temp",
+              "type": "string"
+            },
+            {
+              "id": "pv-0013",
+              "name": "outputDirRelative",
+              "value": "output",
+              "type": "string"
+            },
+            {
+              "id": "pv-0014",
+              "name": "modeNewConversion",
+              "value": "🆕 Convert entire document",
+              "type": "string"
+            },
+            {
+              "id": "pv-0015",
+              "name": "modeContinue",
+              "value": "🔁 Continue converting entire document",
+              "type": "string"
+            },
+            {
+              "id": "pv-0016",
+              "name": "modeKnit",
+              "value": "🧶 Knit Pages Together",
+              "type": "string"
+            },
+            {
+              "id": "pv-0017",
+              "name": "modeChangeVoice",
+              "value": "🎙️ Convert single page",
+              "type": "string"
+            },
+            {
+              "id": "pv-0018",
+              "name": "modeSample",
+              "value": "🔊 Create Sample Video",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "eec50efe-1c20-4fe0-97fc-c82b8bff97ee",
+      "name": "Populate Variables",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -12016,
+        3376
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ddf-0001",
+              "name": "docFolder",
+              "value": "={{ (() => {\n  const raw = $binary[Object.keys($binary)[0]].fileName.replace(/\\.pdf$/i, '');\n  return (raw.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'document');\n})() }}",
+              "type": "string"
+            },
+            {
+              "id": "ddf-0002",
+              "name": "originalFilename",
+              "value": "={{ $binary[Object.keys($binary)[0]].fileName }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "3a40d460-44d9-4b2d-a236-8a569d7b4cb6",
+      "name": "Derive Document Folder",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -9104,
+        2096
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "metaJson",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
+      "id": "fef73ddb-2548-4a3b-a9b6-06a59065a841",
+      "name": "Convert Document Meta to File",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -7536,
+        2480
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bdm-0001",
+              "name": "metaJson",
+              "value": "={{ JSON.stringify({ docFolder: $json.docFolder, originalFilename: $json.originalFilename }) }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "b4bdb253-3ff9-4172-a060-a8406a61500d",
+      "name": "Build Document Meta JSON",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -7760,
+        2352
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Derive Document Folder').item.json.docFolder }}/{{ $('Populate Variables').item.json.documentMetaFileName }}",
+        "options": {}
+      },
+      "id": "110186cf-3ed6-4512-b27e-b79f403cf7d3",
+      "name": "Save Document Meta to Disk",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -7312,
+        2480
+      ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $('Populate Variables').item.json.tempDir }}/*/{{ $('Populate Variables').item.json.documentMetaFileName }}",
+        "options": {}
+      },
+      "id": "66bec4e9-a23a-43c4-bf9e-fb078fc1abf4",
+      "name": "List Document Folders",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -10000,
+        3040
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "destinationKey": "text",
+        "options": {}
+      },
+      "id": "4111729b-35c2-44dd-9859-0deaa165ef1d",
+      "name": "Extract Document Meta List",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -9776,
+        2960
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "pdm-0001",
+              "name": "doc",
+              "value": "={{ (Object.keys($('List Document Folders').item.binary || {}).length > 0) ? JSON.parse($json.text) : null }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "734c2b6d-f299-408a-be07-8bae061bcdb8",
+      "name": "Parse Document Meta Item",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -9552,
+        2960
+      ]
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "documents",
+        "options": {}
+      },
+      "id": "525340d7-fcd6-45e5-bf7e-5504e89b4d1c",
+      "name": "Aggregate Document List",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -9328,
+        2960
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "adf-0001",
+              "leftValue": "={{ $json.documents.filter(d => d.doc && d.doc.docFolder).length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ae986ef3-ecde-43e3-953e-8949e7757dd9",
+      "name": "Any Documents Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -9104,
+        2960
+      ]
+    },
+    {
+      "parameters": {
+        "formFields": {
+          "values": []
+        },
+        "options": {
+          "formDescription": "No previously-processed documents were found. Please start a new conversion first, then come back to this mode. Click Submit to check again."
+        }
+      },
+      "id": "7dc82034-30ad-47b3-bd99-079bec6ea126",
+      "name": "Error Message [\"No Documents Found\"]",
+      "webhookId": "19d28a46-6b56-4809-bb6c-bdb111ea427c",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        -8880,
+        3136
+      ]
+    },
+    {
+      "parameters": {
+        "defineForm": "json",
+        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"Which document do you want to work on?\",\n    fieldName: \"document\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: $json.documents.filter(d => d.doc && d.doc.docFolder).map(d => ({ option: d.doc.originalFilename }))\n    },\n    requiredField: true\n  }\n] }}",
+        "options": {}
+      },
+      "id": "73a4bc13-9343-41ee-9d43-c43dd4609767",
+      "name": "Select Document",
+      "webhookId": "e6f27de5-2df2-49a1-849c-198f3b46cb45",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        -8880,
+        2912
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "psd-0001",
+              "name": "docFolder",
+              "value": "={{ (() => {\n  const raw = $json.document.replace(/\\.pdf$/i, '');\n  return (raw.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'document');\n})() }}",
+              "type": "string"
+            },
+            {
+              "id": "psd-0002",
+              "name": "originalFilename",
+              "value": "={{ $json.document }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "87aff907-ca78-407f-91c8-39b25cd14a0d",
+      "name": "Parse Selected Document",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -8656,
+        2912
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "sdf-0001",
+              "name": "docFolder",
+              "value": "={{ $json.docFolder }}",
+              "type": "string"
+            },
+            {
+              "id": "sdf-0002",
+              "name": "originalFilename",
+              "value": "={{ $json.originalFilename }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "a1a763b2-1123-4ffa-9472-214b02ab883d",
+      "name": "Set Document Folder",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -8432,
+        2096
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "edmr-0001",
+                    "leftValue": "={{ $('Select Mode').item.json['Select Mode'] }}",
+                    "rightValue": "={{ $('Populate Variables').item.json.modeContinue }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Continue"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "edmr-0002",
+                    "leftValue": "={{ $('Select Mode').item.json['Select Mode'] }}",
+                    "rightValue": "={{ $('Populate Variables').item.json.modeKnit }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Knit"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "edmr-0003",
+                    "leftValue": "={{ $('Select Mode').item.json['Select Mode'] }}",
+                    "rightValue": "={{ $('Populate Variables').item.json.modeChangeVoice }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ChangeVoice"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4afbc038-1842-4b2f-a5b4-064db803a0ed",
+      "name": "Existing Document Mode Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -8208,
+        1904
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "rppl-0001",
+              "leftValue": "={{ $('Determine Output Basename').isExecuted }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "46db0b94-6d83-43e3-a776-cda5126f010f",
+      "name": "Route Processed Pages List",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -9104,
+        976
+      ]
+    },
+    {
+      "parameters": {
+        "formTitle": "D2V - Document to Video",
+        "formFields": {
+          "values": []
+        },
+        "options": {}
+      },
+      "id": "fbc58396-0cbc-46c4-b432-0b3ba5617918",
+      "name": "Start",
+      "webhookId": "3ba9af3b-9cb7-4a21-ad92-1f648db3f1f4",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -12240,
+        3376
+      ]
+    },
+    {
+      "parameters": {
+        "defineForm": "json",
+        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"Select Mode\",\n    fieldName: \"Select Mode\",\n    fieldType: \"radio\",\n    fieldOptions: {\n      values: [\n        { option: $('Populate Variables').item.json.modeNewConversion },\n        { option: $('Populate Variables').item.json.modeContinue },\n        { option: $('Populate Variables').item.json.modeKnit },\n        { option: $('Populate Variables').item.json.modeChangeVoice },\n        { option: $('Populate Variables').item.json.modeSample }\n      ]\n    },\n    requiredField: true\n  }\n] }}",
+        "options": {}
+      },
+      "id": "acce9165-d58d-4f15-9ea4-1b95bf19e3b1",
+      "name": "Select Mode",
+      "webhookId": "fd2442bc-2371-4f32-8072-9c927fd5c5a4",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        -11792,
+        3376
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/clip",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "command",
+              "value": "={{ 'mkdir -p ' + $('Populate Variables').item.json.tempDirRelative + '/' + $json.docFolder }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 3600000
+        }
+      },
+      "id": "fe6741aa-b422-4b09-b242-13d7221ed496",
+      "name": "Ensure Document Folder Exists",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -8880,
+        2352
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "e161ebff-c5b7-48bc-a459-a8fb956e2961",
+      "name": "Merge2",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -8656,
+        2096
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/clip",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "command",
+              "value": "={{ 'mkdir -p ' + $('Populate Variables').item.json.outputDirRelative + '/' + ($('Set Sample Voice Number').isExecuted ? '' : $('Set Document Folder').item.json.docFolder) }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 3600000
+        }
+      },
+      "id": "236ae7c0-dce1-46d7-953c-526d9e3a8459",
+      "name": "Ensure Output Folder Exists",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -8880,
+        1392
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "bff2eaf1-720a-4eec-b80e-0b01e35c56b4",
+      "name": "Merge3",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -8656,
+        1296
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ncp-0001",
+              "leftValue": "={{ $('Derive Document Folder').isExecuted }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "new-conv-path-check",
+      "name": "New Conversion Path?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -7984,
+        2256
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "kcvpl-0001",
+              "leftValue": "={{ $('Select Mode').item.json['Select Mode'] }}",
+              "rightValue": "={{ $('Populate Variables').item.json.modeKnit }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "knit-or-changevoice-list",
+      "name": "Knit or Change Voice Page List?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -8880,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "atf-0001",
+              "leftValue": "true",
+              "rightValue": "={{ (!!$binary && Object.keys($binary).length > 0).toString() }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "any-timestamps-found",
+      "name": "Any Timestamps Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -10000,
+        1168
+      ]
+    },
+    {
+      "parameters": {
+        "formFields": {
+          "values": []
+        },
+        "options": {
+          "formDescription": "={{ ($('Set Document Folder').isExecuted ? (\"\\\"\" + $('Set Document Folder').item.json.docFolder + \"\\\"\") : \"This document\") + \" has no processed pages yet. Please run \\\"Convert entire document\\\" (or finish \\\"Continue converting entire document\\\") first, then come back and try again. Click Submit to return to the main menu.\" }}"
+        }
+      },
+      "id": "error-no-pages-processed",
+      "name": "Error Message [\"No Pages Processed Yet\"]",
+      "webhookId": "490210af-4ef8-4b02-ab79-8d4e74a90847",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        -9776,
+        1376
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "eptk-0001",
+              "leftValue": "true",
+              "rightValue": "={{ (() => {\n  const allPages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n  const knitCovered = new Set(allPages.filter(p => p.knitPages).flatMap(p => p.knitPages.map(Number)));\n  const singlePages = allPages.filter(p => !p.knitPages && !knitCovered.has(Number(p.pageIndex)));\n  return (singlePages.length >= 2).toString();\n})() }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "enough-pages-to-knit",
+      "name": "Enough Pages To Knit?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -8656,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "formFields": {
+          "values": []
+        },
+        "options": {
+          "formDescription": "={{ (() => {\n  const allPages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n  const knitCovered = new Set(allPages.filter(p => p.knitPages).flatMap(p => p.knitPages.map(Number)));\n  const singlePages = allPages.filter(p => !p.knitPages && !knitCovered.has(Number(p.pageIndex)));\n  const docName = $('Set Document Folder').isExecuted ? $('Set Document Folder').item.json.docFolder : \"This document\";\n  return \"\\\"\" + docName + \"\\\" only has \" + singlePages.length + \" page\" + (singlePages.length === 1 ? \"\" : \"s\") + \" available to knit, at least 2 are needed. Please convert more pages first, then come back. Click Submit to return to the main menu.\";\n})() }}"
+        }
+      },
+      "id": "error-not-enough-pages-to-knit",
+      "name": "Error Message [\"Not Enough Pages To Knit\"]",
+      "webhookId": "86d9a785-b693-428c-907f-04542c6846eb",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        -8432,
+        -64
       ]
     }
   ],
@@ -2453,17 +3401,6 @@
         ]
       ]
     },
-    "Select PDF File": {
-      "main": [
-        [
-          {
-            "node": "Save PDF File to Disk",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Verify if PDF Is Uploaded": {
       "main": [
         [
@@ -2498,17 +3435,6 @@
         [
           {
             "node": "Select PDF File",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Select Mode": {
-      "main": [
-        [
-          {
-            "node": "Select Mode Router",
             "type": "main",
             "index": 0
           }
@@ -2735,17 +3661,6 @@
         ]
       ]
     },
-    "Read All Timestamps from Disk": {
-      "main": [
-        [
-          {
-            "node": "Extract Timestamps Text",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Extract Timestamps Text": {
       "main": [
         [
@@ -2772,7 +3687,7 @@
       "main": [
         [
           {
-            "node": "Generate Subtitle File and Video Chapters",
+            "node": "Route Processed Pages List",
             "type": "main",
             "index": 0
           }
@@ -3159,28 +4074,28 @@
       "main": [
         [
           {
-            "node": "Select PDF File",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Verify if PDF Is Uploaded",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Page Knitting Configuration",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
             "node": "Fetch Available Voices",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "List Document Folders",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "List Document Folders",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "List Document Folders",
             "type": "main",
             "index": 0
           }
@@ -3256,17 +4171,6 @@
         ]
       ]
     },
-    "Error Message [\"Page Not Found\"]": {
-      "main": [
-        [
-          {
-            "node": "Change Voice Configuration",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Extract Normalized Transcript for Voice Change": {
       "main": [
         [
@@ -3301,17 +4205,6 @@
         [
           {
             "node": "Error Message [\"Text Not Found\"]",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Error Message [\"Text Not Found\"]": {
-      "main": [
-        [
-          {
-            "node": "Change Voice Configuration",
             "type": "main",
             "index": 0
           }
@@ -3355,7 +4248,14 @@
       "main": [
         [
           {
-            "node": "Change Voice Configuration",
+            "node": "Select Default Voice",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read All Timestamps from Disk",
             "type": "main",
             "index": 0
           }
@@ -3363,6 +4263,13 @@
         [
           {
             "node": "Split Out Sample Voices",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read All Timestamps from Disk",
             "type": "main",
             "index": 0
           }
@@ -3488,6 +4395,482 @@
           }
         ]
       ]
+    },
+    "Select Default Voice": {
+      "main": [
+        [
+          {
+            "node": "Set Default Voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Default Voice": {
+      "main": [
+        [
+          {
+            "node": "Convert Default Voice to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Default Voice to File": {
+      "main": [
+        [
+          {
+            "node": "Save Default Voice to Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Default Voice to Disk": {
+      "main": [
+        [
+          {
+            "node": "Select PDF File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Default Voice": {
+      "main": [
+        [
+          {
+            "node": "Extract Default Voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Default Voice": {
+      "main": [
+        [
+          {
+            "node": "Select Mode Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select PDF File": {
+      "main": [
+        [
+          {
+            "node": "Derive Document Folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Derive Document Folder": {
+      "main": [
+        [
+          {
+            "node": "Ensure Document Folder Exists",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Document Meta JSON": {
+      "main": [
+        [
+          {
+            "node": "Convert Document Meta to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Document Meta to File": {
+      "main": [
+        [
+          {
+            "node": "Save Document Meta to Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Document Folders": {
+      "main": [
+        [
+          {
+            "node": "Extract Document Meta List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Document Meta List": {
+      "main": [
+        [
+          {
+            "node": "Parse Document Meta Item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Document Meta Item": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Document List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Document List": {
+      "main": [
+        [
+          {
+            "node": "Any Documents Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Any Documents Found?": {
+      "main": [
+        [
+          {
+            "node": "Select Document",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Message [\"No Documents Found\"]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Message [\"No Documents Found\"]": {
+      "main": [
+        [
+          {
+            "node": "List Document Folders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Document": {
+      "main": [
+        [
+          {
+            "node": "Parse Selected Document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Selected Document": {
+      "main": [
+        [
+          {
+            "node": "Set Document Folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Document Folder": {
+      "main": [
+        [
+          {
+            "node": "Existing Document Mode Router",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "New Conversion Path?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Existing Document Mode Router": {
+      "main": [
+        [
+          {
+            "node": "Verify if PDF Is Uploaded",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fetch Available Voices",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fetch Available Voices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Processed Pages List": {
+      "main": [
+        [
+          {
+            "node": "Ensure Output Folder Exists",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Knit or Change Voice Page List?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Message [\"Page Not Found\"]": {
+      "main": [
+        [
+          {
+            "node": "Read All Timestamps from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Message [\"Text Not Found\"]": {
+      "main": [
+        [
+          {
+            "node": "Read All Timestamps from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Populate Variables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Populate Variables": {
+      "main": [
+        [
+          {
+            "node": "Select Mode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Mode": {
+      "main": [
+        [
+          {
+            "node": "Read Default Voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ensure Document Folder Exists": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Set Document Folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ensure Output Folder Exists": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Generate Subtitle File and Video Chapters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "New Conversion Path?": {
+      "main": [
+        [
+          {
+            "node": "Save PDF File to Disk",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build Document Meta JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Knit or Change Voice Page List?": {
+      "main": [
+        [
+          {
+            "node": "Enough Pages To Knit?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Change Voice Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read All Timestamps from Disk": {
+      "main": [
+        [
+          {
+            "node": "Any Timestamps Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Any Timestamps Found?": {
+      "main": [
+        [
+          {
+            "node": "Extract Timestamps Text",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Message [\"No Pages Processed Yet\"]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Message [\"No Pages Processed Yet\"]": {
+      "main": [
+        [
+          {
+            "node": "Select Mode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enough Pages To Knit?": {
+      "main": [
+        [
+          {
+            "node": "Page Knitting Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Message [\"Not Enough Pages To Knit\"]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Message [\"Not Enough Pages To Knit\"]": {
+      "main": [
+        [
+          {
+            "node": "Select Mode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -3499,7 +4882,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "a604c0d8-0bfc-4728-a289-a2b8028e32e2",
+  "versionId": "60bdc62e-66bd-4182-8949-6ea1651139bd",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "0d58a7a3f156139856be42466a14e05f00173514ac9794a8494b09c53ea173a0"
