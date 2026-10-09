@@ -55,7 +55,7 @@
       "typeVersion": 4.4,
       "position": [
         -7312,
-        1984
+        2000
       ]
     },
     {
@@ -68,7 +68,7 @@
       "typeVersion": 1.1,
       "position": [
         -7088,
-        1984
+        2000
       ]
     },
     {
@@ -82,7 +82,7 @@
       "typeVersion": 1,
       "position": [
         -6864,
-        1984
+        2000
       ]
     },
     {
@@ -172,7 +172,7 @@
       "typeVersion": 4.4,
       "position": [
         -1936,
-        -272
+        -304
       ]
     },
     {
@@ -187,7 +187,7 @@
       "typeVersion": 1.1,
       "position": [
         -2384,
-        -368
+        -400
       ]
     },
     {
@@ -263,7 +263,7 @@
       "typeVersion": 1.1,
       "position": [
         2768,
-        -32
+        -64
       ]
     },
     {
@@ -280,7 +280,7 @@
       "typeVersion": 1.1,
       "position": [
         -4400,
-        -272
+        -304
       ]
     },
     {
@@ -291,7 +291,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "={{ (() => {\n    const basename = $('Determine Output Basename').item.json.outputBasename;\n    const clipGlob = $('Determine Output Basename').item.json.tempClipGlob;\n    const chaptersFile = $('Determine Output Basename').item.json.chaptersFile;\n    const simple = $('Determine Output Basename').item.json.useSimpleConcat;\n    const docPrefix = simple ? '' : ($('Set Document Folder').item.json.docFolder + '/');\n    const tempDir = $('Populate Variables').item.json.tempDirRelative;\n    const outputDir = $('Populate Variables').item.json.outputDirRelative;\n\n    const sortedVoiceIds = $('Aggregate All Timestamps').item.json.pages\n      .map(x => x.data)\n      .filter(d => d.voiceId)\n      .sort((a, b) => (a.voiceId < b.voiceId ? -1 : (a.voiceId > b.voiceId ? 1 : 0)))\n      .map(d => d.voiceId);\n\n    const concatListCheck = `[ -s ${tempDir}/${docPrefix}${basename}_concat_list.txt ] || { echo \"ERROR: concat list ${tempDir}/${docPrefix}${basename}_concat_list.txt is empty, no clips matched\" >&2; exit 1; }`;\n\n    const simpleCmds = [\n      `mkdir -p ${outputDir}`,\n      `: > ${tempDir}/${docPrefix}${basename}_concat_list.txt`,\n      ...sortedVoiceIds.map(id => `echo \"file '$PWD/${tempDir}/sample_${id}_clip.mp4'\" >> ${tempDir}/${docPrefix}${basename}_concat_list.txt`),\n      concatListCheck,\n      `ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy ${outputDir}/${docPrefix}${basename}.mp4`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    const complexCmds = [\n      `mkdir -p ${outputDir}/${docPrefix}`,\n      `find ${tempDir}/${docPrefix} -maxdepth 1 -name \"${clipGlob}\" | sort -V | while read f; do b=$(basename \"$f\" _clip.mp4); case \"$b\" in *_knit) echo \"file '$PWD/$f'\";; *) ls \"${tempDir}/${docPrefix}${b}-\"*\"_knit_clip.mp4\" 2>/dev/null | grep -q . || ls \"${tempDir}/${docPrefix}\"*\"-${b}_knit_clip.mp4\" 2>/dev/null | grep -q . || echo \"file '$PWD/$f'\";; esac; done > ${tempDir}/${docPrefix}${basename}_concat_list.txt`,\n      concatListCheck,\n      'MAX_W=0',\n      `for f in ${tempDir}/${docPrefix}*_knit_clip.mp4; do [ -f \"$f\" ] || break; W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$f\" | head -1); if [ \"$W\" -gt \"$MAX_W\" ]; then MAX_W=$W; fi; done`,\n      `SINGLE=$(find ${tempDir}/${docPrefix} -maxdepth 1 -name \"${clipGlob}\" ! -name \"*_knit_clip.mp4\" | sort -V | head -1)`,\n      'if [ -n \"$SINGLE\" ]; then CLIP_W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$SINGLE\" | head -1); PAGE_W=$((CLIP_W/2)); if [ \"$PAGE_W\" -gt \"$MAX_W\" ]; then MAX_W=$PAGE_W; fi; else CLIP_W=$MAX_W; fi',\n      'TARGET_W=$MAX_W',\n      `if [ \"$CLIP_W\" -eq \"$TARGET_W\" ]; then ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy ${outputDir}/${docPrefix}${basename}.mp4; elif [ \"$CLIP_W\" -gt \"$TARGET_W\" ]; then X=$(( (CLIP_W - TARGET_W) / 2 )) && ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"crop=\\${TARGET_W}:ih:\\${X}:0\" -c:v libx264 -preset ultrafast -c:a copy -pix_fmt yuv420p ${outputDir}/${docPrefix}${basename}.mp4; else OX=$(( (TARGET_W - CLIP_W) / 2 )) && ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"split[bg][fg];[bg]scale=\\${TARGET_W}:ih,boxblur=20:3[bg_b];[fg][bg_b]overlay=\\${OX}:0\" -c:v libx264 -preset ultrafast -c:a copy -pix_fmt yuv420p ${outputDir}/${docPrefix}${basename}.mp4; fi`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    return ['set -e', `export PATH=${$('Populate Variables').item.json.ffmpegPath}:$PATH`, ...(simple ? simpleCmds : complexCmds)].join(' && ');\n  })() }}"
+              "value": "={{ (() => {\n    const basename = $('Determine Output Basename').item.json.outputBasename;\n    const clipGlob = $('Determine Output Basename').item.json.tempClipGlob;\n    const chaptersFile = $('Determine Output Basename').item.json.chaptersFile;\n    const simple = $('Determine Output Basename').item.json.useSimpleConcat;\n    const docPrefix = simple ? '' : ($('Set Document Folder').item.json.docFolder + '/');\n    const tempDir = $('Populate Variables').item.json.tempDirRelative;\n    const outputDir = $('Populate Variables').item.json.outputDirRelative;\n\n    const sortedVoiceIds = $('Aggregate All Timestamps').item.json.pages\n      .map(x => x.data)\n      .filter(d => d.voiceId)\n      .sort((a, b) => (a.voiceId < b.voiceId ? -1 : (a.voiceId > b.voiceId ? 1 : 0)))\n      .map(d => d.voiceId);\n\n    const concatListCheck = `[ -s ${tempDir}/${docPrefix}${basename}_concat_list.txt ] || { echo \"ERROR: concat list ${tempDir}/${docPrefix}${basename}_concat_list.txt is empty, no clips matched\" >&2; exit 1; }`;\n\n    const simpleCmds = [\n      `mkdir -p ${outputDir}`,\n      `: > ${tempDir}/${docPrefix}${basename}_concat_list.txt`,\n      ...sortedVoiceIds.map(id => `echo \"file '$PWD/${tempDir}/sample_${id}_clip.mp4'\" >> ${tempDir}/${docPrefix}${basename}_concat_list.txt`),\n      concatListCheck,\n      `ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy ${outputDir}/${docPrefix}${basename}.mp4`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    const complexCmds = [\n      `mkdir -p ${outputDir}/${docPrefix}`,\n      `find ${tempDir}/${docPrefix} -maxdepth 1 -name \"${clipGlob}\" | sort -V | while read f; do b=$(basename \"$f\" _clip.mp4); case \"$b\" in *_knit) echo \"file '$PWD/$f'\";; *) ls \"${tempDir}/${docPrefix}\\${b}-\"*\"_knit_clip.mp4\" 2>/dev/null | grep -q . || ls \"${tempDir}/${docPrefix}\"*\"-\\${b}_knit_clip.mp4\" 2>/dev/null | grep -q . || echo \"file '$PWD/$f'\";; esac; done > ${tempDir}/${docPrefix}${basename}_concat_list.txt`,\n      concatListCheck,\n      'MAX_W=0',\n      `for f in ${tempDir}/${docPrefix}*_knit_clip.mp4; do [ -f \"$f\" ] || break; W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$f\" | head -1); if [ \"$W\" -gt \"$MAX_W\" ]; then MAX_W=$W; fi; done`,\n      `SINGLE=$(find ${tempDir}/${docPrefix} -maxdepth 1 -name \"${clipGlob}\" ! -name \"*_knit_clip.mp4\" | sort -V | head -1)`,\n      'if [ -n \"$SINGLE\" ]; then CLIP_W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$SINGLE\" | head -1); PAGE_W=$((CLIP_W/2)); if [ \"$PAGE_W\" -gt \"$MAX_W\" ]; then MAX_W=$PAGE_W; fi; else CLIP_W=$MAX_W; fi',\n      'TARGET_W=$MAX_W',\n      `if [ \"$CLIP_W\" -eq \"$TARGET_W\" ]; then ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy ${outputDir}/${docPrefix}${basename}.mp4; elif [ \"$CLIP_W\" -gt \"$TARGET_W\" ]; then X=$(( (CLIP_W - TARGET_W) / 2 )) && ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"crop=\\${TARGET_W}:ih:\\${X}:0\" -c:v libx264 -preset ultrafast -c:a copy -pix_fmt yuv420p ${outputDir}/${docPrefix}${basename}.mp4; else OX=$(( (TARGET_W - CLIP_W) / 2 )) && ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"split[bg][fg];[bg]scale=\\${TARGET_W}:ih,boxblur=20:3[bg_b];[fg][bg_b]overlay=\\${OX}:0\" -c:v libx264 -preset ultrafast -c:a copy -pix_fmt yuv420p ${outputDir}/${docPrefix}${basename}.mp4; fi`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    return ['set -e', `export PATH=${$('Populate Variables').item.json.ffmpegPath}:$PATH`, ...(simple ? simpleCmds : complexCmds)].join(' && ');\n  })() }}"
             }
           ]
         },
@@ -342,7 +342,7 @@
       "typeVersion": 1.1,
       "position": [
         -7760,
-        2160
+        2176
       ]
     },
     {
@@ -356,7 +356,7 @@
       "typeVersion": 1.1,
       "position": [
         -7536,
-        1984
+        2000
       ]
     },
     {
@@ -381,7 +381,7 @@
       "typeVersion": 2.5,
       "position": [
         -9328,
-        2176
+        2192
       ]
     },
     {
@@ -395,7 +395,7 @@
       "typeVersion": 1.1,
       "position": [
         -7984,
-        1920
+        1936
       ],
       "onError": "continueRegularOutput"
     },
@@ -429,7 +429,7 @@
       "typeVersion": 2.3,
       "position": [
         -7760,
-        1920
+        1936
       ]
     },
     {
@@ -445,7 +445,7 @@
       "typeVersion": 2.5,
       "position": [
         -7536,
-        2240
+        2256
       ]
     },
     {
@@ -621,7 +621,7 @@
       "typeVersion": 1.1,
       "position": [
         -4176,
-        -272
+        -304
       ]
     },
     {
@@ -635,7 +635,7 @@
       "typeVersion": 1.1,
       "position": [
         -3952,
-        -272
+        -304
       ]
     },
     {
@@ -650,7 +650,7 @@
       "typeVersion": 1.1,
       "position": [
         -3728,
-        -272
+        -304
       ]
     },
     {
@@ -680,7 +680,7 @@
       "typeVersion": 4.4,
       "position": [
         -4848,
-        128
+        96
       ]
     },
     {
@@ -744,7 +744,7 @@
       "typeVersion": 4.4,
       "position": [
         -3504,
-        -272
+        -304
       ]
     },
     {
@@ -829,7 +829,7 @@
       "typeVersion": 1.1,
       "position": [
         -2608,
-        -368
+        -400
       ]
     },
     {
@@ -843,7 +843,7 @@
       "typeVersion": 1.1,
       "position": [
         -10224,
-        1472
+        1440
       ],
       "onError": "continueRegularOutput"
     },
@@ -859,7 +859,7 @@
       "typeVersion": 1.1,
       "position": [
         -9776,
-        976
+        944
       ]
     },
     {
@@ -882,7 +882,7 @@
       "typeVersion": 3.4,
       "position": [
         -9552,
-        976
+        944
       ]
     },
     {
@@ -897,7 +897,7 @@
       "typeVersion": 1,
       "position": [
         -9328,
-        976
+        944
       ]
     },
     {
@@ -1039,7 +1039,7 @@
       "typeVersion": 3.2,
       "position": [
         -2160,
-        -272
+        -304
       ]
     },
     {
@@ -1159,7 +1159,7 @@
       "typeVersion": 3.4,
       "position": [
         -4624,
-        -368
+        -400
       ]
     },
     {
@@ -1176,7 +1176,7 @@
       "typeVersion": 1.1,
       "position": [
         -4400,
-        -464
+        -496
       ]
     },
     {
@@ -1191,7 +1191,7 @@
       "typeVersion": 1.1,
       "position": [
         -4176,
-        -464
+        -496
       ]
     },
     {
@@ -1336,7 +1336,7 @@
       "typeVersion": 2.5,
       "position": [
         -8432,
-        128
+        96
       ]
     },
     {
@@ -1359,7 +1359,7 @@
       "typeVersion": 4.4,
       "position": [
         -8208,
-        128
+        96
       ]
     },
     {
@@ -1441,7 +1441,7 @@
       "typeVersion": 1.1,
       "position": [
         -7984,
-        128
+        96
       ],
       "onError": "continueRegularOutput"
     },
@@ -1476,7 +1476,7 @@
       "typeVersion": 2.3,
       "position": [
         -7760,
-        128
+        96
       ]
     },
     {
@@ -1490,7 +1490,7 @@
       "typeVersion": 1.1,
       "position": [
         -5520,
-        128
+        96
       ]
     },
     {
@@ -1505,7 +1505,7 @@
       "typeVersion": 1.1,
       "position": [
         -5296,
-        128
+        96
       ]
     },
     {
@@ -1541,7 +1541,7 @@
       "typeVersion": 3.4,
       "position": [
         -5072,
-        128
+        96
       ]
     },
     {
@@ -1682,7 +1682,7 @@
       "typeVersion": 3.4,
       "position": [
         -11120,
-        2992
+        3008
       ]
     },
     {
@@ -1696,7 +1696,7 @@
       "typeVersion": 4.5,
       "position": [
         -10672,
-        2336
+        2352
       ]
     },
     {
@@ -1776,7 +1776,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -8432,
+        -7984,
         912
       ]
     },
@@ -1790,7 +1790,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -8208,
+        -7760,
         912
       ],
       "onError": "continueRegularOutput"
@@ -1824,7 +1824,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -7984,
+        -7536,
         912
       ]
     },
@@ -1839,7 +1839,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -7760,
+        -7312,
         816
       ]
     },
@@ -1858,7 +1858,7 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -7760,
+        -7312,
         1008
       ]
     },
@@ -1881,7 +1881,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -7536,
+        -7088,
         816
       ]
     },
@@ -1915,7 +1915,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -7312,
+        -6864,
         816
       ]
     },
@@ -1931,7 +1931,7 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -7088,
+        -6640,
         1104
       ]
     },
@@ -1946,7 +1946,7 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -7088,
+        -6640,
         720
       ]
     },
@@ -1961,7 +1961,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -6864,
+        -6416,
         720
       ]
     },
@@ -1985,7 +1985,7 @@
       "typeVersion": 2.5,
       "position": [
         -10896,
-        3232
+        3248
       ]
     },
     {
@@ -2099,7 +2099,7 @@
       "typeVersion": 3.4,
       "position": [
         -10448,
-        2112
+        2128
       ]
     },
     {
@@ -2113,7 +2113,7 @@
       "typeVersion": 1,
       "position": [
         -1488,
-        2672
+        2688
       ]
     },
     {
@@ -2283,7 +2283,7 @@
       "typeVersion": 2.3,
       "position": [
         -1712,
-        -352
+        -384
       ]
     },
     {
@@ -2322,7 +2322,7 @@
       "typeVersion": 2.5,
       "position": [
         -10224,
-        2176
+        2192
       ]
     },
     {
@@ -2345,7 +2345,7 @@
       "typeVersion": 3.5,
       "position": [
         -10000,
-        2176
+        2192
       ]
     },
     {
@@ -2362,7 +2362,7 @@
       "typeVersion": 1.1,
       "position": [
         -9776,
-        2176
+        2192
       ]
     },
     {
@@ -2377,7 +2377,7 @@
       "typeVersion": 1.1,
       "position": [
         -9552,
-        2176
+        2192
       ]
     },
     {
@@ -2391,7 +2391,7 @@
       "typeVersion": 1.1,
       "position": [
         -11568,
-        3040
+        3056
       ],
       "onError": "continueRegularOutput"
     },
@@ -2407,7 +2407,7 @@
       "typeVersion": 1.1,
       "position": [
         -11344,
-        3040
+        3056
       ],
       "onError": "continueRegularOutput"
     },
@@ -2533,7 +2533,7 @@
       "typeVersion": 3.5,
       "position": [
         -12016,
-        3376
+        3392
       ]
     },
     {
@@ -2563,7 +2563,7 @@
       "typeVersion": 3.5,
       "position": [
         -9104,
-        2096
+        2112
       ]
     },
     {
@@ -2580,7 +2580,7 @@
       "typeVersion": 1.1,
       "position": [
         -7536,
-        2480
+        2496
       ]
     },
     {
@@ -2604,7 +2604,7 @@
       "typeVersion": 3.5,
       "position": [
         -7760,
-        2352
+        2368
       ]
     },
     {
@@ -2619,7 +2619,7 @@
       "typeVersion": 1.1,
       "position": [
         -7312,
-        2480
+        2496
       ]
     },
     {
@@ -2633,7 +2633,7 @@
       "typeVersion": 1.1,
       "position": [
         -10000,
-        3040
+        3056
       ],
       "onError": "continueRegularOutput"
     },
@@ -2649,7 +2649,7 @@
       "typeVersion": 1.1,
       "position": [
         -9776,
-        2960
+        2976
       ],
       "onError": "continueRegularOutput"
     },
@@ -2673,7 +2673,7 @@
       "typeVersion": 3.5,
       "position": [
         -9552,
-        2960
+        2976
       ]
     },
     {
@@ -2688,7 +2688,7 @@
       "typeVersion": 1,
       "position": [
         -9328,
-        2960
+        2976
       ]
     },
     {
@@ -2721,7 +2721,7 @@
       "typeVersion": 2.3,
       "position": [
         -9104,
-        2960
+        2976
       ]
     },
     {
@@ -2740,7 +2740,7 @@
       "typeVersion": 2.5,
       "position": [
         -8880,
-        3136
+        3152
       ]
     },
     {
@@ -2756,7 +2756,7 @@
       "typeVersion": 2.5,
       "position": [
         -8880,
-        2912
+        2928
       ]
     },
     {
@@ -2785,7 +2785,7 @@
       "typeVersion": 3.5,
       "position": [
         -8656,
-        2912
+        2928
       ]
     },
     {
@@ -2815,7 +2815,7 @@
       "typeVersion": 3.5,
       "position": [
         -8432,
-        2096
+        2112
       ]
     },
     {
@@ -2904,7 +2904,7 @@
       "typeVersion": 3.4,
       "position": [
         -8208,
-        1904
+        1920
       ]
     },
     {
@@ -2938,7 +2938,7 @@
       "typeVersion": 2.3,
       "position": [
         -9104,
-        976
+        944
       ]
     },
     {
@@ -2956,7 +2956,7 @@
       "typeVersion": 2.5,
       "position": [
         -12240,
-        3376
+        3392
       ]
     },
     {
@@ -2972,7 +2972,7 @@
       "typeVersion": 2.5,
       "position": [
         -11792,
-        3376
+        3392
       ]
     },
     {
@@ -2997,7 +2997,7 @@
       "typeVersion": 4.4,
       "position": [
         -8880,
-        2352
+        2368
       ]
     },
     {
@@ -3012,7 +3012,7 @@
       "typeVersion": 3.2,
       "position": [
         -8656,
-        2096
+        2112
       ]
     },
     {
@@ -3086,7 +3086,7 @@
       "typeVersion": 2.3,
       "position": [
         -7984,
-        2256
+        2272
       ]
     },
     {
@@ -3119,7 +3119,7 @@
       "typeVersion": 2.3,
       "position": [
         -8880,
-        544
+        512
       ]
     },
     {
@@ -3152,7 +3152,7 @@
       "typeVersion": 2.3,
       "position": [
         -10000,
-        1168
+        1136
       ]
     },
     {
@@ -3171,7 +3171,7 @@
       "typeVersion": 2.5,
       "position": [
         -9776,
-        1376
+        1360
       ]
     },
     {
@@ -3204,7 +3204,7 @@
       "typeVersion": 2.3,
       "position": [
         -8656,
-        128
+        96
       ]
     },
     {
@@ -3223,7 +3223,7 @@
       "typeVersion": 2.5,
       "position": [
         -8432,
-        -64
+        -96
       ]
     },
     {
@@ -3255,8 +3255,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        304,
-        160
+        -8432,
+        912
       ]
     },
     {
@@ -3271,8 +3271,8 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        528,
-        80
+        -8208,
+        720
       ]
     }
   ],
@@ -4960,7 +4960,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "e5b41344-69ac-47f6-a1e0-34ef51422ca6",
+  "versionId": "eba96c02-4d39-4166-906c-177ae8b5f364",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "0d58a7a3f156139856be42466a14e05f00173514ac9794a8494b09c53ea173a0"
