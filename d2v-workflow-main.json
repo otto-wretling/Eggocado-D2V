@@ -1702,7 +1702,7 @@
     {
       "parameters": {
         "defineForm": "json",
-        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"Which page do you want to convert?\",\n    fieldName: \"pageSelection\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: (() => {\n        const allPages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n        const knitCovered = new Set(allPages.filter(p => p.knitPages).flatMap(p => p.knitPages.map(Number)));\n        const pages = allPages.filter(p => p.knitPages || !knitCovered.has(Number(p.pageIndex)));\n        return pages.map(p => {\n          const label = p.knitPages ? ('Pages ' + p.knitPages[0] + ' & ' + p.knitPages[1]) : ('Page ' + p.pageIndex);\n          return { option: label };\n        });\n      })()\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"In what voice?\",\n    fieldName: \"voice\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: $('Fetch Available Voices').item.json.voices.map(v => {\n        const langMap = { a: 'English (US)', b: 'English (UK)', e: 'Spanish', f: 'French', h: 'Hindi', i: 'Italian', j: 'Japanese', p: 'Portuguese (BR)', z: 'Chinese' };\n        const genderMap = { f: 'Female', m: 'Male' };\n        const lang = langMap[v.id[0]] || v.id[0];\n        const gender = genderMap[v.id[1]] || v.id[1];\n        const friendlyName = v.id.split('_')[1][0].toUpperCase() + v.id.split('_')[1].slice(1);\n        return { option: v.id + \" - \" + friendlyName + \" \" + gender + \" \" + lang };\n      })\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"Apply the voice to:\",\n    fieldName: \"target\",\n    fieldType: \"radio\",\n    fieldOptions: {\n      values: [\n        { option: \"The entire page\" },\n        { option: \"Selected text\" }\n      ]\n    },\n    requiredField: true\n  }\n] }}",
+        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"Which page do you want to convert?\",\n    fieldName: \"pageSelection\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: (() => {\n        const allPages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n        const knitCovered = new Set(allPages.filter(p => p.knitPages).flatMap(p => p.knitPages.map(Number)));\n        const pages = allPages.filter(p => p.knitPages || !knitCovered.has(Number(p.pageIndex)));\n        return pages.map(p => {\n          const label = p.knitPages ? ('Pages ' + p.knitPages[0] + ' & ' + p.knitPages[1]) : ('Page ' + p.pageIndex);\n          return { option: label };\n        });\n      })()\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"In what voice?\",\n    fieldName: \"voice\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: $('Fetch Available Voices').item.json.voices.map(v => {\n        const langMap = { a: 'English (US)', b: 'English (UK)', e: 'Spanish', f: 'French', h: 'Hindi', i: 'Italian', j: 'Japanese', p: 'Portuguese (BR)', z: 'Chinese' };\n        const genderMap = { f: 'Female', m: 'Male' };\n        const lang = langMap[v.id[0]] || v.id[0];\n        const gender = genderMap[v.id[1]] || v.id[1];\n        const friendlyName = v.id.split('_')[1][0].toUpperCase() + v.id.split('_')[1].slice(1);\n        return { option: v.id + \" - \" + friendlyName + \" \" + gender + \" \" + lang };\n      })\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"Apply the voice to:\",\n    fieldName: \"target\",\n    fieldType: \"radio\",\n    fieldOptions: {\n      values: [\n        { option: \"The entire page (starts converting right away)\" },\n        { option: \"Selected text (continue to the next page to choose the exact words)\" }\n      ]\n    },\n    requiredField: true\n  }\n] }}",
         "options": {}
       },
       "id": "99c165d5-b8a7-4517-902f-cd7439b3dd29",
@@ -1746,7 +1746,7 @@
             {
               "id": "b1b2b3b4-0003-4ccc-9000-000000000003",
               "name": "target",
-              "value": "={{ $('Change Voice Configuration').item.json.target === 'The entire page' ? 'entire' : 'selected' }}",
+              "value": "={{ $('Change Voice Configuration').item.json.target === 'The entire page (starts converting right away)' ? 'entire' : 'selected' }}",
               "type": "string"
             },
             {
@@ -3239,7 +3239,7 @@
             {
               "id": "nts-0001",
               "leftValue": "={{ $json.target }}",
-              "rightValue": "Selected text",
+              "rightValue": "Selected text (continue to the next page to choose the exact words)",
               "operator": {
                 "type": "string",
                 "operation": "equals"
@@ -3267,13 +3267,13 @@
       },
       "id": "change-voice-text-selection",
       "name": "Change Voice Text Selection",
+      "webhookId": "1c19a416-256d-4cbe-a415-193dc905ef5b",
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
         528,
         80
-      ],
-      "webhookId": "1c19a416-256d-4cbe-a415-193dc905ef5b"
+      ]
     }
   ],
   "pinData": {},
@@ -4960,7 +4960,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "1cf9b238-c8a3-49db-a42c-3c5f63517006",
+  "versionId": "e5b41344-69ac-47f6-a1e0-34ef51422ca6",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "0d58a7a3f156139856be42466a14e05f00173514ac9794a8494b09c53ea173a0"
