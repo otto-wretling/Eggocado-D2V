@@ -1702,7 +1702,7 @@
     {
       "parameters": {
         "defineForm": "json",
-        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"Which page do you want to convert?\",\n    fieldName: \"pageSelection\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: (() => {\n        const allPages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n        const knitCovered = new Set(allPages.filter(p => p.knitPages).flatMap(p => p.knitPages.map(Number)));\n        const pages = allPages.filter(p => p.knitPages || !knitCovered.has(Number(p.pageIndex)));\n        return pages.map(p => {\n          const label = p.knitPages ? ('Pages ' + p.knitPages[0] + ' & ' + p.knitPages[1]) : ('Page ' + p.pageIndex);\n          return { option: label };\n        });\n      })()\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"In what voice?\",\n    fieldName: \"voice\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: $('Fetch Available Voices').item.json.voices.map(v => {\n        const langMap = { a: 'English (US)', b: 'English (UK)', e: 'Spanish', f: 'French', h: 'Hindi', i: 'Italian', j: 'Japanese', p: 'Portuguese (BR)', z: 'Chinese' };\n        const genderMap = { f: 'Female', m: 'Male' };\n        const lang = langMap[v.id[0]] || v.id[0];\n        const gender = genderMap[v.id[1]] || v.id[1];\n        const friendlyName = v.id.split('_')[1][0].toUpperCase() + v.id.split('_')[1].slice(1);\n        return { option: v.id + \" - \" + friendlyName + \" \" + gender + \" \" + lang };\n      })\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"Apply the voice to:\",\n    fieldName: \"target\",\n    fieldType: \"radio\",\n    fieldOptions: {\n      values: [\n        { option: \"The entire page\" },\n        { option: \"Selected text\" }\n      ]\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"If 'Selected text', what text should be read in that voice? (leave blank if 'The entire page')\",\n    fieldName: \"textToChange\",\n    fieldType: \"textarea\",\n    requiredField: false\n  }\n] }}",
+        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"Which page do you want to convert?\",\n    fieldName: \"pageSelection\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: (() => {\n        const allPages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n        const knitCovered = new Set(allPages.filter(p => p.knitPages).flatMap(p => p.knitPages.map(Number)));\n        const pages = allPages.filter(p => p.knitPages || !knitCovered.has(Number(p.pageIndex)));\n        return pages.map(p => {\n          const label = p.knitPages ? ('Pages ' + p.knitPages[0] + ' & ' + p.knitPages[1]) : ('Page ' + p.pageIndex);\n          return { option: label };\n        });\n      })()\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"In what voice?\",\n    fieldName: \"voice\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: $('Fetch Available Voices').item.json.voices.map(v => {\n        const langMap = { a: 'English (US)', b: 'English (UK)', e: 'Spanish', f: 'French', h: 'Hindi', i: 'Italian', j: 'Japanese', p: 'Portuguese (BR)', z: 'Chinese' };\n        const genderMap = { f: 'Female', m: 'Male' };\n        const lang = langMap[v.id[0]] || v.id[0];\n        const gender = genderMap[v.id[1]] || v.id[1];\n        const friendlyName = v.id.split('_')[1][0].toUpperCase() + v.id.split('_')[1].slice(1);\n        return { option: v.id + \" - \" + friendlyName + \" \" + gender + \" \" + lang };\n      })\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"Apply the voice to:\",\n    fieldName: \"target\",\n    fieldType: \"radio\",\n    fieldOptions: {\n      values: [\n        { option: \"The entire page\" },\n        { option: \"Selected text\" }\n      ]\n    },\n    requiredField: true\n  }\n] }}",
         "options": {}
       },
       "id": "99c165d5-b8a7-4517-902f-cd7439b3dd29",
@@ -1722,49 +1722,49 @@
             {
               "id": "4ffa83fb-8f9c-4e82-9d63-1ab36220bb26",
               "name": "pageNumber",
-              "value": "={{ Number($json.pageSelection.match(/\\d+/g)[0]) }}",
+              "value": "={{ Number($('Change Voice Configuration').item.json.pageSelection.match(/\\d+/g)[0]) }}",
               "type": "number"
             },
             {
               "id": "b1b2b3b4-0001-4ccc-9000-000000000001",
               "name": "rightPageNumber",
-              "value": "={{ (() => { const nums = $json.pageSelection.match(/\\d+/g); return nums.length > 1 ? Number(nums[1]) : null; })() }}",
+              "value": "={{ (() => { const nums = $('Change Voice Configuration').item.json.pageSelection.match(/\\d+/g); return nums.length > 1 ? Number(nums[1]) : null; })() }}",
               "type": "number"
             },
             {
               "id": "b1b2b3b4-0002-4ccc-9000-000000000002",
               "name": "isKnit",
-              "value": "={{ ($json.pageSelection.match(/\\d+/g) || []).length > 1 }}",
+              "value": "={{ ($('Change Voice Configuration').item.json.pageSelection.match(/\\d+/g) || []).length > 1 }}",
               "type": "boolean"
             },
             {
               "id": "94247326-a301-4604-959c-e6e87b60766b",
               "name": "voice",
-              "value": "={{ $json.voice.split(' - ')[0] }}",
+              "value": "={{ $('Change Voice Configuration').item.json.voice.split(' - ')[0] }}",
               "type": "string"
             },
             {
               "id": "b1b2b3b4-0003-4ccc-9000-000000000003",
               "name": "target",
-              "value": "={{ $json.target === 'The entire page' ? 'entire' : 'selected' }}",
+              "value": "={{ $('Change Voice Configuration').item.json.target === 'The entire page' ? 'entire' : 'selected' }}",
               "type": "string"
             },
             {
               "id": "016e2d5e-0f35-4687-81f9-bc5857ec46eb",
               "name": "textToChange",
-              "value": "={{ $json.textToChange || '' }}",
+              "value": "={{ $('Change Voice Text Selection').isExecuted ? $('Change Voice Text Selection').item.json.textToChange : '' }}",
               "type": "string"
             },
             {
               "id": "b1b2b3b4-0004-4ccc-9000-000000000004",
               "name": "fileBasename",
-              "value": "={{ (() => { const nums = $json.pageSelection.match(/\\d+/g); return nums.length > 1 ? (nums[0] + '-' + nums[1] + '_knit') : nums[0]; })() }}",
+              "value": "={{ (() => { const nums = $('Change Voice Configuration').item.json.pageSelection.match(/\\d+/g); return nums.length > 1 ? (nums[0] + '-' + nums[1] + '_knit') : nums[0]; })() }}",
               "type": "string"
             },
             {
               "id": "b1b2b3b4-0005-4ccc-9000-000000000005",
               "name": "pageLabel",
-              "value": "={{ $json.pageSelection }}",
+              "value": "={{ $('Change Voice Configuration').item.json.pageSelection }}",
               "type": "string"
             }
           ]
@@ -3225,6 +3225,55 @@
         -8432,
         -64
       ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "nts-0001",
+              "leftValue": "={{ $json.target }}",
+              "rightValue": "Selected text",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "needs-text-selection",
+      "name": "Needs Text Selection?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        304,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "defineForm": "json",
+        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"What text should be read in that voice?\",\n    fieldName: \"textToChange\",\n    fieldType: \"textarea\",\n    defaultValue: (() => {\n      const label = $('Change Voice Configuration').item.json.pageSelection;\n      const allPages = $('Aggregate All Timestamps').item.json.pages.map(p => p.data);\n      const match = allPages.find(p => {\n        const l = p.knitPages ? ('Pages ' + p.knitPages[0] + ' & ' + p.knitPages[1]) : ('Page ' + p.pageIndex);\n        return l === label;\n      });\n      return match ? match.wordMap.map(w => w.original).join(' ') : '';\n    })(),\n    requiredField: true\n  }\n] }}",
+        "options": {}
+      },
+      "id": "change-voice-text-selection",
+      "name": "Change Voice Text Selection",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        528,
+        80
+      ],
+      "webhookId": "1c19a416-256d-4cbe-a415-193dc905ef5b"
     }
   ],
   "pinData": {},
@@ -4120,17 +4169,6 @@
         ]
       ]
     },
-    "Change Voice Configuration": {
-      "main": [
-        [
-          {
-            "node": "Set Change-Voice Page Number",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Set Change-Voice Page Number": {
       "main": [
         [
@@ -4871,6 +4909,46 @@
           }
         ]
       ]
+    },
+    "Change Voice Configuration": {
+      "main": [
+        [
+          {
+            "node": "Needs Text Selection?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Needs Text Selection?": {
+      "main": [
+        [
+          {
+            "node": "Change Voice Text Selection",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set Change-Voice Page Number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Change Voice Text Selection": {
+      "main": [
+        [
+          {
+            "node": "Set Change-Voice Page Number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -4882,7 +4960,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "60bdc62e-66bd-4182-8949-6ea1651139bd",
+  "versionId": "1cf9b238-c8a3-49db-a42c-3c5f63517006",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "0d58a7a3f156139856be42466a14e05f00173514ac9794a8494b09c53ea173a0"
