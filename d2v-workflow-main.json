@@ -54,7 +54,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -7312,
+        -7088,
         2000
       ]
     },
@@ -67,7 +67,7 @@
       "type": "n8n-nodes-base.compression",
       "typeVersion": 1.1,
       "position": [
-        -7088,
+        -6864,
         2000
       ]
     },
@@ -81,7 +81,7 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        -6864,
+        -6640,
         2000
       ]
     },
@@ -97,7 +97,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -816,
+        -368,
         -288
       ]
     },
@@ -136,7 +136,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1872,
+        2320,
         -336
       ]
     },
@@ -148,7 +148,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "={{ (() => {\n    const isPage = $('Set Page Number').isExecuted;\n    const isChangeVoice = $('Set Change-Voice Page Number').isExecuted;\n    const isSample = $('Set Sample Voice Number').isExecuted;\n    const isNormalKnit = !isPage && !isChangeVoice && !isSample;\n    const isChangeVoiceKnit = isChangeVoice && $('Set Change-Voice Page Number').item.json.isKnit;\n    const isKnitRender = isNormalKnit || isChangeVoiceKnit;\n    const docPrefix = isSample ? '' : ($('Set Document Folder').item.json.docFolder + '/');\n    const left = isNormalKnit ? $('Page Knitting Configuration').item.json['⬅️ Left Page Number'] : null;\n    const right = isNormalKnit ? $('Page Knitting Configuration').item.json['Right Page Number ➡️'] : null;\n    const p = isNormalKnit\n      ? `${left}-${right}_knit`\n      : (isPage\n          ? $('Set Page Number').item.json.pageNumber\n          : (isChangeVoice\n              ? $('Set Change-Voice Page Number').item.json.fileBasename\n              : 'sample_' + $('Set Sample Voice Number').item.json.voiceId\n            )\n        );\n    const img = `temp/${docPrefix}${p}_image.png`;\n    const name = isSample ? $('Set Sample Voice Number').item.json.friendlyName : null;\n\n    const sampleImageCmds = isSample ? [\n      'REFW=1920',\n      'REFH=1080',\n      'FONTSIZE=$((REFH / 12))',\n      `NAME='${name}'`,\n      'NAMELEN=${#NAME}',\n      'CELLW=$(( (NAMELEN * FONTSIZE * 6 / 10) + FONTSIZE ))',\n      'CELLH=$(( FONTSIZE * 2 ))',\n      'COLS=$(( (REFW + CELLW - 1) / CELLW ))',\n      'ROWS=$(( (REFH + CELLH - 1) / CELLH ))',\n      'GRIDW=$((COLS * CELLW))',\n      'OFFSETX=$(( (REFW - GRIDW) / 2 ))',\n      'FILTERS=\"\"',\n      `for ((r=0; r<ROWS; r++)); do for ((c=0; c<COLS; c++)); do CELLX=$((OFFSETX + c*CELLW)); CELLY=$((r*CELLH)); FILTERS=\"\\${FILTERS}drawtext=text='\\${NAME}':fontcolor=black:fontsize=\\${FONTSIZE}:x=\\${CELLX}+(\\${CELLW}-text_w)/2:y=\\${CELLY}+(\\${CELLH}-text_h)/2,\"; done; done`,\n      'FILTERS=\"${FILTERS%,}\"',\n      `ffmpeg -y -f lavfi -i color=white:s=\\${REFW}x\\${REFH} -vf \"$FILTERS\" -frames:v 1 ${img}`\n    ] : [];\n\n    const ffmpegCmd = isKnitRender\n      ? `ffmpeg -y -loop 1 -t \"$DUR\" -i ${img} -i temp/${docPrefix}${p}_audio.wav -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/${docPrefix}${p}_clip.mp4`\n      : `ffmpeg -y -loop 1 -t \"$DUR\" -i ${img} -i temp/${docPrefix}${p}_audio.wav -filter_complex \"[0:v]split[bg_src][fg_src];[bg_src]scale=iw*2:trunc(ih/2)*2,boxblur=20:3[bg];[fg_src]scale=trunc(iw/2)*2:trunc(ih/2)*2[fg];[bg][fg]overlay=(main_w-overlay_w)/2:0[v]\" -map \"[v]\" -map 1:a -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/${docPrefix}${p}_clip.mp4`;\n\n    return [\n      'set -e',\n      `export PATH=${$('Populate Variables').item.json.ffmpegPath}:$PATH`,\n      ...sampleImageCmds,\n      `DUR=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 temp/${docPrefix}${p}_audio.wav)`,\n      `sed -i '' 's/\"audioDuration\":null/\"audioDuration\":'\"$DUR\"'/' temp/${docPrefix}${p}_timestamps.json`,\n      ffmpegCmd,\n      `(xattr -d com.apple.quarantine temp/${docPrefix}${p}_clip.mp4 2>/dev/null || true)`\n    ].join(' && ');\n  })() }}"
+              "value": "={{ (() => {\n    const isPage = $('Set Page Number').isExecuted;\n    const isChangeVoice = $('Set Change-Voice Page Number').isExecuted;\n    const isSample = $('Set Sample Voice Number').isExecuted;\n    const isNormalKnit = !isPage && !isChangeVoice && !isSample;\n    const isChangeVoiceKnit = isChangeVoice && $('Set Change-Voice Page Number').item.json.isKnit;\n    const isKnitRender = isNormalKnit || isChangeVoiceKnit;\n    const docPrefix = $('Set Doc Prefix').isExecuted ? $('Set Doc Prefix').item.json.docPrefix : (isSample ? ($('Populate Variables').item.json.sampleFolderName + '/') : ($('Set Document Folder').item.json.docFolder + '/'));\n    const left = isNormalKnit ? $('Page Knitting Configuration').item.json['⬅️ Left Page Number'] : null;\n    const right = isNormalKnit ? $('Page Knitting Configuration').item.json['Right Page Number ➡️'] : null;\n    const p = isNormalKnit\n      ? `${left}-${right}_knit`\n      : (isPage\n          ? $('Set Page Number').item.json.pageNumber\n          : (isChangeVoice\n              ? $('Set Change-Voice Page Number').item.json.fileBasename\n              : 'sample_' + $('Set Sample Voice Number').item.json.voiceId\n            )\n        );\n    const img = `temp/${docPrefix}${p}_image.png`;\n    const name = isSample ? $('Set Sample Voice Number').item.json.friendlyName : null;\n\n    const sampleImageCmds = isSample ? [\n      'REFW=1920',\n      'REFH=1080',\n      'FONTSIZE=$((REFH / 12))',\n      `NAME='${name}'`,\n      'NAMELEN=${#NAME}',\n      'CELLW=$(( (NAMELEN * FONTSIZE * 6 / 10) + FONTSIZE ))',\n      'CELLH=$(( FONTSIZE * 2 ))',\n      'COLS=$(( (REFW + CELLW - 1) / CELLW ))',\n      'ROWS=$(( (REFH + CELLH - 1) / CELLH ))',\n      'GRIDW=$((COLS * CELLW))',\n      'OFFSETX=$(( (REFW - GRIDW) / 2 ))',\n      'FILTERS=\"\"',\n      `for ((r=0; r<ROWS; r++)); do for ((c=0; c<COLS; c++)); do CELLX=$((OFFSETX + c*CELLW)); CELLY=$((r*CELLH)); FILTERS=\"\\${FILTERS}drawtext=text='\\${NAME}':fontcolor=black:fontsize=\\${FONTSIZE}:x=\\${CELLX}+(\\${CELLW}-text_w)/2:y=\\${CELLY}+(\\${CELLH}-text_h)/2,\"; done; done`,\n      'FILTERS=\"${FILTERS%,}\"',\n      `ffmpeg -y -f lavfi -i color=white:s=\\${REFW}x\\${REFH} -vf \"$FILTERS\" -frames:v 1 ${img}`\n    ] : [];\n\n    const ffmpegCmd = isKnitRender\n      ? `ffmpeg -y -loop 1 -t \"$DUR\" -i ${img} -i temp/${docPrefix}${p}_audio.wav -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/${docPrefix}${p}_clip.mp4`\n      : `ffmpeg -y -loop 1 -t \"$DUR\" -i ${img} -i temp/${docPrefix}${p}_audio.wav -filter_complex \"[0:v]split[bg_src][fg_src];[bg_src]scale=iw*2:trunc(ih/2)*2,boxblur=20:3[bg];[fg_src]scale=trunc(iw/2)*2:trunc(ih/2)*2[fg];[bg][fg]overlay=(main_w-overlay_w)/2:0[v]\" -map \"[v]\" -map 1:a -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/${docPrefix}${p}_clip.mp4`;\n\n    return [\n      'set -e',\n      `export PATH=${$('Populate Variables').item.json.ffmpegPath}:$PATH`,\n      ...sampleImageCmds,\n      `DUR=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 temp/${docPrefix}${p}_audio.wav)`,\n      `sed -i '' 's/\"audioDuration\":null/\"audioDuration\":'\"$DUR\"'/' temp/${docPrefix}${p}_timestamps.json`,\n      ffmpegCmd,\n      `(xattr -d com.apple.quarantine temp/${docPrefix}${p}_clip.mp4 2>/dev/null || true)`\n    ].join(' && ');\n  })() }}"
             }
           ]
         },
@@ -171,14 +171,14 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -1936,
+        -1488,
         -304
       ]
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Sample Voice Number').isExecuted ? '' : ($('Set Document Folder').item.json.docFolder + '/') }}{{\n  $('Set Page Number').isExecuted\n    ? ($('Set Page Number').item.json.pageNumber + '_audio.wav')\n    : ($('Set Change-Voice Page Number').isExecuted\n        ? ($('Set Change-Voice Page Number').item.json.fileBasename + '_audio.wav')\n        : ($('Set Sample Voice Number').isExecuted\n            ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_audio.wav')\n            : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_audio.wav')\n          )\n      )\n}}",
+        "fileName": "={{  $('Populate Variables').item.json.tempDir }}/{{  ($('Set Doc Prefix').isExecuted ? $('Set Doc Prefix').item.json.docPrefix : ($('Set Sample Voice Number').isExecuted ? ($('Populate Variables').item.json.sampleFolderName + '/') : ($('Set Document Folder').item.json.docFolder + '/'))) }}{{  $('Set Page Number').isExecuted ? ($('Set Page Number').item.json.pageNumber + '_audio.wav') : ($('Set Change-Voice Page Number').isExecuted ? ($('Set Change-Voice Page Number').item.json.fileBasename + '_audio.wav') : ($('Set Sample Voice Number').isExecuted ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_audio.wav') : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_audio.wav'))) }}",
         "options": {}
       },
       "id": "2d844c92-584d-498e-b943-70c9ce934f51",
@@ -186,7 +186,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -2384,
+        -1936,
         -400
       ]
     },
@@ -199,7 +199,7 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -1264,
+        -816,
         -288
       ]
     },
@@ -216,7 +216,7 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        2096,
+        2544,
         -336
       ]
     },
@@ -231,7 +231,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        2320,
+        2768,
         -336
       ]
     },
@@ -245,7 +245,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        2544,
+        2992,
         -96
       ]
     },
@@ -262,7 +262,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        2768,
+        3216,
         -64
       ]
     },
@@ -279,7 +279,7 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -4400,
+        -4176,
         -304
       ]
     },
@@ -291,7 +291,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "={{ (() => {\n    const basename = $('Determine Output Basename').item.json.outputBasename;\n    const clipGlob = $('Determine Output Basename').item.json.tempClipGlob;\n    const chaptersFile = $('Determine Output Basename').item.json.chaptersFile;\n    const simple = $('Determine Output Basename').item.json.useSimpleConcat;\n    const docPrefix = simple ? '' : ($('Set Document Folder').item.json.docFolder + '/');\n    const tempDir = $('Populate Variables').item.json.tempDirRelative;\n    const outputDir = $('Populate Variables').item.json.outputDirRelative;\n\n    const sortedVoiceIds = $('Aggregate All Timestamps').item.json.pages\n      .map(x => x.data)\n      .filter(d => d.voiceId)\n      .sort((a, b) => (a.voiceId < b.voiceId ? -1 : (a.voiceId > b.voiceId ? 1 : 0)))\n      .map(d => d.voiceId);\n\n    const concatListCheck = `[ -s ${tempDir}/${docPrefix}${basename}_concat_list.txt ] || { echo \"ERROR: concat list ${tempDir}/${docPrefix}${basename}_concat_list.txt is empty, no clips matched\" >&2; exit 1; }`;\n\n    const simpleCmds = [\n      `mkdir -p ${outputDir}`,\n      `: > ${tempDir}/${docPrefix}${basename}_concat_list.txt`,\n      ...sortedVoiceIds.map(id => `echo \"file '$PWD/${tempDir}/sample_${id}_clip.mp4'\" >> ${tempDir}/${docPrefix}${basename}_concat_list.txt`),\n      concatListCheck,\n      `ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy ${outputDir}/${docPrefix}${basename}.mp4`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    const complexCmds = [\n      `mkdir -p ${outputDir}/${docPrefix}`,\n      `find ${tempDir}/${docPrefix} -maxdepth 1 -name \"${clipGlob}\" | sort -V | while read f; do b=$(basename \"$f\" _clip.mp4); case \"$b\" in *_knit) echo \"file '$PWD/$f'\";; *) ls \"${tempDir}/${docPrefix}\\${b}-\"*\"_knit_clip.mp4\" 2>/dev/null | grep -q . || ls \"${tempDir}/${docPrefix}\"*\"-\\${b}_knit_clip.mp4\" 2>/dev/null | grep -q . || echo \"file '$PWD/$f'\";; esac; done > ${tempDir}/${docPrefix}${basename}_concat_list.txt`,\n      concatListCheck,\n      'MAX_W=0',\n      `for f in ${tempDir}/${docPrefix}*_knit_clip.mp4; do [ -f \"$f\" ] || break; W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$f\" | head -1); if [ \"$W\" -gt \"$MAX_W\" ]; then MAX_W=$W; fi; done`,\n      `SINGLE=$(find ${tempDir}/${docPrefix} -maxdepth 1 -name \"${clipGlob}\" ! -name \"*_knit_clip.mp4\" | sort -V | head -1)`,\n      'if [ -n \"$SINGLE\" ]; then CLIP_W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$SINGLE\" | head -1); PAGE_W=$((CLIP_W/2)); if [ \"$PAGE_W\" -gt \"$MAX_W\" ]; then MAX_W=$PAGE_W; fi; else CLIP_W=$MAX_W; fi',\n      'TARGET_W=$MAX_W',\n      `if [ \"$CLIP_W\" -eq \"$TARGET_W\" ]; then ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy ${outputDir}/${docPrefix}${basename}.mp4; elif [ \"$CLIP_W\" -gt \"$TARGET_W\" ]; then X=$(( (CLIP_W - TARGET_W) / 2 )) && ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"crop=\\${TARGET_W}:ih:\\${X}:0\" -c:v libx264 -preset ultrafast -c:a copy -pix_fmt yuv420p ${outputDir}/${docPrefix}${basename}.mp4; else OX=$(( (TARGET_W - CLIP_W) / 2 )) && ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"split[bg][fg];[bg]scale=\\${TARGET_W}:ih,boxblur=20:3[bg_b];[fg][bg_b]overlay=\\${OX}:0\" -c:v libx264 -preset ultrafast -c:a copy -pix_fmt yuv420p ${outputDir}/${docPrefix}${basename}.mp4; fi`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    return ['set -e', `export PATH=${$('Populate Variables').item.json.ffmpegPath}:$PATH`, ...(simple ? simpleCmds : complexCmds)].join(' && ');\n  })() }}"
+              "value": "={{ (() => {\n    const basename = $('Determine Output Basename').item.json.outputBasename;\n    const clipGlob = $('Determine Output Basename').item.json.tempClipGlob;\n    const chaptersFile = $('Determine Output Basename').item.json.chaptersFile;\n    const simple = $('Determine Output Basename').item.json.useSimpleConcat;\n    const docPrefix = simple ? 'sample/' : ($('Set Document Folder').item.json.docFolder + '/');\n    const tempDir = $('Populate Variables').item.json.tempDirRelative;\n    const outputDir = $('Populate Variables').item.json.outputDirRelative;\n\n    const sortedVoiceIds = $('Aggregate All Timestamps').item.json.pages\n      .map(x => x.data)\n      .filter(d => d.voiceId)\n      .sort((a, b) => (a.voiceId < b.voiceId ? -1 : (a.voiceId > b.voiceId ? 1 : 0)))\n      .map(d => d.voiceId);\n\n    const concatListCheck = `[ -s ${tempDir}/${docPrefix}${basename}_concat_list.txt ] || { echo \"ERROR: concat list ${tempDir}/${docPrefix}${basename}_concat_list.txt is empty, no clips matched\" >&2; exit 1; }`;\n\n    const simpleCmds = [\n      `mkdir -p ${outputDir}`,\n      `: > ${tempDir}/${docPrefix}${basename}_concat_list.txt`,\n      ...sortedVoiceIds.map(id => `echo \"file '$PWD/${tempDir}/${docPrefix}sample_${id}_clip.mp4'\" >> ${tempDir}/${docPrefix}${basename}_concat_list.txt`),\n      concatListCheck,\n      `ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy ${outputDir}/${docPrefix}${basename}.mp4`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    const complexCmds = [\n      `mkdir -p ${outputDir}/${docPrefix}`,\n      `find ${tempDir}/${docPrefix} -maxdepth 1 -name \"${clipGlob}\" | sort -V | while read f; do b=$(basename \"$f\" _clip.mp4); case \"$b\" in *_knit) echo \"file '$PWD/$f'\";; *) ls \"${tempDir}/${docPrefix}\\${b}-\"*\"_knit_clip.mp4\" 2>/dev/null | grep -q . || ls \"${tempDir}/${docPrefix}\"*\"-\\${b}_knit_clip.mp4\" 2>/dev/null | grep -q . || echo \"file '$PWD/$f'\";; esac; done > ${tempDir}/${docPrefix}${basename}_concat_list.txt`,\n      concatListCheck,\n      'MAX_W=0',\n      `for f in ${tempDir}/${docPrefix}*_knit_clip.mp4; do [ -f \"$f\" ] || break; W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$f\" | head -1); if [ \"$W\" -gt \"$MAX_W\" ]; then MAX_W=$W; fi; done`,\n      `SINGLE=$(find ${tempDir}/${docPrefix} -maxdepth 1 -name \"${clipGlob}\" ! -name \"*_knit_clip.mp4\" | sort -V | head -1)`,\n      'if [ -n \"$SINGLE\" ]; then CLIP_W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$SINGLE\" | head -1); PAGE_W=$((CLIP_W/2)); if [ \"$PAGE_W\" -gt \"$MAX_W\" ]; then MAX_W=$PAGE_W; fi; else CLIP_W=$MAX_W; fi',\n      'TARGET_W=$MAX_W',\n      `if [ \"$CLIP_W\" -eq \"$TARGET_W\" ]; then ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy ${outputDir}/${docPrefix}${basename}.mp4; elif [ \"$CLIP_W\" -gt \"$TARGET_W\" ]; then X=$(( (CLIP_W - TARGET_W) / 2 )) && ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"crop=\\${TARGET_W}:ih:\\${X}:0\" -c:v libx264 -preset ultrafast -c:a copy -pix_fmt yuv420p ${outputDir}/${docPrefix}${basename}.mp4; else OX=$(( (TARGET_W - CLIP_W) / 2 )) && ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"split[bg][fg];[bg]scale=\\${TARGET_W}:ih,boxblur=20:3[bg_b];[fg][bg_b]overlay=\\${OX}:0\" -c:v libx264 -preset ultrafast -c:a copy -pix_fmt yuv420p ${outputDir}/${docPrefix}${basename}.mp4; fi`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    return ['set -e', `export PATH=${$('Populate Variables').item.json.ffmpegPath}:$PATH`, ...(simple ? simpleCmds : complexCmds)].join(' && ');\n  })() }}"
             }
           ]
         },
@@ -309,7 +309,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -7312,
+        -7088,
         1296
       ]
     },
@@ -325,7 +325,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        1648,
+        2096,
         -336
       ]
     },
@@ -341,7 +341,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7760,
+        -7536,
         2176
       ]
     },
@@ -355,7 +355,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7536,
+        -7312,
         2000
       ]
     },
@@ -380,7 +380,7 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -9328,
+        -9104,
         2192
       ]
     },
@@ -394,7 +394,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7984,
+        -7760,
         1936
       ],
       "onError": "continueRegularOutput"
@@ -428,7 +428,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -7760,
+        -7536,
         1936
       ]
     },
@@ -444,7 +444,7 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -7536,
+        -7312,
         2256
       ]
     },
@@ -458,7 +458,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        976,
+        1424,
         112
       ],
       "onError": "continueRegularOutput"
@@ -493,7 +493,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        1200,
+        1648,
         112
       ]
     },
@@ -507,7 +507,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        80,
+        528,
         48
       ],
       "onError": "continueRegularOutput"
@@ -542,7 +542,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        304,
+        752,
         48
       ]
     },
@@ -556,7 +556,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -368,
+        80,
         -224
       ],
       "onError": "continueRegularOutput"
@@ -591,7 +591,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -144,
+        304,
         -224
       ]
     },
@@ -605,14 +605,14 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        1424,
+        1872,
         -336
       ]
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Sample Voice Number').isExecuted ? '' : ($('Set Document Folder').item.json.docFolder + '/') }}{{\n  $('Set Page Number').isExecuted\n    ? ($('Set Page Number').item.json.pageNumber + '_transcription_normalized.txt')\n    : ($('Set Sample Voice Number').isExecuted\n        ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_transcription_normalized.txt')\n        : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_transcription_normalized.txt')\n      )\n}}",
+        "fileName": "={{  $('Populate Variables').item.json.tempDir }}/{{  $('Set Doc Prefix').item.json.docPrefix }}{{  $('Set Page Number').isExecuted ? ($('Set Page Number').item.json.pageNumber + '_transcription_normalized.txt') : ($('Set Sample Voice Number').isExecuted ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_transcription_normalized.txt') : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_transcription_normalized.txt')) }}",
         "options": {}
       },
       "id": "9ac766e8-fef2-462f-9834-d27e5d4dc1a2",
@@ -620,13 +620,13 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -4176,
+        -3728,
         -304
       ]
     },
     {
       "parameters": {
-        "fileSelector": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Sample Voice Number').isExecuted ? '' : ($('Set Document Folder').item.json.docFolder + '/') }}{{\n  $('Set Page Number').isExecuted\n    ? ($('Set Page Number').item.json.pageNumber + '_transcription_normalized.txt')\n    : ($('Set Change-Voice Page Number').isExecuted\n        ? ($('Set Change-Voice Page Number').item.json.fileBasename + '_transcription_normalized.txt')\n        : ($('Set Sample Voice Number').isExecuted\n            ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_transcription_normalized.txt')\n            : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_transcription_normalized.txt')\n          )\n      )\n}}",
+        "fileSelector": "={{  $('Populate Variables').item.json.tempDir }}/{{  ($('Set Doc Prefix').isExecuted ? $('Set Doc Prefix').item.json.docPrefix : ($('Set Sample Voice Number').isExecuted ? ($('Populate Variables').item.json.sampleFolderName + '/') : ($('Set Document Folder').item.json.docFolder + '/'))) }}{{  $('Set Page Number').isExecuted ? ($('Set Page Number').item.json.pageNumber + '_transcription_normalized.txt') : ($('Set Change-Voice Page Number').isExecuted ? ($('Set Change-Voice Page Number').item.json.fileBasename + '_transcription_normalized.txt') : ($('Set Sample Voice Number').isExecuted ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_transcription_normalized.txt') : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_transcription_normalized.txt'))) }}",
         "options": {}
       },
       "id": "8210fbd1-1dbf-4cfd-a548-596c1e917ba0",
@@ -634,7 +634,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -3952,
+        -3504,
         -304
       ]
     },
@@ -649,7 +649,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -3728,
+        -3280,
         -304
       ]
     },
@@ -679,7 +679,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -4848,
+        -4624,
         96
       ]
     },
@@ -713,7 +713,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -592,
+        -144,
         -288
       ]
     },
@@ -743,7 +743,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -3504,
+        -3056,
         -304
       ]
     },
@@ -779,7 +779,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -2832,
+        -2384,
         304
       ]
     },
@@ -796,14 +796,14 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -2608,
+        -2160,
         304
       ]
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Sample Voice Number').isExecuted ? '' : ($('Set Document Folder').item.json.docFolder + '/') }}{{\n  $('Set Page Number').isExecuted\n    ? ($('Set Page Number').item.json.pageNumber + '_timestamps.json')\n    : ($('Set Change-Voice Page Number').isExecuted\n        ? ($('Set Change-Voice Page Number').item.json.fileBasename + '_timestamps.json')\n        : ($('Set Sample Voice Number').isExecuted\n            ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_timestamps.json')\n            : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_timestamps.json')\n          )\n      )\n}}",
+        "fileName": "={{  $('Populate Variables').item.json.tempDir }}/{{  ($('Set Doc Prefix').isExecuted ? $('Set Doc Prefix').item.json.docPrefix : ($('Set Sample Voice Number').isExecuted ? ($('Populate Variables').item.json.sampleFolderName + '/') : ($('Set Document Folder').item.json.docFolder + '/'))) }}{{  $('Set Page Number').isExecuted ? ($('Set Page Number').item.json.pageNumber + '_timestamps.json') : ($('Set Change-Voice Page Number').isExecuted ? ($('Set Change-Voice Page Number').item.json.fileBasename + '_timestamps.json') : ($('Set Sample Voice Number').isExecuted ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_timestamps.json') : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_timestamps.json'))) }}",
         "options": {}
       },
       "id": "0a861c0e-859b-4849-a6e6-efc437699497",
@@ -811,7 +811,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -2384,
+        -1936,
         304
       ]
     },
@@ -828,13 +828,13 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -2608,
+        -2160,
         -400
       ]
     },
     {
       "parameters": {
-        "fileSelector": "={{ $('Determine Output Basename').isExecuted\n  ? ($('Populate Variables').item.json.tempDir + '/' + ($('Set Sample Voice Number').isExecuted ? '' : ($('Set Document Folder').item.json.docFolder + '/')) + $('Determine Output Basename').item.json.tempTimestampGlob)\n  : ($('Populate Variables').item.json.tempDir + '/' + $('Set Document Folder').item.json.docFolder + '/{0,1,2,3,4,5,6,7,8,9}*_timestamps.json')\n}}",
+        "fileSelector": "={{  $('Determine Output Basename').isExecuted ? ($('Populate Variables').item.json.tempDir + '/' + ($('Set Sample Voice Number').isExecuted ? ($('Populate Variables').item.json.sampleFolderName + '/') : ($('Set Document Folder').item.json.docFolder + '/')) + $('Determine Output Basename').item.json.tempTimestampGlob) : ($('Populate Variables').item.json.tempDir + '/' + $('Set Document Folder').item.json.docFolder + '/{0,1,2,3,4,5,6,7,8,9}*_timestamps.json') }}",
         "options": {}
       },
       "id": "cd86ac56-a3d9-47eb-bd4a-9bf0648db288",
@@ -842,7 +842,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -10224,
+        -10000,
         1440
       ],
       "onError": "continueRegularOutput"
@@ -858,7 +858,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -9776,
+        -9552,
         944
       ]
     },
@@ -881,7 +881,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -9552,
+        -9328,
         944
       ]
     },
@@ -896,7 +896,7 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        -9328,
+        -9104,
         944
       ]
     },
@@ -925,7 +925,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -8432,
+        -8208,
         1296
       ]
     },
@@ -942,7 +942,7 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -7984,
+        -7760,
         1200
       ]
     },
@@ -959,14 +959,14 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -7984,
+        -7760,
         1392
       ]
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Sample Voice Number').isExecuted ? '' : ($('Set Document Folder').item.json.docFolder + '/') }}{{ $('Determine Output Basename').item.json.chaptersFile }}",
+        "fileName": "={{  $('Populate Variables').item.json.tempDir }}/{{  ($('Set Sample Voice Number').isExecuted ? ($('Populate Variables').item.json.sampleFolderName + '/') : ($('Set Document Folder').item.json.docFolder + '/')) }}{{  $('Determine Output Basename').item.json.chaptersFile }}",
         "options": {}
       },
       "id": "5932d857-856b-4307-a922-eae4f4a9b499",
@@ -974,7 +974,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7760,
+        -7536,
         1392
       ]
     },
@@ -988,7 +988,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        528,
+        976,
         192
       ],
       "onError": "continueRegularOutput"
@@ -1023,7 +1023,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        752,
+        1200,
         256
       ]
     },
@@ -1038,7 +1038,7 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -2160,
+        -1712,
         -304
       ]
     },
@@ -1053,7 +1053,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7760,
+        -7536,
         1200
       ]
     },
@@ -1068,7 +1068,7 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -7536,
+        -7312,
         1296
       ]
     },
@@ -1083,7 +1083,7 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        -1040,
+        -592,
         -480
       ]
     },
@@ -1106,7 +1106,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -8208,
+        -7984,
         1200
       ]
     },
@@ -1129,7 +1129,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        80,
+        528,
         -144
       ]
     },
@@ -1158,7 +1158,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -4624,
+        -4400,
         -400
       ]
     },
@@ -1175,14 +1175,14 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -4400,
+        -4176,
         -496
       ]
     },
     {
       "parameters": {
         "operation": "write",
-        "fileName": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Sample Voice Number').isExecuted ? '' : ($('Set Document Folder').item.json.docFolder + '/') }}{{\n  $('Set Page Number').isExecuted\n    ? ($('Set Page Number').item.json.pageNumber + '_wordmap.json')\n    : ($('Set Sample Voice Number').isExecuted\n        ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_wordmap.json')\n        : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_wordmap.json')\n      )\n}}",
+        "fileName": "={{  $('Populate Variables').item.json.tempDir }}/{{  ($('Set Sample Voice Number').isExecuted ? ($('Populate Variables').item.json.sampleFolderName + '/') : ($('Set Document Folder').item.json.docFolder + '/')) }}{{  $('Set Page Number').isExecuted ? ($('Set Page Number').item.json.pageNumber + '_wordmap.json') : ($('Set Sample Voice Number').isExecuted ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_wordmap.json') : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_wordmap.json')) }}",
         "options": {}
       },
       "id": "d8a9e5a9-de94-46a6-8eec-0ade0f39b774",
@@ -1190,13 +1190,13 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -4176,
+        -3952,
         -496
       ]
     },
     {
       "parameters": {
-        "fileSelector": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Sample Voice Number').isExecuted ? '' : ($('Set Document Folder').item.json.docFolder + '/') }}{{\n  $('Set Page Number').isExecuted\n    ? ($('Set Page Number').item.json.pageNumber + '_wordmap.json')\n    : ($('Set Change-Voice Page Number').isExecuted\n        ? ($('Set Change-Voice Page Number').item.json.fileBasename + '_wordmap.json')\n        : ($('Set Sample Voice Number').isExecuted\n            ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_wordmap.json')\n            : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_wordmap.json')\n          )\n      )\n}}",
+        "fileSelector": "={{  $('Populate Variables').item.json.tempDir }}/{{  ($('Set Doc Prefix').isExecuted ? $('Set Doc Prefix').item.json.docPrefix : ($('Set Sample Voice Number').isExecuted ? ($('Populate Variables').item.json.sampleFolderName + '/') : ($('Set Document Folder').item.json.docFolder + '/'))) }}{{  $('Set Page Number').isExecuted ? ($('Set Page Number').item.json.pageNumber + '_wordmap.json') : ($('Set Change-Voice Page Number').isExecuted ? ($('Set Change-Voice Page Number').item.json.fileBasename + '_wordmap.json') : ($('Set Sample Voice Number').isExecuted ? ('sample_' + $('Set Sample Voice Number').item.json.voiceId + '_wordmap.json') : ($('Page Knitting Configuration').item.json['⬅️ Left Page Number'] + '-' + $('Page Knitting Configuration').item.json['Right Page Number ➡️'] + '_knit_wordmap.json'))) }}",
         "options": {}
       },
       "id": "d5a067ce-d69a-40a0-a872-b631a2f5fbf7",
@@ -1204,7 +1204,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -3280,
+        -2832,
         304
       ]
     },
@@ -1219,7 +1219,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -3056,
+        -2608,
         304
       ]
     },
@@ -1243,7 +1243,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1040,
+        -592,
         -288
       ]
     },
@@ -1257,7 +1257,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7536,
+        -7312,
         528
       ]
     },
@@ -1274,7 +1274,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -7312,
+        -7088,
         528
       ]
     },
@@ -1288,7 +1288,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7088,
+        -6864,
         528
       ]
     },
@@ -1305,7 +1305,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -6864,
+        -6640,
         528
       ]
     },
@@ -1319,7 +1319,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -6640,
+        -6416,
         528
       ]
     },
@@ -1335,7 +1335,7 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -8432,
+        -8208,
         96
       ]
     },
@@ -1358,7 +1358,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -8208,
+        -7984,
         96
       ]
     },
@@ -1374,7 +1374,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -6416,
+        -6192,
         528
       ]
     },
@@ -1394,7 +1394,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -6192,
+        -5968,
         528
       ]
     },
@@ -1411,7 +1411,7 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -5968,
+        -5744,
         528
       ]
     },
@@ -1426,7 +1426,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -5744,
+        -5520,
         528
       ]
     },
@@ -1440,7 +1440,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7984,
+        -7760,
         96
       ],
       "onError": "continueRegularOutput"
@@ -1475,7 +1475,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -7760,
+        -7536,
         96
       ]
     },
@@ -1489,7 +1489,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -5520,
+        -5296,
         96
       ]
     },
@@ -1504,7 +1504,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -5296,
+        -5072,
         96
       ]
     },
@@ -1540,7 +1540,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -5072,
+        -4848,
         96
       ]
     },
@@ -1695,7 +1695,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.5,
       "position": [
-        -10672,
+        -10448,
         2352
       ]
     },
@@ -1711,7 +1711,7 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -8656,
+        -8432,
         912
       ]
     },
@@ -1776,7 +1776,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -7984,
+        -7760,
         912
       ]
     },
@@ -1790,7 +1790,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7760,
+        -7536,
         912
       ],
       "onError": "continueRegularOutput"
@@ -1824,7 +1824,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -7536,
+        -7312,
         912
       ]
     },
@@ -1839,7 +1839,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -7312,
+        -7088,
         816
       ]
     },
@@ -1858,7 +1858,7 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -7312,
+        -7088,
         1008
       ]
     },
@@ -1881,7 +1881,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -7088,
+        -6864,
         816
       ]
     },
@@ -1915,7 +1915,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -6864,
+        -6640,
         816
       ]
     },
@@ -1931,7 +1931,7 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -6640,
+        -6416,
         1104
       ]
     },
@@ -1946,7 +1946,7 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -6640,
+        -6416,
         720
       ]
     },
@@ -1961,7 +1961,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -6416,
+        -6192,
         720
       ]
     },
@@ -2098,7 +2098,7 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -10448,
+        -10224,
         2128
       ]
     },
@@ -2112,7 +2112,7 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        -1488,
+        -1040,
         2688
       ]
     },
@@ -2125,7 +2125,7 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -1264,
+        -816,
         144
       ]
     },
@@ -2167,7 +2167,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -1040,
+        -592,
         192
       ]
     },
@@ -2200,7 +2200,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1488,
+        -1040,
         -464
       ]
     },
@@ -2248,7 +2248,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -816,
+        -368,
         -560
       ]
     },
@@ -2282,7 +2282,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1712,
+        -1264,
         -384
       ]
     },
@@ -2305,7 +2305,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -1488,
+        -1040,
         144
       ]
     },
@@ -2321,7 +2321,7 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -10224,
+        -10000,
         2192
       ]
     },
@@ -2344,7 +2344,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -10000,
+        -9776,
         2192
       ]
     },
@@ -2361,7 +2361,7 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -9776,
+        -9552,
         2192
       ]
     },
@@ -2376,7 +2376,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -9552,
+        -9328,
         2192
       ]
     },
@@ -2522,6 +2522,12 @@
               "name": "modeSample",
               "value": "🔊 Create Sample Video",
               "type": "string"
+            },
+            {
+              "id": "528f101d-5bd3-4fc7-a471-50b01222e17e",
+              "name": "sampleFolderName",
+              "value": "sample",
+              "type": "string"
             }
           ]
         },
@@ -2562,7 +2568,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -9104,
+        -8880,
         2112
       ]
     },
@@ -2579,7 +2585,7 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -7536,
+        -7312,
         2496
       ]
     },
@@ -2603,7 +2609,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -7760,
+        -7536,
         2368
       ]
     },
@@ -2618,7 +2624,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7312,
+        -7088,
         2496
       ]
     },
@@ -2632,7 +2638,7 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -10000,
+        -9776,
         3056
       ],
       "onError": "continueRegularOutput"
@@ -2648,7 +2654,7 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -9776,
+        -9552,
         2976
       ],
       "onError": "continueRegularOutput"
@@ -2672,7 +2678,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -9552,
+        -9328,
         2976
       ]
     },
@@ -2687,7 +2693,7 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        -9328,
+        -9104,
         2976
       ]
     },
@@ -2720,7 +2726,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -9104,
+        -8880,
         2976
       ]
     },
@@ -2739,7 +2745,7 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -8880,
+        -8656,
         3152
       ]
     },
@@ -2755,7 +2761,7 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -8880,
+        -8656,
         2928
       ]
     },
@@ -2784,7 +2790,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -8656,
+        -8432,
         2928
       ]
     },
@@ -2814,7 +2820,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -8432,
+        -8208,
         2112
       ]
     },
@@ -2903,7 +2909,7 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -8208,
+        -7984,
         1920
       ]
     },
@@ -2937,7 +2943,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -9104,
+        -8880,
         944
       ]
     },
@@ -2996,7 +3002,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -8880,
+        -8656,
         2368
       ]
     },
@@ -3011,7 +3017,7 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -8656,
+        -8432,
         2112
       ]
     },
@@ -3036,7 +3042,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -8880,
+        -8656,
         1392
       ]
     },
@@ -3051,7 +3057,7 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -8656,
+        -8432,
         1296
       ]
     },
@@ -3085,7 +3091,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -7984,
+        -7760,
         2272
       ]
     },
@@ -3118,7 +3124,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -8880,
+        -8656,
         512
       ]
     },
@@ -3151,7 +3157,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -10000,
+        -9776,
         1136
       ]
     },
@@ -3170,7 +3176,7 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -9776,
+        -9552,
         1360
       ]
     },
@@ -3203,7 +3209,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -8656,
+        -8432,
         96
       ]
     },
@@ -3222,7 +3228,7 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -8432,
+        -8208,
         -96
       ]
     },
@@ -3255,7 +3261,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -8432,
+        -8208,
         912
       ]
     },
@@ -3271,8 +3277,58 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -8208,
+        -7984,
         720
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{  $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/clip",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "command",
+              "value": "={{  'mkdir -p ' + $('Populate Variables').item.json.tempDirRelative + '/' + $('Populate Variables').item.json.sampleFolderName }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 3600000
+        }
+      },
+      "id": "996a93e7-6dd0-469c-8ecb-d0cd23bf7ddf",
+      "name": "Ensure Sample Folder Exists",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -10672,
+        3248
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6fde7f9b-8f98-48d5-88b8-505c79ba80ae",
+              "name": "docPrefix",
+              "value": "={{  $('Set Sample Voice Number').isExecuted ? ($('Populate Variables').item.json.sampleFolderName + '/') : ($('Set Document Folder').item.json.docFolder + '/') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "5ff896cf-3123-4e77-8278-b2755807fa97",
+      "name": "Set Doc Prefix",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -3952,
+        -304
       ]
     }
   ],
@@ -3410,7 +3466,7 @@
       "main": [
         [
           {
-            "node": "Create Normalized Temporary Text File on Disk",
+            "node": "Set Doc Prefix",
             "type": "main",
             "index": 0
           }
@@ -4275,7 +4331,7 @@
       "main": [
         [
           {
-            "node": "Fetch Available Voices",
+            "node": "Ensure Sample Folder Exists",
             "type": "main",
             "index": 0
           }
@@ -4949,6 +5005,28 @@
           }
         ]
       ]
+    },
+    "Ensure Sample Folder Exists": {
+      "main": [
+        [
+          {
+            "node": "Fetch Available Voices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Doc Prefix": {
+      "main": [
+        [
+          {
+            "node": "Create Normalized Temporary Text File on Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -4960,7 +5038,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "eba96c02-4d39-4166-906c-177ae8b5f364",
+  "versionId": "333ff3ef-6481-42d9-9d55-f269f0d961d4",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "0d58a7a3f156139856be42466a14e05f00173514ac9794a8494b09c53ea173a0"
