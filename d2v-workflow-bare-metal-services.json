@@ -24,11 +24,12 @@
       "type": "n8n-nodes-base.executeCommand",
       "typeVersion": 1,
       "position": [
-        432,
+        448,
         0
       ],
       "id": "0455176c-4890-4429-afb3-b2a7fa38b26a",
-      "name": "Run ffmpeg Command"
+      "name": "Run ffmpeg Command",
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -90,13 +91,15 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({\n  status: $json.exitCode === 0 ? \"ok\" : \"error\",\n  exitCode: $json.exitCode,\n  durationSeconds: Math.round(($now.toMillis() - $('Start Timer').item.json.startedAt) / 1000),\n  stdout: $json.stdout,\n  stderr: $json.stderr\n}) }}",
-        "options": {}
+        "responseBody": "={{ JSON.stringify({\n  status: $json.exitCode === 0 ? \"ok\" : \"error\",\n  exitCode: $json.exitCode ?? null,\n  durationSeconds: Math.round(($now.toMillis() - $('Start Timer').item.json.startedAt) / 1000),\n  stdout: $json.stdout ?? null,\n  stderr: $json.stderr ?? $json.error ?? null\n}) }}",
+        "options": {
+          "responseCode": "={{ $json.exitCode === 0 ? 200 : 500 }}"
+        }
       },
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        656,
+        672,
         0
       ],
       "id": "0b25ca93-f35e-41db-962f-83deeabd76ff",
@@ -120,7 +123,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        208,
+        224,
         0
       ],
       "id": "9cc614b8-bb59-4a8c-994f-605cc6d03bcd",
@@ -273,7 +276,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "4d245029-022b-4090-be2d-70d6db09956a",
+  "versionId": "2fb6482f-6886-4e2c-816e-92bebbbbaf44",
   "meta": {
     "instanceId": "ed1f09f33a1c588a9b788156ad40bc434be9b1b6114805fd77608f02e470ebf4"
   },
