@@ -3,3 +3,4 @@
 /output
 .env.mcp
 .env.mcp.baremetal
+.mcp.json
