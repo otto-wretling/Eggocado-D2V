@@ -109,6 +109,7 @@ curl -X GET http://localhost:5679/webhook/clip -d '{"command":"echo test"}'
 
 # With the secret — should return 200
 curl -X GET http://localhost:5679/webhook/clip \
+  -H "Content-Type: application/json" \
   -H "X-Webhook-Secret: <your secret value>" \
   -d '{"command":"echo test"}'
 ```
