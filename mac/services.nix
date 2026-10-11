@@ -9,7 +9,7 @@
       KeepAlive = true;
       StandardOutPath = "/tmp/n8n.log";
       StandardErrorPath = "/tmp/n8n.err";
-      WorkingDirectory = "/Users/USERNAME/Documents/GitHub/D2V";
+      WorkingDirectory = "/Users/USERNAME/Documents/GitHub/Eggocado-D2V";
       EnvironmentVariables = {
         HOME = "/Users/USERNAME";
         N8N_USER_FOLDER = "/Users/USERNAME/.n8n";
