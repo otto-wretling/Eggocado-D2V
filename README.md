@@ -63,9 +63,9 @@ See [INSTALL.md](INSTALL.md) for all installation requirements, including the on
 Eggocado D2V orchestrates these tools, run locally — none of their code is bundled, so none of these licenses constrain this project's own, but each deserves the credit:
 
 - [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI) and the Kokoro TTS model (Apache 2.0)
-- [NVIDIA NeMo](https://github.com/NVIDIA/NeMo-text-processing) text normalization (Apache 2.0)
+- [NVIDIA NeMo text processing](https://github.com/NVIDIA/NeMo-text-processing) for normalization (Apache 2.0)
 - [Ollama](https://ollama.com) (MIT) running whichever vision model you configure — the default config uses Google's [Gemma](https://ai.google.dev/gemma/terms), but any Ollama-compatible vision model works
-- [Stirling PDF](https://github.com/Stirling-Tools/Stirling-PDF) for PDF-to-image conversion
+- [Stirling PDF](https://github.com/Stirling-Tools/Stirling-PDF) for PDF-to-image conversion (MIT for the self-hosted core this project uses; some other parts of that project are separately licensed)
 - [ffmpeg](https://ffmpeg.org) for video assembly
 - [n8n](https://n8n.io) for workflow orchestration (n8n itself runs under its own [Sustainable Use License](https://github.com/n8n-io/n8n/blob/master/LICENSE.md), not included in this project's license)
 
