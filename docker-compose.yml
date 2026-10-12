@@ -30,3 +30,4 @@ services:
 
 volumes:
   n8n_data:
+    name: d2v_n8n_data
