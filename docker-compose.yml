@@ -1,6 +1,6 @@
 services:
   n8n:
-    image: n8nio/n8n:latest
+    image: n8nio/n8n:2.41.7
     container_name: n8n
     ports:
       - "5678:5678"
@@ -21,7 +21,7 @@ services:
     restart: unless-stopped
 
   stirling-pdf:
-    image: stirlingtools/stirling-pdf:latest
+    image: stirlingtools/stirling-pdf:2.14.3
     container_name: stirling-pdf
     ports:
       - "8080:8080"
