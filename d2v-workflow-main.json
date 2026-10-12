@@ -5374,7 +5374,8 @@
     "timeSavedMode": "fixed",
     "timezone": "Europe/Stockholm",
     "callerPolicy": "workflowsFromSameOwner",
-    "availableInMCP": false
+    "availableInMCP": false,
+    "saveExecutionProgress": true
   },
   "versionId": "849aeb6c-16b7-4809-832c-30d8e76ee743",
   "meta": {
