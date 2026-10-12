@@ -54,8 +54,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -7088,
-        2000
+        -6864,
+        32
       ]
     },
     {
@@ -67,8 +67,8 @@
       "type": "n8n-nodes-base.compression",
       "typeVersion": 1.1,
       "position": [
-        -6864,
-        2000
+        -6640,
+        32
       ]
     },
     {
@@ -81,8 +81,8 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        -6640,
-        2000
+        -6416,
+        32
       ]
     },
     {
@@ -97,14 +97,16 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -368,
-        -288
+        -5744,
+        -96
       ]
     },
     {
       "parameters": {
         "method": "POST",
         "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/prompt",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -136,13 +138,21 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        2320,
-        -336
-      ]
+        -3056,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "8KqonhngaL2L1jox",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
     },
     {
       "parameters": {
         "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/clip",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "bodyParameters": {
           "parameters": [
@@ -171,9 +181,15 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -1488,
-        -304
-      ]
+        1200,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "8KqonhngaL2L1jox",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
     },
     {
       "parameters": {
@@ -186,8 +202,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -1936,
-        -400
+        208,
+        128
       ]
     },
     {
@@ -199,8 +215,8 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        -816,
-        -288
+        -6192,
+        -96
       ]
     },
     {
@@ -216,8 +232,8 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        2544,
-        -336
+        -2832,
+        0
       ]
     },
     {
@@ -231,8 +247,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        2768,
-        -336
+        -2608,
+        0
       ]
     },
     {
@@ -245,8 +261,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        2992,
-        -96
+        -2384,
+        0
       ]
     },
     {
@@ -262,8 +278,8 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        3216,
-        -64
+        -2160,
+        0
       ]
     },
     {
@@ -275,17 +291,19 @@
         }
       },
       "id": "837a24a3-e583-4fbe-8e1a-5b17ae35e099",
-      "name": "Convert Updated Transcription to Text File",
+      "name": "Convert Normalized Transcription to Text File",
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -4176,
-        -304
+        -1344,
+        288
       ]
     },
     {
       "parameters": {
         "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/clip",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "bodyParameters": {
           "parameters": [
@@ -309,9 +327,15 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -7088,
-        1296
-      ]
+        2784,
+        352
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "8KqonhngaL2L1jox",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
     },
     {
       "parameters": {
@@ -321,12 +345,12 @@
         "options": {}
       },
       "id": "62fe1db6-505c-43ba-a902-0dcf670139d1",
-      "name": "Extract from File",
+      "name": "Extract Image to Base64",
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        2096,
-        -336
+        -3280,
+        0
       ]
     },
     {
@@ -341,8 +365,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7536,
-        2176
+        -10864,
+        704
       ]
     },
     {
@@ -355,8 +379,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7312,
-        2000
+        -7088,
+        -96
       ]
     },
     {
@@ -380,8 +404,8 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -9104,
-        2192
+        -12208,
+        544
       ]
     },
     {
@@ -394,8 +418,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7760,
-        1936
+        -7488,
+        -80
       ],
       "onError": "continueRegularOutput"
     },
@@ -428,8 +452,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -7536,
-        1936
+        -7312,
+        -80
       ]
     },
     {
@@ -444,8 +468,8 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -7312,
-        2256
+        -7088,
+        96
       ]
     },
     {
@@ -458,8 +482,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        1424,
-        112
+        -3936,
+        192
       ],
       "onError": "continueRegularOutput"
     },
@@ -493,8 +517,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        1648,
-        112
+        -3728,
+        0
       ]
     },
     {
@@ -507,8 +531,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        528,
-        48
+        -4848,
+        16
       ],
       "onError": "continueRegularOutput"
     },
@@ -542,8 +566,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        752,
-        48
+        -4624,
+        16
       ]
     },
     {
@@ -556,8 +580,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        80,
-        -224
+        -5296,
+        -80
       ],
       "onError": "continueRegularOutput"
     },
@@ -591,8 +615,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        304,
-        -224
+        -5072,
+        -80
       ]
     },
     {
@@ -605,8 +629,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        1872,
-        -336
+        -3488,
+        192
       ]
     },
     {
@@ -620,8 +644,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -3728,
-        -304
+        -896,
+        128
       ]
     },
     {
@@ -634,8 +658,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -3504,
-        -304
+        -816,
+        0
       ]
     },
     {
@@ -649,8 +673,8 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -3280,
-        -304
+        -592,
+        0
       ]
     },
     {
@@ -679,8 +703,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -4624,
-        96
+        -1792,
+        128
       ]
     },
     {
@@ -709,18 +733,20 @@
         "options": {}
       },
       "id": "16df4896-36f0-4c2b-a9eb-0e2b142a5529",
-      "name": "New Mode Selected 2",
+      "name": "Is New Conversion Mode?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -144,
-        -288
+        -5520,
+        -96
       ]
     },
     {
       "parameters": {
         "method": "POST",
         "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/tts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({\n    path: \"/dev/captioned_speech\",\n    body: {\n      model: \"kokoro\",\n      voice: $('Set Sample Voice Number').isExecuted\n        ? $('Set Sample Voice Number').item.json.voiceId\n        : ($('Set Knit Page Number').isExecuted\n            ? $('Set Knit Page Number').item.json.voice\n            : ($('Set Default Voice').isExecuted\n                ? $('Set Default Voice').item.json.voice\n                : ((Object.keys($('Read Default Voice').item.binary || {}).length > 0)\n                    ? $('Extract Default Voice').item.json.text.trim()\n                    : $('Populate Variables').item.json.defaultFallbackVoice)\n              )\n          ),\n      lang_code: \"a\",\n      input: JSON.parse($json.text).text,\n      response_format: \"wav\",\n      return_timestamps: true,\n      stream: false,\n      allow_voice_tags: true\n    }\n  }) }}",
@@ -743,9 +769,15 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -3056,
-        -304
-      ]
+        -240,
+        128
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "8KqonhngaL2L1jox",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
     },
     {
       "parameters": {
@@ -779,8 +811,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -2384,
-        304
+        432,
+        128
       ]
     },
     {
@@ -796,8 +828,8 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -2160,
-        304
+        656,
+        128
       ]
     },
     {
@@ -811,8 +843,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -1936,
-        304
+        880,
+        128
       ]
     },
     {
@@ -828,8 +860,8 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -2160,
-        -400
+        -16,
+        128
       ]
     },
     {
@@ -842,8 +874,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -10000,
-        1440
+        -8096,
+        800
       ],
       "onError": "continueRegularOutput"
     },
@@ -858,8 +890,8 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -9552,
-        944
+        -7648,
+        800
       ]
     },
     {
@@ -881,8 +913,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -9328,
-        944
+        -7424,
+        800
       ]
     },
     {
@@ -896,8 +928,8 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        -9104,
-        944
+        -7200,
+        800
       ]
     },
     {
@@ -925,8 +957,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -8208,
-        1296
+        1664,
+        352
       ]
     },
     {
@@ -942,8 +974,8 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -7760,
-        1200
+        2112,
+        192
       ]
     },
     {
@@ -959,8 +991,8 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -7760,
-        1392
+        1888,
+        352
       ]
     },
     {
@@ -974,8 +1006,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7536,
-        1392
+        2112,
+        352
       ]
     },
     {
@@ -988,8 +1020,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        976,
-        192
+        -4400,
+        0
       ],
       "onError": "continueRegularOutput"
     },
@@ -1023,8 +1055,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        1200,
-        256
+        -4176,
+        0
       ]
     },
     {
@@ -1034,12 +1066,12 @@
         "options": {}
       },
       "id": "0a85c2c1-4ed6-4fd9-9e1f-a2b9ea0b8eae",
-      "name": "Merge",
+      "name": "Merge Audio File & Timestamps",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -1712,
-        -304
+        1104,
+        128
       ]
     },
     {
@@ -1053,8 +1085,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7536,
-        1200
+        2336,
+        192
       ]
     },
     {
@@ -1064,12 +1096,12 @@
         "options": {}
       },
       "id": "46c88e05-2bfd-4c0b-9ec8-dc9c841fc635",
-      "name": "Merge1",
+      "name": "Merge Subtitles & Chapters",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -7312,
-        1296
+        2560,
+        192
       ]
     },
     {
@@ -1083,8 +1115,8 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        -592,
-        -480
+        -8544,
+        800
       ]
     },
     {
@@ -1102,12 +1134,12 @@
         "options": {}
       },
       "id": "ec91e12f-1e66-46df-8ed2-f77195e93742",
-      "name": "Generate final subtitles",
+      "name": "Generate Final Subtitles",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -7984,
-        1200
+        1888,
+        192
       ]
     },
     {
@@ -1129,8 +1161,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        528,
-        -144
+        -4848,
+        -192
       ]
     },
     {
@@ -1158,8 +1190,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -4400,
-        -400
+        -1568,
+        128
       ]
     },
     {
@@ -1175,8 +1207,8 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -4176,
-        -496
+        -1344,
+        128
       ]
     },
     {
@@ -1190,8 +1222,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -3952,
-        -496
+        -1120,
+        128
       ]
     },
     {
@@ -1204,8 +1236,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -2832,
-        304
+        -16,
+        288
       ]
     },
     {
@@ -1219,8 +1251,8 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -2608,
-        304
+        208,
+        288
       ]
     },
     {
@@ -1243,8 +1275,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -592,
-        -288
+        -5968,
+        -96
       ]
     },
     {
@@ -1257,8 +1289,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7312,
-        528
+        -11312,
+        1312
       ]
     },
     {
@@ -1274,8 +1306,8 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -7088,
-        528
+        -11088,
+        1312
       ]
     },
     {
@@ -1288,8 +1320,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -6864,
-        528
+        -10864,
+        1312
       ]
     },
     {
@@ -1305,8 +1337,8 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -6640,
-        528
+        -10640,
+        1312
       ]
     },
     {
@@ -1319,8 +1351,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -6416,
-        528
+        -10416,
+        1312
       ]
     },
     {
@@ -1335,13 +1367,15 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -8208,
-        96
+        -12208,
+        1472
       ]
     },
     {
       "parameters": {
         "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/clip",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "bodyParameters": {
           "parameters": [
@@ -1358,9 +1392,15 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -7984,
-        96
-      ]
+        -11984,
+        1312
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "8KqonhngaL2L1jox",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
     },
     {
       "parameters": {
@@ -1374,14 +1414,16 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -6192,
-        528
+        -10192,
+        1312
       ]
     },
     {
       "parameters": {
         "method": "POST",
         "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/prompt",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({\n    model: $('Populate Variables').item.json.ollamaModel,\n    imageBase64: $json.imageBase64,\n    prompt: [\n      \"You are given two consecutive page transcriptions from a document and a combined image showing both pages side by side. Merge them into one transcription following these rules:\",\n      \"1. Assume all transcribed text is completely correct. Do not change, correct, or paraphrase any words.\",\n      \"2. Reorder the text if necessary so it reads naturally across the full double-page spread, left to right, top to bottom, as a reader would experience it.\",\n      \"3. Always place image descriptions at the end of the transcription, including where on the spread the image appears, for example: 'The image in the top left displays...'. Descriptions of charts, graphs, tables, and other visual data should remain where they appear in the reading order.\",\n      \"4. Only rewrite descriptions of images, charts, graphs, or tables that clearly span both pages and can be better described when seen as a whole.\",\n      \"5. If data values on one page lack labels because the legend or column headers appear on the other page, use those labels to identify all unlabeled values across both pages.\",\n      \"6. Preserve all numbers, names, dates, abbreviations, and symbols exactly as written.\",\n      \"7. Return only the merged transcription as plain text, nothing else.\",\n      \"Left page:\",\n      $('Extract Left Page Transcription from File').item.json.text,\n      \"Right page:\",\n      $('Extract Right Page Transcription from File').item.json.text\n    ].join(\"\\n\")\n  }) }}",
@@ -1394,9 +1436,15 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -5968,
-        528
-      ]
+        -9968,
+        1312
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "8KqonhngaL2L1jox",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
     },
     {
       "parameters": {
@@ -1411,8 +1459,8 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -5744,
-        528
+        -9744,
+        1312
       ]
     },
     {
@@ -1426,8 +1474,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -5520,
-        528
+        -9520,
+        1312
       ]
     },
     {
@@ -1440,8 +1488,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7760,
-        96
+        -11760,
+        1312
       ],
       "onError": "continueRegularOutput"
     },
@@ -1475,8 +1523,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -7536,
-        96
+        -11536,
+        1312
       ]
     },
     {
@@ -1489,8 +1537,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -5296,
-        96
+        -9296,
+        1312
       ]
     },
     {
@@ -1504,8 +1552,8 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -5072,
-        96
+        -9072,
+        1312
       ]
     },
     {
@@ -1540,8 +1588,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -4848,
-        96
+        -8848,
+        1312
       ]
     },
     {
@@ -1681,8 +1729,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -11120,
-        3008
+        -10896,
+        96
       ]
     },
     {
@@ -1695,274 +1743,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.5,
       "position": [
-        -10448,
-        2352
-      ]
-    },
-    {
-      "parameters": {
-        "defineForm": "json",
-        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"Which page do you want to convert?\",\n    fieldName: \"pageSelection\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: (() => {\n        const allPages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n        const knitCovered = new Set(allPages.filter(p => p.knitPages).flatMap(p => p.knitPages.map(Number)));\n        const pages = allPages.filter(p => p.knitPages || !knitCovered.has(Number(p.pageIndex)));\n        return pages.map(p => {\n          const label = p.knitPages ? ('Pages ' + p.knitPages[0] + ' & ' + p.knitPages[1]) : ('Page ' + p.pageIndex);\n          return { option: label };\n        });\n      })()\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"In what voice?\",\n    fieldName: \"voice\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: $('Fetch Available Voices').item.json.voices.map(v => {\n        const langMap = { a: 'English (US)', b: 'English (UK)', e: 'Spanish', f: 'French', h: 'Hindi', i: 'Italian', j: 'Japanese', p: 'Portuguese (BR)', z: 'Chinese' };\n        const genderMap = { f: 'Female', m: 'Male' };\n        const lang = langMap[v.id[0]] || v.id[0];\n        const gender = genderMap[v.id[1]] || v.id[1];\n        const friendlyName = v.id.split('_')[1][0].toUpperCase() + v.id.split('_')[1].slice(1);\n        return { option: v.id + \" - \" + friendlyName + \" \" + gender + \" \" + lang };\n      })\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"Apply the voice to:\",\n    fieldName: \"target\",\n    fieldType: \"radio\",\n    fieldOptions: {\n      values: [\n        { option: \"The entire page (starts converting right away)\" },\n        { option: \"Selected text (continue to the next page to choose the exact words)\" }\n      ]\n    },\n    requiredField: true\n  }\n] }}",
-        "options": {}
-      },
-      "id": "99c165d5-b8a7-4517-902f-cd7439b3dd29",
-      "name": "Change Voice Configuration",
-      "webhookId": "4b275d02-b3b2-42f6-a019-5cfbab8d8b0d",
-      "type": "n8n-nodes-base.form",
-      "typeVersion": 2.5,
-      "position": [
-        -8432,
-        912
-      ]
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "4ffa83fb-8f9c-4e82-9d63-1ab36220bb26",
-              "name": "pageNumber",
-              "value": "={{ Number($('Change Voice Configuration').item.json.pageSelection.match(/\\d+/g)[0]) }}",
-              "type": "number"
-            },
-            {
-              "id": "b1b2b3b4-0001-4ccc-9000-000000000001",
-              "name": "rightPageNumber",
-              "value": "={{ (() => { const nums = $('Change Voice Configuration').item.json.pageSelection.match(/\\d+/g); return nums.length > 1 ? Number(nums[1]) : null; })() }}",
-              "type": "number"
-            },
-            {
-              "id": "b1b2b3b4-0002-4ccc-9000-000000000002",
-              "name": "isKnit",
-              "value": "={{ ($('Change Voice Configuration').item.json.pageSelection.match(/\\d+/g) || []).length > 1 }}",
-              "type": "boolean"
-            },
-            {
-              "id": "94247326-a301-4604-959c-e6e87b60766b",
-              "name": "voice",
-              "value": "={{ $('Change Voice Configuration').item.json.voice.split(' - ')[0] }}",
-              "type": "string"
-            },
-            {
-              "id": "b1b2b3b4-0003-4ccc-9000-000000000003",
-              "name": "target",
-              "value": "={{ $('Change Voice Configuration').item.json.target === 'The entire page (starts converting right away)' ? 'entire' : 'selected' }}",
-              "type": "string"
-            },
-            {
-              "id": "016e2d5e-0f35-4687-81f9-bc5857ec46eb",
-              "name": "textToChange",
-              "value": "={{ $('Change Voice Text Selection').isExecuted ? $('Change Voice Text Selection').item.json.textToChange : '' }}",
-              "type": "string"
-            },
-            {
-              "id": "b1b2b3b4-0004-4ccc-9000-000000000004",
-              "name": "fileBasename",
-              "value": "={{ (() => { const nums = $('Change Voice Configuration').item.json.pageSelection.match(/\\d+/g); return nums.length > 1 ? (nums[0] + '-' + nums[1] + '_knit') : nums[0]; })() }}",
-              "type": "string"
-            },
-            {
-              "id": "b1b2b3b4-0005-4ccc-9000-000000000005",
-              "name": "pageLabel",
-              "value": "={{ $('Change Voice Configuration').item.json.pageSelection }}",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "850f9621-bd56-4994-b7d7-90d3bf23d247",
-      "name": "Set Change-Voice Page Number",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.5,
-      "position": [
-        -7760,
-        912
-      ]
-    },
-    {
-      "parameters": {
-        "fileSelector": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/{{ $('Set Change-Voice Page Number').item.json.fileBasename }}_transcription_normalized.txt",
-        "options": {}
-      },
-      "id": "9d9aca69-8e80-4906-8d86-5046bd5aefb4",
-      "name": "Read Normalized Transcript for Voice Change",
-      "type": "n8n-nodes-base.readWriteFile",
-      "typeVersion": 1.1,
-      "position": [
-        -7536,
-        912
-      ],
-      "onError": "continueRegularOutput"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "c367ca33-bcb2-4810-b255-92f15c65eae3",
-              "leftValue": "={{ (!!$binary && Object.keys($binary).length > 0).toString() }}",
-              "rightValue": "true",
-              "operator": {
-                "type": "string",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "0e5e49fb-3cbc-4315-b6dd-9e2803541f16",
-      "name": "Change Voice Page File Exists?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -7312,
-        912
-      ]
-    },
-    {
-      "parameters": {
-        "operation": "text",
-        "destinationKey": "text",
-        "options": {}
-      },
-      "id": "0ae68c95-1176-4986-a91b-7fbcb3d05568",
-      "name": "Extract Normalized Transcript for Voice Change",
-      "type": "n8n-nodes-base.extractFromFile",
-      "typeVersion": 1.1,
-      "position": [
-        -7088,
-        816
-      ]
-    },
-    {
-      "parameters": {
-        "formFields": {
-          "values": []
-        },
-        "options": {
-          "formDescription": "={{ $('Set Change-Voice Page Number').item.json.pageLabel + \" has no processed transcript yet, please click Submit below to try again.\" }}"
-        }
-      },
-      "id": "79b32d7f-bf84-4983-909d-cb8224832a75",
-      "name": "Error Message [\"Page Not Found\"]",
-      "webhookId": "dbba5561-3c7e-4e48-81f2-78bde770d831",
-      "type": "n8n-nodes-base.form",
-      "typeVersion": 2.5,
-      "position": [
-        -7088,
-        1008
-      ]
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "30fb269e-c925-43c7-bc91-d9e48894a533",
-              "name": "result",
-              "value": "={{\n(() => {\n  const parsed = JSON.parse($json.text);\n  const wordMap = parsed.wordMap;\n  const existingSpans = parsed.voiceSpans || [];\n  const voice = $('Set Change-Voice Page Number').item.json.voice;\n  const target = $('Set Change-Voice Page Number').item.json.target;\n  const defaultVoice = $('Set Default Voice').isExecuted\n    ? $('Set Default Voice').item.json.voice\n    : ((Object.keys($('Read Default Voice').item.binary || {}).length > 0)\n        ? $('Extract Default Voice').item.json.text.trim()\n        : $('Populate Variables').item.json.defaultFallbackVoice);\n\n  let newStart, newEnd;\n  if (target === 'entire') {\n    newStart = 0;\n    newEnd = wordMap.length - 1;\n  } else {\n    const words = $('Set Change-Voice Page Number').item.json.textToChange\n      .replace(/\\|/g, ',')\n      .replace(/ > /g, ', ')\n      .replace(/[–—]/g, ' ')\n      .trim().split(/\\s+/).filter(w => w);\n    if (words.length === 0) return JSON.stringify({ found: false });\n\n    let matchStart = -1;\n    for (let i = 0; i <= wordMap.length - words.length; i++) {\n      let ok = true;\n      for (let k = 0; k < words.length; k++) {\n        if (wordMap[i + k].original.toLowerCase() !== words[k].toLowerCase()) { ok = false; break; }\n      }\n      if (ok) { matchStart = i; break; }\n    }\n    if (matchStart === -1) return JSON.stringify({ found: false });\n    newStart = matchStart;\n    newEnd = matchStart + words.length - 1;\n  }\n\n  const survivingSpans = existingSpans.filter(s => s.end < newStart || s.start > newEnd);\n  const allSpans = [...survivingSpans, { start: newStart, end: newEnd, voice }].sort((a, b) => a.start - b.start);\n\n  const parts = [];\n  let cursor = 0;\n  for (const span of allSpans) {\n    if (span.start > cursor) {\n      parts.push(wordMap.slice(cursor, span.start).map(w => w.normalized).join(' '));\n    }\n    parts.push(`[voice:${span.voice}] ${wordMap.slice(span.start, span.end + 1).map(w => w.normalized).join(' ')} [voice:${defaultVoice}]`);\n    cursor = span.end + 1;\n  }\n  if (cursor < wordMap.length) {\n    parts.push(wordMap.slice(cursor).map(w => w.normalized).join(' '));\n  }\n  const wrapped = parts.filter(Boolean).join(' ');\n\n  return JSON.stringify({ found: true, text: wrapped, wordMap: wordMap, voiceSpans: allSpans });\n})()\n}}",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "619d1030-244b-4c00-9b06-2570bb3b5574",
-      "name": "Find and Wrap Voice Span",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.5,
-      "position": [
-        -6864,
-        816
-      ]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "dd5cfd64-f954-4f26-9293-9f872ee1e179",
-              "leftValue": "={{ JSON.parse($json.result).found }}",
-              "rightValue": "",
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "809f180c-1e16-4bfe-b124-281ade989273",
-      "name": "Voice Span Exists?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -6640,
-        816
-      ]
-    },
-    {
-      "parameters": {
-        "options": {
-          "formDescription": "={{ ($('Set Change-Voice Page Number').item.json.target === 'entire' ? \"No text was found to change (the page appears to be empty)\" : (\"The text \\\"\" + $('Set Change-Voice Page Number').item.json.textToChange + \"\\\" wasn't found on \" + $('Set Change-Voice Page Number').item.json.pageLabel.replace(/^Page/, 'page').replace(/^Pages/, 'pages'))) + \". Please try again.\" }}"
-        }
-      },
-      "id": "17d1ccf2-ae40-42d3-9549-1806742f5441",
-      "name": "Error Message [\"Text Not Found\"]",
-      "webhookId": "88d38d05-7bb2-4e1e-843b-fb007276b3d8",
-      "type": "n8n-nodes-base.form",
-      "typeVersion": 2.5,
-      "position": [
-        -6416,
-        1104
-      ]
-    },
-    {
-      "parameters": {
-        "operation": "toText",
-        "sourceProperty": "result",
-        "options": {}
-      },
-      "id": "9fc25031-8f53-43ae-b458-fd9b4ac81879",
-      "name": "Convert Voice Span Result to File",
-      "type": "n8n-nodes-base.convertToFile",
-      "typeVersion": 1.1,
-      "position": [
-        -6416,
-        720
-      ]
-    },
-    {
-      "parameters": {
-        "operation": "write",
-        "fileName": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/{{ $('Set Change-Voice Page Number').item.json.fileBasename }}_transcription_normalized.txt",
-        "options": {}
-      },
-      "id": "10b90bd0-238c-4530-bf06-f6dcad15de52",
-      "name": "Save Updated Transcript for Voice Change",
-      "type": "n8n-nodes-base.readWriteFile",
-      "typeVersion": 1.1,
-      "position": [
-        -6192,
-        720
+        -9696,
+        560
       ]
     },
     {
@@ -1984,8 +1766,8 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -10896,
-        3248
+        -10144,
+        720
       ]
     },
     {
@@ -2098,8 +1880,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -10224,
-        2128
+        -9472,
+        560
       ]
     },
     {
@@ -2112,63 +1894,8 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        -1040,
-        2688
-      ]
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "id": "2b801e96-ae7c-4913-85b1-3f31f6514168",
-      "name": "Process Voices One by One",
-      "type": "n8n-nodes-base.splitInBatches",
-      "typeVersion": 3,
-      "position": [
-        -816,
-        144
-      ]
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "13583d3c-2020-4dce-9f08-773766d0f065",
-              "name": "voiceId",
-              "value": "={{ $json.id }}",
-              "type": "string"
-            },
-            {
-              "id": "9651fbb3-db8c-4021-ad09-50b415d9aa8c",
-              "name": "friendlyName",
-              "value": "={{ $json.id.split('_')[1][0].toUpperCase() + $json.id.split('_')[1].slice(1) }}",
-              "type": "string"
-            },
-            {
-              "id": "6ad12437-104a-4061-a88c-c80bcfc46e60",
-              "name": "text",
-              "value": "={{ $('Sample Video Configuration').item.json[\"What phrase should each voice say? Use {voice} where the voice's name should go.\"].replace('{voice}', $json.id.split('_')[1][0].toUpperCase() + $json.id.split('_')[1].slice(1)) }}",
-              "type": "string"
-            },
-            {
-              "id": "3f9e9ed6-0eec-43d1-8d5e-10f14624d29e",
-              "name": "voiceIndex",
-              "value": "={{ $node[\"Process Voices One by One\"].context.currentRunIndex + 1 }}",
-              "type": "string"
-            }
-          ]
-        },
-        "includeOtherFields": true,
-        "options": {}
-      },
-      "id": "c6360b25-203d-42aa-bb86-2512835944f5",
-      "name": "Set Sample Voice Number",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.5,
-      "position": [
-        -592,
-        192
+        -9232,
+        608
       ]
     },
     {
@@ -2200,8 +1927,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -1040,
-        -464
+        -8992,
+        800
       ]
     },
     {
@@ -2248,65 +1975,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        -368,
-        -560
-      ]
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "b2c3d4e5-0001-4bbb-9000-000000000001",
-              "leftValue": "={{ $('Set Sample Voice Number').isExecuted }}",
-              "rightValue": "",
-              "operator": {
-                "type": "boolean",
-                "operation": "true",
-                "singleValue": true
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "id": "324d22cd-95fb-418f-9533-46976ac94449",
-      "name": "Route Sample Loop Back",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -1264,
-        -384
-      ]
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "a1b2c3d4-e5f6-4789-a012-b3c4d5e6f7a8",
-              "name": "voiceProcessed",
-              "value": "={{ true }}",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "3b7788c8-70ca-486c-8cba-992057a4cf67",
-      "name": "Strip Binary Before Next Sample Iteration",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -1040,
-        144
+        -8320,
+        800
       ]
     },
     {
@@ -2321,8 +1991,8 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -10000,
-        2192
+        -8944,
+        672
       ]
     },
     {
@@ -2344,8 +2014,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -9776,
-        2192
+        -8720,
+        672
       ]
     },
     {
@@ -2361,8 +2031,8 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -9552,
-        2192
+        -8496,
+        672
       ]
     },
     {
@@ -2376,8 +2046,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -9328,
-        2192
+        -8272,
+        672
       ]
     },
     {
@@ -2390,8 +2060,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -11568,
-        3056
+        -11344,
+        96
       ],
       "onError": "continueRegularOutput"
     },
@@ -2406,8 +2076,8 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -11344,
-        3056
+        -11120,
+        96
       ],
       "onError": "continueRegularOutput"
     },
@@ -2539,7 +2209,7 @@
       "typeVersion": 3.5,
       "position": [
         -12016,
-        3392
+        -32
       ]
     },
     {
@@ -2568,8 +2238,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -8880,
-        2112
+        -11984,
+        544
       ]
     },
     {
@@ -2585,8 +2255,8 @@
       "type": "n8n-nodes-base.convertToFile",
       "typeVersion": 1.1,
       "position": [
-        -7312,
-        2496
+        -10640,
+        704
       ]
     },
     {
@@ -2609,8 +2279,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -7536,
-        2368
+        -10864,
+        864
       ]
     },
     {
@@ -2624,8 +2294,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -7088,
-        2496
+        -10416,
+        864
       ]
     },
     {
@@ -2638,8 +2308,8 @@
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -9776,
-        3056
+        -10608,
+        -32
       ],
       "onError": "continueRegularOutput"
     },
@@ -2654,8 +2324,8 @@
       "type": "n8n-nodes-base.extractFromFile",
       "typeVersion": 1.1,
       "position": [
-        -9552,
-        2976
+        -10352,
+        96
       ],
       "onError": "continueRegularOutput"
     },
@@ -2678,8 +2348,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -9328,
-        2976
+        -10128,
+        256
       ]
     },
     {
@@ -2693,8 +2363,8 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        -9104,
-        2976
+        -9904,
+        256
       ]
     },
     {
@@ -2726,8 +2396,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -8880,
-        2976
+        -9776,
+        -32
       ]
     },
     {
@@ -2745,8 +2415,8 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -8656,
-        3152
+        -9552,
+        272
       ]
     },
     {
@@ -2761,8 +2431,8 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -8656,
-        2928
+        -9552,
+        -48
       ]
     },
     {
@@ -2790,8 +2460,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -8432,
-        2928
+        -9280,
+        -48
       ]
     },
     {
@@ -2820,8 +2490,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -8208,
-        2112
+        -7984,
+        -48
       ]
     },
     {
@@ -2909,8 +2579,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        -7984,
-        1920
+        -7760,
+        -64
       ]
     },
     {
@@ -2943,8 +2613,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -8880,
-        944
+        -6976,
+        800
       ]
     },
     {
@@ -2962,7 +2632,7 @@
       "typeVersion": 2.5,
       "position": [
         -12240,
-        3392
+        -32
       ]
     },
     {
@@ -2977,13 +2647,15 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -11792,
-        3392
+        -11568,
+        -32
       ]
     },
     {
       "parameters": {
         "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/clip",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "bodyParameters": {
           "parameters": [
@@ -3002,9 +2674,15 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -8656,
-        2368
-      ]
+        -11760,
+        544
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "8KqonhngaL2L1jox",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
     },
     {
       "parameters": {
@@ -3013,17 +2691,19 @@
         "options": {}
       },
       "id": "e161ebff-c5b7-48bc-a459-a8fb956e2961",
-      "name": "Merge2",
+      "name": "Merge After Ensuring Document Folder",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -8432,
-        2112
+        -11536,
+        544
       ]
     },
     {
       "parameters": {
         "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/clip",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "bodyParameters": {
           "parameters": [
@@ -3042,9 +2722,15 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        -8656,
-        1392
-      ]
+        -6752,
+        960
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "8KqonhngaL2L1jox",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
     },
     {
       "parameters": {
@@ -3053,12 +2739,12 @@
         "options": {}
       },
       "id": "bff2eaf1-720a-4eec-b80e-0b01e35c56b4",
-      "name": "Merge3",
+      "name": "Merge After Ensuring Output Folder",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        -8432,
-        1296
+        -6528,
+        1120
       ]
     },
     {
@@ -3091,8 +2777,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -7760,
-        2272
+        -11088,
+        704
       ]
     },
     {
@@ -3124,8 +2810,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -8656,
-        512
+        -6752,
+        800
       ]
     },
     {
@@ -3157,8 +2843,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -9776,
-        1136
+        -7872,
+        800
       ]
     },
     {
@@ -3176,8 +2862,8 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -9552,
-        1360
+        -7648,
+        960
       ]
     },
     {
@@ -3209,8 +2895,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -8432,
-        96
+        -6528,
+        800
       ]
     },
     {
@@ -3228,8 +2914,401 @@
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -8208,
-        -96
+        -6304,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{  $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/clip",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "command",
+              "value": "={{  'mkdir -p ' + $('Populate Variables').item.json.tempDirRelative + '/' + $('Populate Variables').item.json.sampleFolderName }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 3600000
+        }
+      },
+      "id": "996a93e7-6dd0-469c-8ecb-d0cd23bf7ddf",
+      "name": "Ensure Sample Folder Exists",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -9920,
+        720
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "8KqonhngaL2L1jox",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6fde7f9b-8f98-48d5-88b8-505c79ba80ae",
+              "name": "docPrefix",
+              "value": "={{  $('Set Sample Voice Number').isExecuted ? ($('Populate Variables').item.json.sampleFolderName + '/') : ($('Set Document Folder').item.json.docFolder + '/') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "5ff896cf-3123-4e77-8278-b2755807fa97",
+      "name": "Set Doc Prefix",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -1120,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/clip",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "command",
+              "value": "={{ 'mkdir -p ' + $('Populate Variables').item.json.tempDirRelative + ' ' + $('Populate Variables').item.json.outputDirRelative }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 3600000
+        }
+      },
+      "id": "adb9200a-90c2-48bd-be89-a10d920b10a8",
+      "name": "Ensure Base Folders Exist",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -11792,
+        -32
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "8KqonhngaL2L1jox",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Entry & Global Setup",
+        "height": 674,
+        "width": 1650,
+        "color": 4
+      },
+      "id": "bfa46ce1-6c70-48f9-8064-caa0e6d78f9c",
+      "name": "Group: Entry & Global Setup",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -12352,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Document Picker",
+        "height": 674,
+        "width": 3122,
+        "color": 5
+      },
+      "id": "1019b4ee-bcf5-4766-8a22-9bfed3f33f27",
+      "name": "Group: Document Picker",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -10688,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## PDF Upload & Page Extraction",
+        "height": 674,
+        "width": 1554,
+        "color": 6
+      },
+      "id": "0f41ba26-436e-47fc-8cb7-62479245f3b6",
+      "name": "Group: PDF Upload & Page Extraction",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -7552,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Per-Page Transcription",
+        "height": 674,
+        "width": 4018,
+        "color": 3
+      },
+      "id": "1249f82b-e495-4f9d-95b6-8c44f412c375",
+      "name": "Group: Per-Page Transcription",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -5984,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Transcript Normalization & Word Map",
+        "height": 674,
+        "width": 1554,
+        "color": 7
+      },
+      "id": "3e320a77-313e-4b77-994e-439bc375ff6e",
+      "name": "Group: Transcript Normalization & Word Map",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1952,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## TTS & Clip Assembly",
+        "height": 674,
+        "width": 1778,
+        "color": 2
+      },
+      "id": "70ebf829-cab8-4776-ae6b-afe600221210",
+      "name": "Group: TTS & Clip Assembly",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Knit Mode",
+        "height": 370,
+        "width": 882
+      },
+      "id": "f84b8106-6921-4d6f-85e0-7303eb0a9552",
+      "name": "Group: Knit Mode",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -12352,
+        992
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## New Conversion - Upload & Folder Setup",
+        "height": 530,
+        "width": 2098,
+        "color": 4
+      },
+      "id": "cd5a7b67-8db3-452c-a98c-02d2f03c6782",
+      "name": "Group: New Conversion - Upload & Folder Setup",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -12352,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Voice Fetching & Sample Setup",
+        "height": 370,
+        "width": 1186,
+        "color": 5
+      },
+      "id": "27dd5c4a-32b1-4af0-86fc-4e8c05c62072",
+      "name": "Group: Voice Fetching & Sample Setup",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -10240,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Change Voice Mode",
+        "height": 418,
+        "width": 2018,
+        "color": 3
+      },
+      "id": "ed8750d7-cfe6-4206-affc-192737072cfc",
+      "name": "Group: Change Voice Mode",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -12352,
+        1376
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Default Voice Setup",
+        "height": 210,
+        "width": 514,
+        "color": 7
+      },
+      "id": "93f9f8fa-9e24-4d3b-8030-9ecb140114d1",
+      "name": "Group: Default Voice Setup",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -9040,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Mode Routing & Page-List Prep",
+        "height": 658,
+        "width": 2898,
+        "color": 2
+      },
+      "id": "cdecc2bc-685d-48ad-afa2-94158cfe088c",
+      "name": "Group: Mode Routing & Page-List Prep",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -9040,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Finalization & Video Assembly",
+        "height": 674,
+        "width": 1330
+      },
+      "id": "5da8fbd3-e3d1-400a-a05c-e0bf2c80da5a",
+      "name": "Group: Finalization & Video Assembly",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1408,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/{{ $('Set Change-Voice Page Number').item.json.fileBasename }}_transcription_normalized.txt",
+        "options": {}
+      },
+      "id": "9d9aca69-8e80-4906-8d86-5046bd5aefb4",
+      "name": "Read Normalized Transcript for Voice Change",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -11264,
+        1600
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4ffa83fb-8f9c-4e82-9d63-1ab36220bb26",
+              "name": "pageNumber",
+              "value": "={{ Number($('Change Voice Configuration').item.json.pageSelection.match(/\\d+/g)[0]) }}",
+              "type": "number"
+            },
+            {
+              "id": "b1b2b3b4-0001-4ccc-9000-000000000001",
+              "name": "rightPageNumber",
+              "value": "={{ (() => { const nums = $('Change Voice Configuration').item.json.pageSelection.match(/\\d+/g); return nums.length > 1 ? Number(nums[1]) : null; })() }}",
+              "type": "number"
+            },
+            {
+              "id": "b1b2b3b4-0002-4ccc-9000-000000000002",
+              "name": "isKnit",
+              "value": "={{ ($('Change Voice Configuration').item.json.pageSelection.match(/\\d+/g) || []).length > 1 }}",
+              "type": "boolean"
+            },
+            {
+              "id": "94247326-a301-4604-959c-e6e87b60766b",
+              "name": "voice",
+              "value": "={{ $('Change Voice Configuration').item.json.voice.split(' - ')[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "b1b2b3b4-0003-4ccc-9000-000000000003",
+              "name": "target",
+              "value": "={{ $('Change Voice Configuration').item.json.target === 'The entire page (starts converting right away)' ? 'entire' : 'selected' }}",
+              "type": "string"
+            },
+            {
+              "id": "016e2d5e-0f35-4687-81f9-bc5857ec46eb",
+              "name": "textToChange",
+              "value": "={{ $('Change Voice Text Selection').isExecuted ? $('Change Voice Text Selection').item.json.textToChange : '' }}",
+              "type": "string"
+            },
+            {
+              "id": "b1b2b3b4-0004-4ccc-9000-000000000004",
+              "name": "fileBasename",
+              "value": "={{ (() => { const nums = $('Change Voice Configuration').item.json.pageSelection.match(/\\d+/g); return nums.length > 1 ? (nums[0] + '-' + nums[1] + '_knit') : nums[0]; })() }}",
+              "type": "string"
+            },
+            {
+              "id": "b1b2b3b4-0005-4ccc-9000-000000000005",
+              "name": "pageLabel",
+              "value": "={{ $('Change Voice Configuration').item.json.pageSelection }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "850f9621-bd56-4994-b7d7-90d3bf23d247",
+      "name": "Set Change-Voice Page Number",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -11488,
+        1600
+      ]
+    },
+    {
+      "parameters": {
+        "defineForm": "json",
+        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"What text should be read in that voice?\",\n    fieldName: \"textToChange\",\n    fieldType: \"textarea\",\n    defaultValue: (() => {\n      const label = $('Change Voice Configuration').item.json.pageSelection;\n      const allPages = $('Aggregate All Timestamps').item.json.pages.map(p => p.data);\n      const match = allPages.find(p => {\n        const l = p.knitPages ? ('Pages ' + p.knitPages[0] + ' & ' + p.knitPages[1]) : ('Page ' + p.pageIndex);\n        return l === label;\n      });\n      return match ? match.wordMap.map(w => w.original).join(' ') : '';\n    })(),\n    requiredField: true\n  }\n] }}",
+        "options": {}
+      },
+      "id": "change-voice-text-selection",
+      "name": "Change Voice Text Selection",
+      "webhookId": "1c19a416-256d-4cbe-a415-193dc905ef5b",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        -11712,
+        1600
       ]
     },
     {
@@ -3261,50 +3340,40 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -8208,
-        912
+        -11936,
+        1760
       ]
     },
     {
       "parameters": {
         "defineForm": "json",
-        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"What text should be read in that voice?\",\n    fieldName: \"textToChange\",\n    fieldType: \"textarea\",\n    defaultValue: (() => {\n      const label = $('Change Voice Configuration').item.json.pageSelection;\n      const allPages = $('Aggregate All Timestamps').item.json.pages.map(p => p.data);\n      const match = allPages.find(p => {\n        const l = p.knitPages ? ('Pages ' + p.knitPages[0] + ' & ' + p.knitPages[1]) : ('Page ' + p.pageIndex);\n        return l === label;\n      });\n      return match ? match.wordMap.map(w => w.original).join(' ') : '';\n    })(),\n    requiredField: true\n  }\n] }}",
+        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"Which page do you want to convert?\",\n    fieldName: \"pageSelection\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: (() => {\n        const allPages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n        const knitCovered = new Set(allPages.filter(p => p.knitPages).flatMap(p => p.knitPages.map(Number)));\n        const pages = allPages.filter(p => p.knitPages || !knitCovered.has(Number(p.pageIndex)));\n        return pages.map(p => {\n          const label = p.knitPages ? ('Pages ' + p.knitPages[0] + ' & ' + p.knitPages[1]) : ('Page ' + p.pageIndex);\n          return { option: label };\n        });\n      })()\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"In what voice?\",\n    fieldName: \"voice\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: $('Fetch Available Voices').item.json.voices.map(v => {\n        const langMap = { a: 'English (US)', b: 'English (UK)', e: 'Spanish', f: 'French', h: 'Hindi', i: 'Italian', j: 'Japanese', p: 'Portuguese (BR)', z: 'Chinese' };\n        const genderMap = { f: 'Female', m: 'Male' };\n        const lang = langMap[v.id[0]] || v.id[0];\n        const gender = genderMap[v.id[1]] || v.id[1];\n        const friendlyName = v.id.split('_')[1][0].toUpperCase() + v.id.split('_')[1].slice(1);\n        return { option: v.id + \" - \" + friendlyName + \" \" + gender + \" \" + lang };\n      })\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"Apply the voice to:\",\n    fieldName: \"target\",\n    fieldType: \"radio\",\n    fieldOptions: {\n      values: [\n        { option: \"The entire page (starts converting right away)\" },\n        { option: \"Selected text (continue to the next page to choose the exact words)\" }\n      ]\n    },\n    requiredField: true\n  }\n] }}",
         "options": {}
       },
-      "id": "change-voice-text-selection",
-      "name": "Change Voice Text Selection",
-      "webhookId": "1c19a416-256d-4cbe-a415-193dc905ef5b",
+      "id": "99c165d5-b8a7-4517-902f-cd7439b3dd29",
+      "name": "Change Voice Configuration",
+      "webhookId": "4b275d02-b3b2-42f6-a019-5cfbab8d8b0d",
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
       "position": [
-        -7984,
-        720
+        -12160,
+        1600
       ]
     },
     {
       "parameters": {
-        "url": "={{  $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/clip",
-        "sendBody": true,
-        "contentType": "form-urlencoded",
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "command",
-              "value": "={{  'mkdir -p ' + $('Populate Variables').item.json.tempDirRelative + '/' + $('Populate Variables').item.json.sampleFolderName }}"
-            }
-          ]
-        },
-        "options": {
-          "timeout": 3600000
-        }
+        "content": "## Sample Video Loop",
+        "height": 434,
+        "width": 882,
+        "color": 6
       },
-      "id": "996a93e7-6dd0-469c-8ecb-d0cd23bf7ddf",
-      "name": "Ensure Sample Folder Exists",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.5,
+      "id": "359e8fb1-853b-4e98-9b9b-a67e475e228f",
+      "name": "Group: Sample Video Loop",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
       "position": [
-        -10672,
-        3248
+        -12352,
+        1808
       ]
     },
     {
@@ -3312,9 +3381,84 @@
         "assignments": {
           "assignments": [
             {
-              "id": "6fde7f9b-8f98-48d5-88b8-505c79ba80ae",
-              "name": "docPrefix",
-              "value": "={{  $('Set Sample Voice Number').isExecuted ? ($('Populate Variables').item.json.sampleFolderName + '/') : ($('Set Document Folder').item.json.docFolder + '/') }}",
+              "id": "a1b2c3d4-e5f6-4789-a012-b3c4d5e6f7a8",
+              "name": "voiceProcessed",
+              "value": "={{ true }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3b7788c8-70ca-486c-8cba-992057a4cf67",
+      "name": "Strip Binary Before Next Sample Iteration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -12080,
+        1888
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b2c3d4e5-0001-4bbb-9000-000000000001",
+              "leftValue": "={{ $('Set Sample Voice Number').isExecuted }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "324d22cd-95fb-418f-9533-46976ac94449",
+      "name": "Route Sample Loop Back",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -12320,
+        1904
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "13583d3c-2020-4dce-9f08-773766d0f065",
+              "name": "voiceId",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "9651fbb3-db8c-4021-ad09-50b415d9aa8c",
+              "name": "friendlyName",
+              "value": "={{ $json.id.split('_')[1][0].toUpperCase() + $json.id.split('_')[1].slice(1) }}",
+              "type": "string"
+            },
+            {
+              "id": "6ad12437-104a-4061-a88c-c80bcfc46e60",
+              "name": "text",
+              "value": "={{ $('Sample Video Configuration').item.json[\"What phrase should each voice say? Use {voice} where the voice's name should go.\"].replace('{voice}', $json.id.split('_')[1][0].toUpperCase() + $json.id.split('_')[1].slice(1)) }}",
+              "type": "string"
+            },
+            {
+              "id": "3f9e9ed6-0eec-43d1-8d5e-10f14624d29e",
+              "name": "voiceIndex",
+              "value": "={{ $node[\"Process Voices One by One\"].context.currentRunIndex + 1 }}",
               "type": "string"
             }
           ]
@@ -3322,13 +3466,196 @@
         "includeOtherFields": true,
         "options": {}
       },
-      "id": "5ff896cf-3123-4e77-8278-b2755807fa97",
-      "name": "Set Doc Prefix",
+      "id": "c6360b25-203d-42aa-bb86-2512835944f5",
+      "name": "Set Sample Voice Number",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -3952,
-        -304
+        -11648,
+        1904
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "2b801e96-ae7c-4913-85b1-3f31f6514168",
+      "name": "Process Voices One by One",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -11872,
+        1888
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/{{ $('Set Change-Voice Page Number').item.json.fileBasename }}_transcription_normalized.txt",
+        "options": {}
+      },
+      "id": "10b90bd0-238c-4530-bf06-f6dcad15de52",
+      "name": "Save Updated Transcript for Voice Change",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -10576,
+        1440
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "result",
+        "options": {}
+      },
+      "id": "9fc25031-8f53-43ae-b458-fd9b4ac81879",
+      "name": "Convert Voice Span Result to File",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        -10800,
+        1440
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "formDescription": "={{ ($('Set Change-Voice Page Number').item.json.target === 'entire' ? \"No text was found to change (the page appears to be empty)\" : (\"The text \\\"\" + $('Set Change-Voice Page Number').item.json.textToChange + \"\\\" wasn't found on \" + $('Set Change-Voice Page Number').item.json.pageLabel.replace(/^Page/, 'page').replace(/^Pages/, 'pages'))) + \". Please try again.\" }}"
+        }
+      },
+      "id": "17d1ccf2-ae40-42d3-9549-1806742f5441",
+      "name": "Error Message [\"Text Not Found\"]",
+      "webhookId": "88d38d05-7bb2-4e1e-843b-fb007276b3d8",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        -10800,
+        1632
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "dd5cfd64-f954-4f26-9293-9f872ee1e179",
+              "leftValue": "={{ JSON.parse($json.result).found }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "809f180c-1e16-4bfe-b124-281ade989273",
+      "name": "Voice Span Exists?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -11024,
+        1456
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "30fb269e-c925-43c7-bc91-d9e48894a533",
+              "name": "result",
+              "value": "={{\n(() => {\n  const parsed = JSON.parse($json.text);\n  const wordMap = parsed.wordMap;\n  const existingSpans = parsed.voiceSpans || [];\n  const voice = $('Set Change-Voice Page Number').item.json.voice;\n  const target = $('Set Change-Voice Page Number').item.json.target;\n  const defaultVoice = $('Set Default Voice').isExecuted\n    ? $('Set Default Voice').item.json.voice\n    : ((Object.keys($('Read Default Voice').item.binary || {}).length > 0)\n        ? $('Extract Default Voice').item.json.text.trim()\n        : $('Populate Variables').item.json.defaultFallbackVoice);\n\n  let newStart, newEnd;\n  if (target === 'entire') {\n    newStart = 0;\n    newEnd = wordMap.length - 1;\n  } else {\n    const words = $('Set Change-Voice Page Number').item.json.textToChange\n      .replace(/\\|/g, ',')\n      .replace(/ > /g, ', ')\n      .replace(/[–—]/g, ' ')\n      .trim().split(/\\s+/).filter(w => w);\n    if (words.length === 0) return JSON.stringify({ found: false });\n\n    let matchStart = -1;\n    for (let i = 0; i <= wordMap.length - words.length; i++) {\n      let ok = true;\n      for (let k = 0; k < words.length; k++) {\n        if (wordMap[i + k].original.toLowerCase() !== words[k].toLowerCase()) { ok = false; break; }\n      }\n      if (ok) { matchStart = i; break; }\n    }\n    if (matchStart === -1) return JSON.stringify({ found: false });\n    newStart = matchStart;\n    newEnd = matchStart + words.length - 1;\n  }\n\n  const survivingSpans = existingSpans.filter(s => s.end < newStart || s.start > newEnd);\n  const allSpans = [...survivingSpans, { start: newStart, end: newEnd, voice }].sort((a, b) => a.start - b.start);\n\n  const parts = [];\n  let cursor = 0;\n  for (const span of allSpans) {\n    if (span.start > cursor) {\n      parts.push(wordMap.slice(cursor, span.start).map(w => w.normalized).join(' '));\n    }\n    parts.push(`[voice:${span.voice}] ${wordMap.slice(span.start, span.end + 1).map(w => w.normalized).join(' ')} [voice:${defaultVoice}]`);\n    cursor = span.end + 1;\n  }\n  if (cursor < wordMap.length) {\n    parts.push(wordMap.slice(cursor).map(w => w.normalized).join(' '));\n  }\n  const wrapped = parts.filter(Boolean).join(' ');\n\n  return JSON.stringify({ found: true, text: wrapped, wordMap: wordMap, voiceSpans: allSpans });\n})()\n}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "619d1030-244b-4c00-9b06-2570bb3b5574",
+      "name": "Find and Wrap Voice Span",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -11248,
+        1456
+      ]
+    },
+    {
+      "parameters": {
+        "formFields": {
+          "values": []
+        },
+        "options": {
+          "formDescription": "={{ $('Set Change-Voice Page Number').item.json.pageLabel + \" has no processed transcript yet, please click Submit below to try again.\" }}"
+        }
+      },
+      "id": "79b32d7f-bf84-4983-909d-cb8224832a75",
+      "name": "Error Message [\"Page Not Found\"]",
+      "webhookId": "dbba5561-3c7e-4e48-81f2-78bde770d831",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        -11472,
+        1632
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "destinationKey": "text",
+        "options": {}
+      },
+      "id": "0ae68c95-1176-4986-a91b-7fbcb3d05568",
+      "name": "Extract Normalized Transcript for Voice Change",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -11472,
+        1456
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c367ca33-bcb2-4810-b255-92f15c65eae3",
+              "leftValue": "={{ (!!$binary && Object.keys($binary).length > 0).toString() }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "0e5e49fb-3cbc-4315-b6dd-9e2803541f16",
+      "name": "Change Voice Page File Exists?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -11696,
+        1472
       ]
     }
   ],
@@ -3371,7 +3698,7 @@
       "main": [
         [
           {
-            "node": "New Mode Selected 2",
+            "node": "Is New Conversion Mode?",
             "type": "main",
             "index": 0
           }
@@ -3393,7 +3720,7 @@
       "main": [
         [
           {
-            "node": "Merge",
+            "node": "Merge Audio File & Timestamps",
             "type": "main",
             "index": 0
           }
@@ -3462,7 +3789,7 @@
         ]
       ]
     },
-    "Convert Updated Transcription to Text File": {
+    "Convert Normalized Transcription to Text File": {
       "main": [
         [
           {
@@ -3473,7 +3800,7 @@
         ]
       ]
     },
-    "Extract from File": {
+    "Extract Image to Base64": {
       "main": [
         [
           {
@@ -3637,7 +3964,7 @@
       "main": [
         [
           {
-            "node": "Extract from File",
+            "node": "Extract Image to Base64",
             "type": "main",
             "index": 0
           }
@@ -3688,7 +4015,7 @@
         ]
       ]
     },
-    "New Mode Selected 2": {
+    "Is New Conversion Mode?": {
       "main": [
         [
           {
@@ -3748,7 +4075,7 @@
       "main": [
         [
           {
-            "node": "Merge",
+            "node": "Merge Audio File & Timestamps",
             "type": "main",
             "index": 1
           }
@@ -3808,7 +4135,7 @@
             "index": 0
           },
           {
-            "node": "Generate final subtitles",
+            "node": "Generate Final Subtitles",
             "type": "main",
             "index": 0
           }
@@ -3841,7 +4168,7 @@
       "main": [
         [
           {
-            "node": "Merge1",
+            "node": "Merge Subtitles & Chapters",
             "type": "main",
             "index": 1
           }
@@ -3877,7 +4204,7 @@
         ]
       ]
     },
-    "Merge": {
+    "Merge Audio File & Timestamps": {
       "main": [
         [
           {
@@ -3892,14 +4219,14 @@
       "main": [
         [
           {
-            "node": "Merge1",
+            "node": "Merge Subtitles & Chapters",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Merge1": {
+    "Merge Subtitles & Chapters": {
       "main": [
         [
           {
@@ -3910,7 +4237,7 @@
         ]
       ]
     },
-    "Generate final subtitles": {
+    "Generate Final Subtitles": {
       "main": [
         [
           {
@@ -3941,7 +4268,7 @@
             "index": 0
           },
           {
-            "node": "Convert Updated Transcription to Text File",
+            "node": "Convert Normalized Transcription to Text File",
             "type": "main",
             "index": 0
           }
@@ -4225,108 +4552,6 @@
         ]
       ]
     },
-    "Set Change-Voice Page Number": {
-      "main": [
-        [
-          {
-            "node": "Read Normalized Transcript for Voice Change",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Read Normalized Transcript for Voice Change": {
-      "main": [
-        [
-          {
-            "node": "Change Voice Page File Exists?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Change Voice Page File Exists?": {
-      "main": [
-        [
-          {
-            "node": "Extract Normalized Transcript for Voice Change",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Error Message [\"Page Not Found\"]",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Extract Normalized Transcript for Voice Change": {
-      "main": [
-        [
-          {
-            "node": "Find and Wrap Voice Span",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Find and Wrap Voice Span": {
-      "main": [
-        [
-          {
-            "node": "Voice Span Exists?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Voice Span Exists?": {
-      "main": [
-        [
-          {
-            "node": "Convert Voice Span Result to File",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Error Message [\"Text Not Found\"]",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Convert Voice Span Result to File": {
-      "main": [
-        [
-          {
-            "node": "Save Updated Transcript for Voice Change",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Save Updated Transcript for Voice Change": {
-      "main": [
-        [
-          {
-            "node": "Read Normalized Temporary Text File from Disk",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Sample Video Configuration": {
       "main": [
         [
@@ -4381,35 +4606,6 @@
         ]
       ]
     },
-    "Process Voices One by One": {
-      "main": [
-        [
-          {
-            "node": "Aggregate",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Set Sample Voice Number",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Set Sample Voice Number": {
-      "main": [
-        [
-          {
-            "node": "Request Transcript Normalization",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Skip Loop for One-Off Modes": {
       "main": [
         [
@@ -4450,40 +4646,11 @@
         ]
       ]
     },
-    "Route Sample Loop Back": {
-      "main": [
-        [
-          {
-            "node": "Strip Binary Before Next Sample Iteration",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Skip Loop for One-Off Modes",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Aggregate": {
       "main": [
         [
           {
             "node": "Determine Output Basename",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Strip Binary Before Next Sample Iteration": {
-      "main": [
-        [
-          {
-            "node": "Process Voices One by One",
             "type": "main",
             "index": 0
           }
@@ -4576,7 +4743,7 @@
             "index": 0
           },
           {
-            "node": "Merge2",
+            "node": "Merge After Ensuring Document Folder",
             "type": "main",
             "index": 0
           }
@@ -4750,7 +4917,7 @@
             "index": 0
           },
           {
-            "node": "Merge3",
+            "node": "Merge After Ensuring Output Folder",
             "type": "main",
             "index": 0
           }
@@ -4764,44 +4931,11 @@
         ]
       ]
     },
-    "Error Message [\"Page Not Found\"]": {
-      "main": [
-        [
-          {
-            "node": "Read All Timestamps from Disk",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Error Message [\"Text Not Found\"]": {
-      "main": [
-        [
-          {
-            "node": "Read All Timestamps from Disk",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Start": {
       "main": [
         [
           {
             "node": "Populate Variables",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Populate Variables": {
-      "main": [
-        [
-          {
-            "node": "Select Mode",
             "type": "main",
             "index": 0
           }
@@ -4823,14 +4957,14 @@
       "main": [
         [
           {
-            "node": "Merge2",
+            "node": "Merge After Ensuring Document Folder",
             "type": "main",
             "index": 1
           }
         ]
       ]
     },
-    "Merge2": {
+    "Merge After Ensuring Document Folder": {
       "main": [
         [
           {
@@ -4845,14 +4979,14 @@
       "main": [
         [
           {
-            "node": "Merge3",
+            "node": "Merge After Ensuring Output Folder",
             "type": "main",
             "index": 1
           }
         ]
       ]
     },
-    "Merge3": {
+    "Merge After Ensuring Output Folder": {
       "main": [
         [
           {
@@ -4966,11 +5100,77 @@
         ]
       ]
     },
-    "Change Voice Configuration": {
+    "Ensure Sample Folder Exists": {
       "main": [
         [
           {
-            "node": "Needs Text Selection?",
+            "node": "Fetch Available Voices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Doc Prefix": {
+      "main": [
+        [
+          {
+            "node": "Create Normalized Temporary Text File on Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Populate Variables": {
+      "main": [
+        [
+          {
+            "node": "Ensure Base Folders Exist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ensure Base Folders Exist": {
+      "main": [
+        [
+          {
+            "node": "Select Mode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Normalized Transcript for Voice Change": {
+      "main": [
+        [
+          {
+            "node": "Change Voice Page File Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Change-Voice Page Number": {
+      "main": [
+        [
+          {
+            "node": "Read Normalized Transcript for Voice Change",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Change Voice Text Selection": {
+      "main": [
+        [
+          {
+            "node": "Set Change-Voice Page Number",
             "type": "main",
             "index": 0
           }
@@ -4995,33 +5195,171 @@
         ]
       ]
     },
-    "Change Voice Text Selection": {
+    "Change Voice Configuration": {
       "main": [
         [
           {
-            "node": "Set Change-Voice Page Number",
+            "node": "Needs Text Selection?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Ensure Sample Folder Exists": {
+    "Strip Binary Before Next Sample Iteration": {
       "main": [
         [
           {
-            "node": "Fetch Available Voices",
+            "node": "Process Voices One by One",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Set Doc Prefix": {
+    "Route Sample Loop Back": {
       "main": [
         [
           {
-            "node": "Create Normalized Temporary Text File on Disk",
+            "node": "Strip Binary Before Next Sample Iteration",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Skip Loop for One-Off Modes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Sample Voice Number": {
+      "main": [
+        [
+          {
+            "node": "Request Transcript Normalization",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Voices One by One": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set Sample Voice Number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Updated Transcript for Voice Change": {
+      "main": [
+        [
+          {
+            "node": "Read Normalized Temporary Text File from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Voice Span Result to File": {
+      "main": [
+        [
+          {
+            "node": "Save Updated Transcript for Voice Change",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Message [\"Text Not Found\"]": {
+      "main": [
+        [
+          {
+            "node": "Read All Timestamps from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Voice Span Exists?": {
+      "main": [
+        [
+          {
+            "node": "Convert Voice Span Result to File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Message [\"Text Not Found\"]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find and Wrap Voice Span": {
+      "main": [
+        [
+          {
+            "node": "Voice Span Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Message [\"Page Not Found\"]": {
+      "main": [
+        [
+          {
+            "node": "Read All Timestamps from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Normalized Transcript for Voice Change": {
+      "main": [
+        [
+          {
+            "node": "Find and Wrap Voice Span",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Change Voice Page File Exists?": {
+      "main": [
+        [
+          {
+            "node": "Extract Normalized Transcript for Voice Change",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Message [\"Page Not Found\"]",
             "type": "main",
             "index": 0
           }
@@ -5038,12 +5376,142 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "333ff3ef-6481-42d9-9d55-f269f0d961d4",
+  "versionId": "849aeb6c-16b7-4809-832c-30d8e76ee743",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "0d58a7a3f156139856be42466a14e05f00173514ac9794a8494b09c53ea173a0"
   },
-  "nodeGroups": [],
+  "nodeGroups": [
+    {
+      "id": "2536f858-6d97-4370-869b-a81760a29144",
+      "name": "Setup & Mode Selection",
+      "nodeIds": [
+        "d1074198-3c0d-46ef-8386-d0d8a50e71f4",
+        "cd6e8ae5-1894-47e9-a22c-72ecf2eae0d8",
+        "4fb342a8-6e48-4afd-a09f-739cf85a7d07"
+      ]
+    },
+    {
+      "id": "8e605308-ff3d-4eb8-994e-d57b9f1884d2",
+      "name": "Default Voice Setup",
+      "nodeIds": [
+        "24b05ae8-fd9a-4ee5-85f6-bf023beaaa2a",
+        "ccb99f79-1578-477d-93dc-a9d6ab78febd",
+        "f423e9c8-3abd-43df-a0a2-33023df7ce79",
+        "0c692900-a64b-4a84-aeba-437bea824d5b"
+      ]
+    },
+    {
+      "id": "7f1af08c-ed64-4b89-97b0-e5b89d398384",
+      "name": "Document Picker",
+      "nodeIds": [
+        "4111729b-35c2-44dd-9859-0deaa165ef1d",
+        "734c2b6d-f299-408a-be07-8bae061bcdb8",
+        "525340d7-fcd6-45e5-bf7e-5504e89b4d1c"
+      ]
+    },
+    {
+      "id": "a0a16b29-a03f-463e-b853-a4fc11a41a55",
+      "name": "Document Folder Setup",
+      "nodeIds": [
+        "b4bdb253-3ff9-4172-a060-a8406a61500d",
+        "fef73ddb-2548-4a3b-a9b6-06a59065a841",
+        "110186cf-3ed6-4512-b27e-b79f403cf7d3"
+      ]
+    },
+    {
+      "id": "35799d9f-5588-44b8-8556-0bf238dd9a4e",
+      "name": "New Conversion - PDF Upload & Page Extraction",
+      "nodeIds": [
+        "a6c61e91-f96d-42ae-9ee8-145f77258e41",
+        "c0aba882-7fa6-46e7-a7e2-e3cb421f4c95",
+        "5dd1bf69-114c-48c6-8c86-3e53422b476c"
+      ]
+    },
+    {
+      "id": "3aff9f6c-a739-4079-a257-dd74f2abde95",
+      "name": "Transcript Normalization & Word Map",
+      "nodeIds": [
+        "0e5f6212-20e6-4acb-961e-ed28a51afdd6",
+        "5f6fa4e9-18da-4512-b1f2-93376fdab3a0",
+        "837a24a3-e583-4fbe-8e1a-5b17ae35e099",
+        "96280d0d-3829-42a5-8322-a6ad126e24eb",
+        "d8a9e5a9-de94-46a6-8eec-0ade0f39b774",
+        "5ff896cf-3123-4e77-8278-b2755807fa97",
+        "9ac766e8-fef2-462f-9834-d27e5d4dc1a2"
+      ]
+    },
+    {
+      "id": "698472ee-8313-41a8-9fb5-42bff875238c",
+      "name": "TTS & Clip Assembly",
+      "nodeIds": [
+        "0e416aa8-3241-4e14-8bce-4d9dc133d91d",
+        "e88f9b03-a71a-4b8e-9b24-bf1612abcdcf",
+        "d5a067ce-d69a-40a0-a872-b631a2f5fbf7",
+        "2d844c92-584d-498e-b943-70c9ce934f51",
+        "8f0d9b8e-22a5-4498-ab7c-653655b23891",
+        "6af65ae0-d648-4f2a-9536-e6ad53759884",
+        "7fb9918c-40ba-4776-b5f4-ba7ebb09277d",
+        "0a861c0e-859b-4849-a6e6-efc437699497",
+        "0a85c2c1-4ed6-4fd9-9e1f-a2b9ea0b8eae"
+      ]
+    },
+    {
+      "id": "6ca7c2de-8c88-4b4a-893c-1bf4ed51088e",
+      "name": "Knit Mode",
+      "nodeIds": [
+        "0a341644-cb35-465b-993c-8788c356a6f5",
+        "8764539e-e318-4e17-bfc1-9adadaf03f0a",
+        "f774a94d-d2d3-4dab-bd16-6c43c7bcf1d0",
+        "4bf3a017-2bd3-46dd-bea9-3bc68a923659",
+        "34033c1e-8ea6-406c-8692-559a8ee14094",
+        "b55dd822-6a36-4db9-9e57-7fe232d0350e",
+        "ac49d3de-3c4e-4b43-b351-09d0ac385243",
+        "be697eda-9a3f-4f77-864b-da5c58ca73cf",
+        "33d02734-00b9-4a71-93ec-1df5cb30a777",
+        "25a8edf8-7ad9-41e6-991c-855997c3defc",
+        "46692609-688b-4f3b-88b6-0daaa14b1d96",
+        "04378658-7dab-42e4-9676-2fdfe547673d",
+        "d65954a8-d998-4d57-9556-dcaa657ec252",
+        "28cdd014-aeff-4fff-aeb6-b71c21a9d420",
+        "63b7c043-b1f3-4021-801c-4909dda61d4b",
+        "64ab376b-6958-44a3-96ba-983eefe7b767"
+      ]
+    },
+    {
+      "id": "81e2464d-7509-42ce-aa19-173e35d0816b",
+      "name": "Voice Fetching & Sample Setup",
+      "nodeIds": [
+        "4c3bcc17-f301-4989-b51f-89224ac605d4",
+        "996a93e7-6dd0-469c-8ecb-d0cd23bf7ddf"
+      ]
+    },
+    {
+      "id": "72a96016-e7c7-4fb4-b07e-2f056a08d175",
+      "name": "Finalization & Video Assembly",
+      "nodeIds": [
+        "511103b3-8179-475c-a0a7-8a856f1c8dd7",
+        "ec91e12f-1e66-46df-8ed2-f77195e93742",
+        "a5b82290-809d-415f-83b7-cdbb34575e7a",
+        "8de182f8-3454-4498-a737-47ab2ecabf38",
+        "5932d857-856b-4307-a922-eae4f4a9b499",
+        "43a9add9-c4e6-41f8-8a1e-41ae735171a2",
+        "46c88e05-2bfd-4c0b-9ec8-dc9c841fc635",
+        "a1aa3900-7c65-4216-9b0b-e6965f3dc6e5"
+      ]
+    },
+    {
+      "id": "311c12d8-e681-42f7-9543-ac9981d09ee8",
+      "name": "Change Voice Mode",
+      "nodeIds": [
+        "99c165d5-b8a7-4517-902f-cd7439b3dd29",
+        "needs-text-selection",
+        "change-voice-text-selection",
+        "850f9621-bd56-4994-b7d7-90d3bf23d247",
+        "9d9aca69-8e80-4906-8d86-5046bd5aefb4"
+      ]
+    }
+  ],
   "id": "jRt9vIy3bcnOSxi5",
   "tags": []
 }

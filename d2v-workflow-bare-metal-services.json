@@ -4,6 +4,7 @@
     {
       "parameters": {
         "path": "clip",
+        "authentication": "headerAuth",
         "responseMode": "responseNode",
         "options": {}
       },
@@ -15,7 +16,13 @@
       ],
       "id": "8f118542-c9a7-4d7d-a778-7f9296ccc697",
       "name": "Get Request for Assembling Clip",
-      "webhookId": "b7917a21-6f88-48ff-b989-7b3254cc3882"
+      "webhookId": "b7917a21-6f88-48ff-b989-7b3254cc3882",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "8yazpC42gz05PGnT",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
     },
     {
       "parameters": {
@@ -35,6 +42,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "prompt",
+        "authentication": "headerAuth",
         "responseMode": "responseNode",
         "options": {}
       },
@@ -46,7 +54,13 @@
       ],
       "id": "4b4c66e5-fb20-4bb7-84b9-dc8920d22bf4",
       "name": "Receive Prompt",
-      "webhookId": "b6bd0ddb-3bc7-4bbc-a6ec-fa544436db20"
+      "webhookId": "b6bd0ddb-3bc7-4bbc-a6ec-fa544436db20",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "8yazpC42gz05PGnT",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
     },
     {
       "parameters": {
@@ -133,6 +147,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "tts",
+        "authentication": "headerAuth",
         "responseMode": "responseNode",
         "options": {}
       },
@@ -144,7 +159,13 @@
         0,
         448
       ],
-      "webhookId": "8a0bee15-c5f7-4781-8685-74dd93111ae9"
+      "webhookId": "8a0bee15-c5f7-4781-8685-74dd93111ae9",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "8yazpC42gz05PGnT",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
     },
     {
       "parameters": {
@@ -276,7 +297,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "2fb6482f-6886-4e2c-816e-92bebbbbaf44",
+  "versionId": "eb954deb-b08e-4853-9015-631552d6603f",
   "meta": {
     "instanceId": "ed1f09f33a1c588a9b788156ad40bc434be9b1b6114805fd77608f02e470ebf4"
   },
