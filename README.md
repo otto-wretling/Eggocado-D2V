@@ -4,6 +4,8 @@ Eggocado D2V converts a PDF document into a narrated video. Each page is transcr
 
 > **Platform support:** macOS (Apple Silicon) only, for now. Linux/Windows support is on the roadmap but not implemented yet.
 
+> **Language support:** English only, for now. Kokoro and some other TTS backends support additional languages, but the transcription prompt, text normalization, and the TTS call are all currently hardcoded for English.
+
 ## Modes
 
 Everything is driven through one n8n form:
