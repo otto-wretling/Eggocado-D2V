@@ -2,6 +2,7 @@ services:
   n8n:
     image: n8nio/n8n:2.41.7
     container_name: n8n
+    restart: unless-stopped
     ports:
       - "5678:5678"
     environment:
@@ -23,6 +24,7 @@ services:
   stirling-pdf:
     image: stirlingtools/stirling-pdf:2.14.3
     container_name: stirling-pdf
+    restart: unless-stopped
     ports:
       - "8080:8080"
     environment:
