@@ -32,6 +32,7 @@ in
       Environment = [
         "N8N_ENABLE_EXECUTE_COMMAND=true"
         "N8N_PORT=5679"
+        "N8N_RESTRICT_FILE_ACCESS_TO=/tmp"
         "N8N_RUNNERS_BROKER_PORT=5680"
         "N8N_USER_FOLDER=${config.home.homeDirectory}/.n8n-d2v-baremetal"
         "NODES_EXCLUDE=[]"
