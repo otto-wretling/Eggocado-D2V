@@ -14,7 +14,7 @@
     pkgs.uv
   ];
 
-  networking.firewall.trustedInterfaces = [ "docker0" ];
+  networking.firewall.trustedInterfaces = [ "docker0" "d2v-bridge" ];
 
   users.users.${username}.extraGroups = [ "docker" ];
 
