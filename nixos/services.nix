@@ -1,8 +1,8 @@
 { config, pkgs, ... }:
 
 let
-  d2vRoot = ../.;
-  kokoroRoot = ../../Kokoro-FastAPI;
+  d2vRoot = "${config.home.homeDirectory}/Documents/GitHub/Eggocado-D2V";
+  kokoroRoot = "${config.home.homeDirectory}/Documents/GitHub/Kokoro-FastAPI";
 in
 {
   systemd.user.services.kokoro-fastapi = {
