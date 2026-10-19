@@ -14,6 +14,8 @@
     pkgs.uv
   ];
 
+  networking.firewall.trustedInterfaces = [ "docker0" ];
+
   users.users.${username}.extraGroups = [ "docker" ];
 
   virtualisation.docker.enable = true;
