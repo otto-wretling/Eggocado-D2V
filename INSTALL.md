@@ -33,6 +33,15 @@ If you use a different model, update the model name in the `Populate Variables` 
 
 Ollama must be running and listening on `http://127.0.0.1:11434` when the workflow executes.
 
+### Transcription engines
+Page transcription can use any of three engines, selected at the start of each conversion (the first form field in the main workflow). Ollama (above) always works out of the box; the other two need their CLI installed and logged in once before they'll work:
+
+- **Local Gemma (Ollama)** — no extra setup beyond the Ollama section above.
+- **Claude Code** — `npm install -g @anthropic-ai/claude-code`, then run `claude` once and follow the interactive login prompt. Needs a Claude subscription or API access.
+- **OpenAI Codex** — `npm install -g @openai/codex`, then run `codex login` once. Needs a ChatGPT Plus/Pro/Team/Enterprise plan or API access.
+
+Both CLIs cache their login after the first run, so this is a one-time step per machine. Available models for each engine are fetched live (same pattern as the Kokoro voice picker) rather than hardcoded, so whatever your account has access to shows up in the model dropdown.
+
 ### n8n (bare-metal)
 A second n8n instance runs directly on the host at port 5679, separate from the Docker one. This is what actually runs ffmpeg and talks to Ollama, so it needs host access rather than Docker's.
 
@@ -96,9 +105,9 @@ The bare-metal instance runs arbitrary shell commands sent to it by the main wor
    - **Name** (the header name): `X-Webhook-Secret`
    - **Value**: any long random string (generate one with `openssl rand -hex 24`)
    - Save it (call it e.g. "D2V Webhook Shared Secret")
-2. Open each of the three webhook trigger nodes in the bare-metal workflow (`Get Request for Assembling Clip`, `Receive Prompt`, `Receive TTS Request`) and set **Authentication** to **Header Auth**, selecting the credential you just created.
+2. Open each webhook trigger node in the bare-metal workflow (`Get Request for Assembling Clip`, `Receive Prompt`, `Receive TTS Request`, `Receive Claude Prompt`, `Receive Codex Prompt`, `Receive Ollama Models Request`, `Receive Codex Models Request`) and set **Authentication** to **Header Auth**, selecting the credential you just created.
 3. In the **main n8n** (`localhost:5678`), create a **matching** Header Auth credential with the **same header name and value** as step 1.
-4. Attach that credential to every node that calls the bare-metal instance: `Request Image Transcription`, `Request Clip Assembly`, `Request Final Video Assembly`, `Request TTS with Timestamps`, `Knit Images`, `Knit Transcriptions`, `Ensure Base Folders Exist`, `Ensure Document Folder Exists`, `Ensure Output Folder Exists`, `Ensure Sample Folder Exists`. For each, set the node's **Authentication** to **Generic Credential Type → Header Auth** and pick the credential.
+4. Attach that credential to every node that calls the bare-metal instance: `Request Image Transcription`, `Request Clip Assembly`, `Request Final Video Assembly`, `Request TTS with Timestamps`, `Knit Images`, `Knit Transcriptions`, `Ensure Base Folders Exist`, `Ensure Document Folder Exists`, `Ensure Output Folder Exists`, `Ensure Sample Folder Exists`, `Fetch Ollama Models`, `Fetch Claude Models`, `Fetch Codex Models`. For each, set the node's **Authentication** to **Generic Credential Type → Header Auth** and pick the credential.
 5. Save both workflows.
 
 Verify it's working:
