@@ -104,7 +104,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/prompt",
+        "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl + '/webhook/' + ($('Set Transcription Engine').item.json.engineKey === 'ollama' ? 'prompt' : $('Set Transcription Engine').item.json.engineKey + '-prompt') }}",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,
@@ -118,7 +118,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n    model: $('Populate Variables').item.json.ollamaModel,\n    prompt: [\n      \"You are a precise document transcription assistant. Look at this page visually and transcribe all text exactly as it appears, from top to bottom, left to right. Rules:\",\n      \"1. Transcribe all text verbatim — preserve numbers, symbols, currencies, dates, codes, and abbreviations exactly as written.\",\n      \"2. If there are charts, graphs, or diagrams, describe them in plain natural language within the flow of the text. If there are images or photographs, describe them in plain natural language but place the description at the end of the transcription, including where on the page the image appears, for example: 'The image in the top left displays...'.\",\n      \"3. Ignore page numbers, headers, and footers unless critical to understanding the content.\",\n      \"4. Do not use Markdown formatting, bullet points, or stage directions. Return only plain text.\",\n      \"5. Do not summarize, explain, skip, or shorten any text.\",\n      \"6. End every sentence with a period.\",\n      \"7. For tables, first write one sentence summarizing what the table contains. Then transcribe each data row by pairing each cell with its column header, in the format \\\"Header: Value.\\\" for every column in that row, left to right. Repeat this for every row until the entire table is transcribed. Do not skip any rows or columns.\"\n    ].join(\"\\n\"),\n    imageBase64: $json.imageBase64\n  }) }}",
+        "jsonBody": "={{ JSON.stringify({\n    model: $('Set Transcription Model').item.json.transcriptionModel,\n    prompt: [\n      \"You are a precise document transcription assistant. Look at this page visually and transcribe all text exactly as it appears, from top to bottom, left to right. Rules:\",\n      \"1. Transcribe all text verbatim — preserve numbers, symbols, currencies, dates, codes, and abbreviations exactly as written.\",\n      \"2. If there are charts, graphs, or diagrams, describe them in plain natural language within the flow of the text. If there are images or photographs, describe them in plain natural language but place the description at the end of the transcription, including where on the page the image appears, for example: 'The image in the top left displays...'.\",\n      \"3. Ignore page numbers, headers, and footers unless critical to understanding the content.\",\n      \"4. Do not use Markdown formatting, bullet points, or stage directions. Return only plain text.\",\n      \"5. Do not summarize, explain, skip, or shorten any text.\",\n      \"6. End every sentence with a period.\",\n      \"7. For tables, first write one sentence summarizing what the table contains. Then transcribe each data row by pairing each cell with its column header, in the format \\\"Header: Value.\\\" for every column in that row, left to right. Repeat this for every row until the entire table is transcribed. Do not skip any rows or columns.\"\n    ].join(\"\\n\"),\n    imageBase64: $json.imageBase64\n  }) }}",
         "options": {
           "batching": {
             "batch": {
@@ -143,7 +143,7 @@
       ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "8KqonhngaL2L1jox",
+          "id": "dT2rDdHX1TfPrVi1",
           "name": "D2V Webhook Shared Secret"
         }
       }
@@ -158,7 +158,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "={{ (() => {\n    const isPage = $('Set Page Number').isExecuted;\n    const isChangeVoice = $('Set Change-Voice Page Number').isExecuted;\n    const isSample = $('Set Sample Voice Number').isExecuted;\n    const isNormalKnit = !isPage && !isChangeVoice && !isSample;\n    const isChangeVoiceKnit = isChangeVoice && $('Set Change-Voice Page Number').item.json.isKnit;\n    const isKnitRender = isNormalKnit || isChangeVoiceKnit;\n    const docPrefix = $('Set Doc Prefix').isExecuted ? $('Set Doc Prefix').item.json.docPrefix : (isSample ? ($('Populate Variables').item.json.sampleFolderName + '/') : ($('Set Document Folder').item.json.docFolder + '/'));\n    const left = isNormalKnit ? $('Page Knitting Configuration').item.json['⬅️ Left Page Number'] : null;\n    const right = isNormalKnit ? $('Page Knitting Configuration').item.json['Right Page Number ➡️'] : null;\n    const p = isNormalKnit\n      ? `${left}-${right}_knit`\n      : (isPage\n          ? $('Set Page Number').item.json.pageNumber\n          : (isChangeVoice\n              ? $('Set Change-Voice Page Number').item.json.fileBasename\n              : 'sample_' + $('Set Sample Voice Number').item.json.voiceId\n            )\n        );\n    const img = `temp/${docPrefix}${p}_image.png`;\n    const name = isSample ? $('Set Sample Voice Number').item.json.friendlyName : null;\n\n    const sampleImageCmds = isSample ? [\n      'REFW=1920',\n      'REFH=1080',\n      'FONTSIZE=$((REFH / 12))',\n      `NAME='${name}'`,\n      'NAMELEN=${#NAME}',\n      'CELLW=$(( (NAMELEN * FONTSIZE * 6 / 10) + FONTSIZE ))',\n      'CELLH=$(( FONTSIZE * 2 ))',\n      'COLS=$(( (REFW + CELLW - 1) / CELLW ))',\n      'ROWS=$(( (REFH + CELLH - 1) / CELLH ))',\n      'GRIDW=$((COLS * CELLW))',\n      'OFFSETX=$(( (REFW - GRIDW) / 2 ))',\n      'FILTERS=\"\"',\n      `for ((r=0; r<ROWS; r++)); do for ((c=0; c<COLS; c++)); do CELLX=$((OFFSETX + c*CELLW)); CELLY=$((r*CELLH)); FILTERS=\"\\${FILTERS}drawtext=text='\\${NAME}':fontcolor=black:fontsize=\\${FONTSIZE}:x=\\${CELLX}+(\\${CELLW}-text_w)/2:y=\\${CELLY}+(\\${CELLH}-text_h)/2,\"; done; done`,\n      'FILTERS=\"${FILTERS%,}\"',\n      `ffmpeg -y -f lavfi -i color=white:s=\\${REFW}x\\${REFH} -vf \"$FILTERS\" -frames:v 1 ${img}`\n    ] : [];\n\n    const ffmpegCmd = isKnitRender\n      ? `ffmpeg -y -loop 1 -t \"$DUR\" -i ${img} -i temp/${docPrefix}${p}_audio.wav -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/${docPrefix}${p}_clip.mp4`\n      : `ffmpeg -y -loop 1 -t \"$DUR\" -i ${img} -i temp/${docPrefix}${p}_audio.wav -filter_complex \"[0:v]split[bg_src][fg_src];[bg_src]scale=iw*2:trunc(ih/2)*2,boxblur=20:3[bg];[fg_src]scale=trunc(iw/2)*2:trunc(ih/2)*2[fg];[bg][fg]overlay=(main_w-overlay_w)/2:0[v]\" -map \"[v]\" -map 1:a -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p temp/${docPrefix}${p}_clip.mp4`;\n\n    return [\n      'set -e',\n      `export PATH=${$('Populate Variables').item.json.ffmpegPath}:$PATH`,\n      ...sampleImageCmds,\n      `DUR=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 temp/${docPrefix}${p}_audio.wav)`,\n      `sed -i '' 's/\"audioDuration\":null/\"audioDuration\":'\"$DUR\"'/' temp/${docPrefix}${p}_timestamps.json`,\n      ffmpegCmd,\n      `(xattr -d com.apple.quarantine temp/${docPrefix}${p}_clip.mp4 2>/dev/null || true)`\n    ].join(' && ');\n  })() }}"
+              "value": "={{ (() => {\n    const isPage = $('Set Page Number').isExecuted;\n    const isChangeVoice = $('Set Change-Voice Page Number').isExecuted;\n    const isSample = $('Set Sample Voice Number').isExecuted;\n    const isNormalKnit = !isPage && !isChangeVoice && !isSample;\n    const isChangeVoiceKnit = isChangeVoice && $('Set Change-Voice Page Number').item.json.isKnit;\n    const isKnitRender = isNormalKnit || isChangeVoiceKnit;\n    const docPrefix = $('Set Doc Prefix').isExecuted ? $('Set Doc Prefix').item.json.docPrefix : (isSample ? ($('Populate Variables').item.json.sampleFolderName + '/') : ($('Set Document Folder').item.json.docFolder + '/'));\n    const left = isNormalKnit ? $('Page Knitting Configuration').item.json['⬅️ Left Page Number'] : null;\n    const right = isNormalKnit ? $('Page Knitting Configuration').item.json['Right Page Number ➡️'] : null;\n    const p = isNormalKnit\n      ? `${left}-${right}_knit`\n      : (isPage\n          ? $('Set Page Number').item.json.pageNumber\n          : (isChangeVoice\n              ? $('Set Change-Voice Page Number').item.json.fileBasename\n              : 'sample_' + $('Set Sample Voice Number').item.json.voiceId\n            )\n        );\n    const img = `temp/${docPrefix}${p}_image.png`;\n    const name = isSample ? $('Set Sample Voice Number').item.json.friendlyName : null;\n    const video = $('Store Video Encoding Configuration').item.json;\n    const deviceArgs = video.ffmpegHardwareDeviceArgs ? video.ffmpegHardwareDeviceArgs + ' ' : '';\n\n    const sampleImageCmds = isSample ? [\n      'REFW=1920',\n      'REFH=1080',\n      'FONTSIZE=$((REFH / 12))',\n      `NAME='${name}'`,\n      'NAMELEN=${#NAME}',\n      'CELLW=$(( (NAMELEN * FONTSIZE * 6 / 10) + FONTSIZE ))',\n      'CELLH=$(( FONTSIZE * 2 ))',\n      'COLS=$(( (REFW + CELLW - 1) / CELLW ))',\n      'ROWS=$(( (REFH + CELLH - 1) / CELLH ))',\n      'GRIDW=$((COLS * CELLW))',\n      'OFFSETX=$(( (REFW - GRIDW) / 2 ))',\n      'FILTERS=\"\"',\n      `for ((r=0; r<ROWS; r++)); do for ((c=0; c<COLS; c++)); do CELLX=$((OFFSETX + c*CELLW)); CELLY=$((r*CELLH)); FILTERS=\"\\${FILTERS}drawtext=text='\\${NAME}':fontcolor=black:fontsize=\\${FONTSIZE}:x=\\${CELLX}+(\\${CELLW}-text_w)/2:y=\\${CELLY}+(\\${CELLH}-text_h)/2,\"; done; done`,\n      'FILTERS=\"${FILTERS%,}\"',\n      `ffmpeg -y -f lavfi -i color=white:s=\\${REFW}x\\${REFH} -vf \"$FILTERS\" -frames:v 1 ${img}`\n    ] : [];\n\n    const ffmpegCmd = isKnitRender\n      ? `ffmpeg -y ${deviceArgs}-loop 1 -t \"$DUR\" -i ${img} -i temp/${docPrefix}${p}_audio.wav -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2${video.ffmpegVideoFilterSuffix}\" ${video.ffmpegVideoEncoderArgs} -c:a aac -b:a 192k temp/${docPrefix}${p}_clip.mp4`\n      : `ffmpeg -y ${deviceArgs}-loop 1 -t \"$DUR\" -i ${img} -i temp/${docPrefix}${p}_audio.wav -filter_complex \"[0:v]split[bg_src][fg_src];[bg_src]scale=iw*2:trunc(ih/2)*2,boxblur=20:3[bg];[fg_src]scale=trunc(iw/2)*2:trunc(ih/2)*2[fg];[bg][fg]overlay=(main_w-overlay_w)/2:0${video.ffmpegVideoFilterSuffix}[v]\" -map \"[v]\" -map 1:a ${video.ffmpegVideoEncoderArgs} -c:a aac -b:a 192k temp/${docPrefix}${p}_clip.mp4`;\n\n    return [\n      'set -e',\n      `export PATH=${$('Populate Variables').item.json.ffmpegPath}:$PATH`,\n      ...sampleImageCmds,\n      `DUR=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 temp/${docPrefix}${p}_audio.wav)`,\n      ffmpegCmd,\n      `(xattr -d com.apple.quarantine temp/${docPrefix}${p}_clip.mp4 2>/dev/null || true)`\n    ].join(' && ');\n  })() }}"
             }
           ]
         },
@@ -186,7 +186,7 @@
       ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "8KqonhngaL2L1jox",
+          "id": "dT2rDdHX1TfPrVi1",
           "name": "D2V Webhook Shared Secret"
         }
       }
@@ -309,7 +309,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "={{ (() => {\n    const basename = $('Determine Output Basename').item.json.outputBasename;\n    const clipGlob = $('Determine Output Basename').item.json.tempClipGlob;\n    const chaptersFile = $('Determine Output Basename').item.json.chaptersFile;\n    const simple = $('Determine Output Basename').item.json.useSimpleConcat;\n    const docPrefix = simple ? 'sample/' : ($('Set Document Folder').item.json.docFolder + '/');\n    const tempDir = $('Populate Variables').item.json.tempDirRelative;\n    const outputDir = $('Populate Variables').item.json.outputDirRelative;\n\n    const sortedVoiceIds = $('Aggregate All Timestamps').item.json.pages\n      .map(x => x.data)\n      .filter(d => d.voiceId)\n      .sort((a, b) => (a.voiceId < b.voiceId ? -1 : (a.voiceId > b.voiceId ? 1 : 0)))\n      .map(d => d.voiceId);\n\n    const concatListCheck = `[ -s ${tempDir}/${docPrefix}${basename}_concat_list.txt ] || { echo \"ERROR: concat list ${tempDir}/${docPrefix}${basename}_concat_list.txt is empty, no clips matched\" >&2; exit 1; }`;\n\n    const simpleCmds = [\n      `mkdir -p ${outputDir}`,\n      `: > ${tempDir}/${docPrefix}${basename}_concat_list.txt`,\n      ...sortedVoiceIds.map(id => `echo \"file '$PWD/${tempDir}/${docPrefix}sample_${id}_clip.mp4'\" >> ${tempDir}/${docPrefix}${basename}_concat_list.txt`),\n      concatListCheck,\n      `ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy ${outputDir}/${docPrefix}${basename}.mp4`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    const complexCmds = [\n      `mkdir -p ${outputDir}/${docPrefix}`,\n      `find ${tempDir}/${docPrefix} -maxdepth 1 -name \"${clipGlob}\" | sort -V | while read f; do b=$(basename \"$f\" _clip.mp4); case \"$b\" in *_knit) echo \"file '$PWD/$f'\";; *) ls \"${tempDir}/${docPrefix}\\${b}-\"*\"_knit_clip.mp4\" 2>/dev/null | grep -q . || ls \"${tempDir}/${docPrefix}\"*\"-\\${b}_knit_clip.mp4\" 2>/dev/null | grep -q . || echo \"file '$PWD/$f'\";; esac; done > ${tempDir}/${docPrefix}${basename}_concat_list.txt`,\n      concatListCheck,\n      'MAX_W=0',\n      `for f in ${tempDir}/${docPrefix}*_knit_clip.mp4; do [ -f \"$f\" ] || break; W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$f\" | head -1); if [ \"$W\" -gt \"$MAX_W\" ]; then MAX_W=$W; fi; done`,\n      `SINGLE=$(find ${tempDir}/${docPrefix} -maxdepth 1 -name \"${clipGlob}\" ! -name \"*_knit_clip.mp4\" | sort -V | head -1)`,\n      'if [ -n \"$SINGLE\" ]; then CLIP_W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$SINGLE\" | head -1); PAGE_W=$((CLIP_W/2)); if [ \"$PAGE_W\" -gt \"$MAX_W\" ]; then MAX_W=$PAGE_W; fi; else CLIP_W=$MAX_W; fi',\n      'TARGET_W=$MAX_W',\n      `if [ \"$CLIP_W\" -eq \"$TARGET_W\" ]; then ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy ${outputDir}/${docPrefix}${basename}.mp4; elif [ \"$CLIP_W\" -gt \"$TARGET_W\" ]; then X=$(( (CLIP_W - TARGET_W) / 2 )) && ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"crop=\\${TARGET_W}:ih:\\${X}:0\" -c:v libx264 -preset ultrafast -c:a copy -pix_fmt yuv420p ${outputDir}/${docPrefix}${basename}.mp4; else OX=$(( (TARGET_W - CLIP_W) / 2 )) && ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"split[bg][fg];[bg]scale=\\${TARGET_W}:ih,boxblur=20:3[bg_b];[fg][bg_b]overlay=\\${OX}:0\" -c:v libx264 -preset ultrafast -c:a copy -pix_fmt yuv420p ${outputDir}/${docPrefix}${basename}.mp4; fi`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    return ['set -e', `export PATH=${$('Populate Variables').item.json.ffmpegPath}:$PATH`, ...(simple ? simpleCmds : complexCmds)].join(' && ');\n  })() }}"
+              "value": "={{ (() => {\n    const basename = $('Determine Output Basename').item.json.outputBasename;\n    const clipGlob = $('Determine Output Basename').item.json.tempClipGlob;\n    const chaptersFile = $('Determine Output Basename').item.json.chaptersFile;\n    const simple = $('Determine Output Basename').item.json.useSimpleConcat;\n    const docPrefix = simple ? 'sample/' : ($('Set Document Folder').item.json.docFolder + '/');\n    const tempDir = $('Populate Variables').item.json.tempDirRelative;\n    const outputDir = $('Populate Variables').item.json.outputDirRelative;\n    const video = $('Store Video Encoding Configuration').item.json;\n    const deviceArgs = video.ffmpegHardwareDeviceArgs ? video.ffmpegHardwareDeviceArgs + ' ' : '';\n\n    const sortedVoiceIds = $('Aggregate All Timestamps').item.json.pages\n      .map(x => x.data)\n      .filter(d => d.voiceId)\n      .sort((a, b) => (a.voiceId < b.voiceId ? -1 : (a.voiceId > b.voiceId ? 1 : 0)))\n      .map(d => d.voiceId);\n\n    const winningClipLines = (() => {\n      const allPages = $('Aggregate All Timestamps').item.json.pages.map(p => p.data);\n      const byRecency = allPages.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));\n      const claimedIndexes = new Set();\n      const winners = [];\n      for (const page of byRecency) {\n        const coveredIndexes = page.knitPages ? page.knitPages.map(Number) : [Number(page.pageIndex)];\n        if (coveredIndexes.some(index => claimedIndexes.has(index))) continue;\n        coveredIndexes.forEach(index => claimedIndexes.add(index));\n        winners.push(page);\n      }\n      winners.sort((a, b) => Math.min(...(a.knitPages ? a.knitPages.map(Number) : [a.pageIndex])) - Math.min(...(b.knitPages ? b.knitPages.map(Number) : [b.pageIndex])));\n      return winners.map(page => {\n        const base = page.knitPages ? page.knitPages.join('-') + '_knit' : String(page.pageIndex);\n        return `echo \"file '$PWD/${tempDir}/${docPrefix}${base}_clip.mp4'\" >> ${tempDir}/${docPrefix}${basename}_concat_list.txt`;\n      }).join(' && ');\n    })();\n\n    const concatListCheck = `[ -s ${tempDir}/${docPrefix}${basename}_concat_list.txt ] || { echo \"ERROR: concat list ${tempDir}/${docPrefix}${basename}_concat_list.txt is empty, no clips matched\" >&2; exit 1; }`;\n\n    const simpleCmds = [\n      `mkdir -p ${outputDir}`,\n      `: > ${tempDir}/${docPrefix}${basename}_concat_list.txt`,\n      ...sortedVoiceIds.map(id => `echo \"file '$PWD/${tempDir}/${docPrefix}sample_${id}_clip.mp4'\" >> ${tempDir}/${docPrefix}${basename}_concat_list.txt`),\n      concatListCheck,\n      `ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy ${outputDir}/${docPrefix}${basename}.mp4`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    const complexCmds = [\n      `mkdir -p ${tempDir}/${docPrefix} ${outputDir}/${docPrefix}`,\n      `: > ${tempDir}/${docPrefix}${basename}_concat_list.txt && ${winningClipLines}`,\n      concatListCheck,\n      'MAX_W=0',\n      `for f in ${tempDir}/${docPrefix}*_knit_clip.mp4; do [ -f \"$f\" ] || break; W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$f\" | head -1); if [ \"$W\" -gt \"$MAX_W\" ]; then MAX_W=$W; fi; done`,\n      `SINGLE=$(find ${tempDir}/${docPrefix} -maxdepth 1 -name \"${clipGlob}\" ! -name \"*_knit_clip.mp4\" | sort -V | head -1)`,\n      'if [ -n \"$SINGLE\" ]; then CLIP_W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$SINGLE\" | head -1); PAGE_W=$((CLIP_W/2)); if [ \"$PAGE_W\" -gt \"$MAX_W\" ]; then MAX_W=$PAGE_W; fi; else CLIP_W=$MAX_W; fi',\n      'TARGET_W=$MAX_W',\n      `if [ \"$CLIP_W\" -eq \"$TARGET_W\" ]; then ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy ${outputDir}/${docPrefix}${basename}.mp4; elif [ \"$CLIP_W\" -gt \"$TARGET_W\" ]; then X=$(( (CLIP_W - TARGET_W) / 2 )) && ffmpeg -y ${deviceArgs}-f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"crop=\\${TARGET_W}:ih:\\${X}:0${video.ffmpegVideoFilterSuffix}\" ${video.ffmpegFinalVideoEncoderArgs} -c:a copy ${outputDir}/${docPrefix}${basename}.mp4; else OX=$(( (TARGET_W - CLIP_W) / 2 )) && ffmpeg -y ${deviceArgs}-f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"split[bg][fg];[bg]scale=\\${TARGET_W}:ih,boxblur=20:3[bg_b];[fg][bg_b]overlay=\\${OX}:0${video.ffmpegVideoFilterSuffix}\" ${video.ffmpegFinalVideoEncoderArgs} -c:a copy ${outputDir}/${docPrefix}${basename}.mp4; fi`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    return ['set -e', `export PATH=${$('Populate Variables').item.json.ffmpegPath}:$PATH`, ...(simple ? simpleCmds : complexCmds)].join(' && ');\n  })() }}"
             }
           ]
         },
@@ -332,7 +332,7 @@
       ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "8KqonhngaL2L1jox",
+          "id": "dT2rDdHX1TfPrVi1",
           "name": "D2V Webhook Shared Secret"
         }
       }
@@ -356,8 +356,8 @@
     {
       "parameters": {
         "operation": "write",
-        "fileName": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/{{ $binary[Object.keys($binary)[0]].fileName }}",
-        "dataPropertyName": "={{ Object.keys($binary)[0] }}",
+        "fileName": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/{{ $binary[$json.pdfBinaryKey].fileName }}",
+        "dataPropertyName": "={{ $json.pdfBinaryKey }}",
         "options": {}
       },
       "id": "b19e93dc-5348-4514-8de7-cea14d8fa172",
@@ -371,7 +371,7 @@
     },
     {
       "parameters": {
-        "fileSelector": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/{{ $binary[Object.keys($binary)[0]].fileName }}",
+        "fileSelector": "={{ $('Populate Variables').item.json.tempDir }}/{{ $('Set Document Folder').item.json.docFolder }}/{{ $('Set Document Folder').item.json.originalFilename }}",
         "options": {}
       },
       "id": "fd760034-346e-4ce1-a30e-101286b88beb",
@@ -774,7 +774,7 @@
       ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "8KqonhngaL2L1jox",
+          "id": "dT2rDdHX1TfPrVi1",
           "name": "D2V Webhook Shared Secret"
         }
       }
@@ -786,7 +786,7 @@
             {
               "id": "87d8b8eb-bb8a-48da-8237-869892a6ce76",
               "name": "timestampsJson",
-              "value": "={{ JSON.stringify({\n    pageIndex: $('Set Page Number').isExecuted\n      ? $('Set Page Number').item.json.pageNumber\n      : ($('Set Change-Voice Page Number').isExecuted\n          ? $('Set Change-Voice Page Number').item.json.pageNumber\n          : ($('Set Sample Voice Number').isExecuted\n              ? $('Set Sample Voice Number').item.json.voiceIndex\n              : $('Set Knit Page Number').item.json.pageNumber\n            )\n        ),\n    knitPages: $('Set Page Number').isExecuted\n      ? null\n      : ($('Set Change-Voice Page Number').isExecuted\n          ? ($('Set Change-Voice Page Number').item.json.isKnit\n              ? [$('Set Change-Voice Page Number').item.json.pageNumber, $('Set Change-Voice Page Number').item.json.rightPageNumber]\n              : null\n            )\n          : ($('Set Sample Voice Number').isExecuted\n              ? null\n              : [$('Page Knitting Configuration').item.json['⬅️ Left Page Number'], $('Page Knitting Configuration').item.json['Right Page Number ➡️']]\n            )\n        ),\n    voiceId: $('Set Sample Voice Number').isExecuted ? $('Set Sample Voice Number').item.json.voiceId : null,\n    voiceLabel: $('Set Sample Voice Number').isExecuted\n      ? (() => {\n          const id = $('Set Sample Voice Number').item.json.voiceId;\n          const langMap = { a: 'English (US)', b: 'English (UK)', e: 'Spanish', f: 'French', h: 'Hindi', i: 'Italian', j: 'Japanese', p: 'Portuguese (BR)', z: 'Chinese' };\n          const genderMap = { f: 'Female', m: 'Male' };\n          const lang = langMap[id[0]] || id[0];\n          const gender = genderMap[id[1]] || id[1];\n          return $('Set Sample Voice Number').item.json.friendlyName + ' ' + gender + ' ' + lang;\n        })()\n      : null,\n    audioDuration: null,\n    timestamps: $('Request TTS with Timestamps').item.json.timestamps,\n    wordMap: JSON.parse($json.text)\n  }) }}",
+              "value": "={{ JSON.stringify({\n    createdAt: Date.now(),\n    pageIndex: $('Set Page Number').isExecuted\n      ? $('Set Page Number').item.json.pageNumber\n      : ($('Set Change-Voice Page Number').isExecuted\n          ? $('Set Change-Voice Page Number').item.json.pageNumber\n          : ($('Set Sample Voice Number').isExecuted\n              ? $('Set Sample Voice Number').item.json.voiceIndex\n              : $('Set Knit Page Number').item.json.pageNumber\n            )\n        ),\n    knitPages: $('Set Page Number').isExecuted\n      ? null\n      : ($('Set Change-Voice Page Number').isExecuted\n          ? ($('Set Change-Voice Page Number').item.json.isKnit\n              ? [$('Set Change-Voice Page Number').item.json.pageNumber, $('Set Change-Voice Page Number').item.json.rightPageNumber]\n              : null\n            )\n          : ($('Set Sample Voice Number').isExecuted\n              ? null\n              : [$('Page Knitting Configuration').item.json['⬅️ Left Page Number'], $('Page Knitting Configuration').item.json['Right Page Number ➡️']]\n            )\n        ),\n    voiceId: $('Set Sample Voice Number').isExecuted ? $('Set Sample Voice Number').item.json.voiceId : null,\n    voiceLabel: $('Set Sample Voice Number').isExecuted\n      ? (() => {\n          const id = $('Set Sample Voice Number').item.json.voiceId;\n          const langMap = { a: 'English (US)', b: 'English (UK)', e: 'Spanish', f: 'French', h: 'Hindi', i: 'Italian', j: 'Japanese', p: 'Portuguese (BR)', z: 'Chinese' };\n          const genderMap = { f: 'Female', m: 'Male' };\n          const lang = langMap[id[0]] || id[0];\n          const gender = genderMap[id[1]] || id[1];\n          return $('Set Sample Voice Number').item.json.friendlyName + ' ' + gender + ' ' + lang;\n        })()\n      : null,\n    audioDuration: (() => {\n    const base64Audio = $('Request TTS with Timestamps').item.json.audio;\n    const totalBytes = Math.floor(base64Audio.length * 3 / 4);\n    const wavHeaderBytes = 44;\n    const bytesPerSecond = 24000 * 1 * 2; // 24kHz, mono, 16-bit\n    return (totalBytes - wavHeaderBytes) / bytesPerSecond;\n    })(),\n    timestamps: $('Request TTS with Timestamps').item.json.timestamps,\n    wordMap: JSON.parse($json.text)\n  }) }}",
               "type": "string"
             },
             {
@@ -939,13 +939,13 @@
             {
               "id": "7533fc03-f9f5-467a-a7ad-9c8db4565d1f",
               "name": "subtitleChunks",
-              "value": "={{ (() => {\n      function formatSrtTimestamp(seconds) {\n        seconds = Math.max(0, seconds);\n        const hours = String(Math.floor(seconds / 3600)).padStart(2, '0');\n        const minutes = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');\n        const secs = String(Math.floor(seconds % 60)).padStart(2, '0');\n        const ms = String(Math.round((seconds % 1) * 1000)).padStart(3, '0');\n        return hours + ':' + minutes + ':' + secs + ',' + ms;\n      }\n\n      function stripNonAlphanumeric(word) {\n        return word.toLowerCase().replace(/[^a-z0-9]/g, '');\n      }\n\n      function buildNormalizedWordList(wordMap) {\n        const normList = [];\n        for (let origIdx = 0; origIdx < wordMap.length; origIdx++) {\n          const normalizedTokens = wordMap[origIdx].normalized.split(/\\s+/).filter(w => /\\w/.test(w));\n          if (normalizedTokens.length > 0) {\n            for (const token of normalizedTokens) normList.push({ word: token.toLowerCase(), origIdx });\n          } else {\n            normList.push({ word: '', origIdx });\n          }\n        }\n        return normList;\n      }\n\n      function alignTimestampsToOriginalWords(timestamps, normList) {\n        let cursor = 0;\n        return timestamps.map(t => {\n          const cleanedWord = stripNonAlphanumeric(t.word);\n          for (let j = cursor; j < Math.min(cursor + 60, normList.length); j++) {\n            if (stripNonAlphanumeric(normList[j].word) === cleanedWord) {\n              cursor = j + 1;\n              return normList[j].origIdx;\n            }\n          }\n          return normList[Math.min(cursor, normList.length - 1)].origIdx;\n        });\n      }\n\n      function buildSubtitleChunksForPage(page, timeOffset, startIdx) {\n        const timestamps = page.timestamps.filter(t => /\\w/.test(t.word));\n        const pageDuration = page.audioDuration ?? page.timestamps[page.timestamps.length - 1].end_time;\n        const originalWords = page.wordMap.map(w => w.original);\n\n        const normList = buildNormalizedWordList(page.wordMap);\n        const alignedOrigIdx = alignTimestampsToOriginalWords(timestamps, normList);\n\n        const numChunks = Math.max(1, Math.ceil(pageDuration / 4));\n        const wordsPerChunk = Math.ceil(timestamps.length / numChunks);\n\n        const chunks = [];\n        let i = 0, chunkIdx = startIdx;\n        while (i < timestamps.length) {\n          const isLastChunk = i + wordsPerChunk >= timestamps.length;\n          const chunkStart = timestamps[i].start_time;\n          const chunkEnd = isLastChunk ? pageDuration : timestamps[i + wordsPerChunk].start_time;\n          const startOrigIdx = alignedOrigIdx[i];\n          const endOrigIdx = isLastChunk ? originalWords.length - 1 : alignedOrigIdx[Math.min(i + wordsPerChunk - 1, alignedOrigIdx.length - 1)];\n          chunks.push({\n            idx: chunkIdx,\n            start: formatSrtTimestamp(chunkStart + timeOffset),\n            end: formatSrtTimestamp(chunkEnd + timeOffset),\n            text: originalWords.slice(startOrigIdx, endOrigIdx + 1).join(' ')\n          });\n          chunkIdx++;\n          i += wordsPerChunk;\n        }\n        return { chunks, pageDuration };\n      }\n\n      const allPages = $json.pages.map(p => p.data).sort((a, b) => (a.voiceId && b.voiceId) ? (a.voiceId < b.voiceId ? -1 : (a.voiceId > b.voiceId ? 1 : 0)) : (a.pageIndex - b.pageIndex));\n      const knitCovered = new Set(allPages.filter(p => p.knitPages).flatMap(p => p.knitPages));\n      const pages = allPages.filter(p => p.knitPages || !knitCovered.has(p.pageIndex));\n      const allChunks = [];\n      let timeOffset = 0, chunkIdx = 1;\n      for (const page of pages) {\n        const { chunks, pageDuration } = buildSubtitleChunksForPage(page, timeOffset, chunkIdx);\n        allChunks.push(...chunks);\n        chunkIdx += chunks.length;\n        timeOffset += pageDuration;\n      }\n      return allChunks;\n    })() }}",
+              "value": "={{ (() => {\n      function formatSrtTimestamp(seconds) {\n        seconds = Math.max(0, seconds);\n        const hours = String(Math.floor(seconds / 3600)).padStart(2, '0');\n        const minutes = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');\n        const secs = String(Math.floor(seconds % 60)).padStart(2, '0');\n        const ms = String(Math.round((seconds % 1) * 1000)).padStart(3, '0');\n        return hours + ':' + minutes + ':' + secs + ',' + ms;\n      }\n\n      function stripNonAlphanumeric(word) {\n        return word.toLowerCase().replace(/[^a-z0-9]/g, '');\n      }\n\n      function buildNormalizedWordList(wordMap) {\n        const normList = [];\n        for (let origIdx = 0; origIdx < wordMap.length; origIdx++) {\n          const normalizedTokens = wordMap[origIdx].normalized.toLowerCase().match(/[a-z0-9]+(?:'[a-z0-9]+)*/g) || [];\n          for (const token of normalizedTokens) normList.push({ word: token, origIdx });\n        }\n        return normList;\n      }\n\n      function alignTimestampsToOriginalWords(timestamps, normList) {\n        let cursor = 0;\n        let lastOrigIdx = 0;\n\n        return timestamps.map((timestamp, timestampIdx) => {\n          const spokenWord = stripNonAlphanumeric(timestamp.word);\n          const searchEnd = Math.min(cursor + 8, normList.length);\n          let bestPosition = -1;\n          let bestScore = -Infinity;\n\n          for (let position = cursor; position < searchEnd; position++) {\n            if (stripNonAlphanumeric(normList[position].word) !== spokenWord) continue;\n\n            let score = -(position - cursor) * 2;\n            for (let lookahead = 1; lookahead <= 3; lookahead++) {\n              const nextTimestamp = timestamps[timestampIdx + lookahead];\n              const nextNormalized = normList[position + lookahead];\n              if (!nextTimestamp || !nextNormalized) break;\n              if (stripNonAlphanumeric(nextTimestamp.word) === stripNonAlphanumeric(nextNormalized.word)) score += 4 - lookahead;\n            }\n\n            if (score > bestScore) {\n              bestScore = score;\n              bestPosition = position;\n            }\n          }\n\n          const matchedPosition = bestPosition >= 0 ? bestPosition : Math.min(cursor, normList.length - 1);\n          cursor = Math.min(normList.length, matchedPosition + 1);\n          lastOrigIdx = Math.max(lastOrigIdx, normList[matchedPosition].origIdx);\n          return lastOrigIdx;\n        });\n      }\n\n      function buildSubtitleChunksForPage(page, timeOffset, startIdx) {\n        const timestamps = page.timestamps.filter(t => /\\w/.test(t.word));\n        const pageDuration = page.audioDuration ?? page.timestamps[page.timestamps.length - 1].end_time;\n        const originalWords = page.wordMap.map(w => w.original);\n        const normList = buildNormalizedWordList(page.wordMap);\n        const alignedOrigIdx = alignTimestampsToOriginalWords(timestamps, normList);\n\n        const chunks = [];\n        let timestampIdx = 0;\n        let chunkIdx = startIdx;\n\n        while (timestampIdx < timestamps.length) {\n          const chunkStartTimestampIdx = timestampIdx;\n          const startOrigIdx = alignedOrigIdx[chunkStartTimestampIdx];\n          const targetEnd = timestamps[chunkStartTimestampIdx].start_time + 4;\n\n          timestampIdx++;\n          while (\n            timestampIdx < timestamps.length &&\n            (\n              timestamps[timestampIdx].start_time < targetEnd ||\n              alignedOrigIdx[timestampIdx] === alignedOrigIdx[timestampIdx - 1]\n            )\n          ) {\n            timestampIdx++;\n          }\n\n          const isLastChunk = timestampIdx >= timestamps.length;\n          const nextOrigIdx = isLastChunk ? originalWords.length : alignedOrigIdx[timestampIdx];\n          const endOrigIdx = Math.max(startOrigIdx, nextOrigIdx - 1);\n\n          chunks.push({\n            idx: chunkIdx,\n            start: formatSrtTimestamp(timestamps[chunkStartTimestampIdx].start_time + timeOffset),\n            end: formatSrtTimestamp((isLastChunk ? pageDuration : timestamps[timestampIdx].start_time) + timeOffset),\n            text: originalWords.slice(startOrigIdx, endOrigIdx + 1).join(' ')\n          });\n          chunkIdx++;\n        }\n\n        return { chunks, pageDuration };\n      }\n\n      const allPages = $('Aggregate All Timestamps').item.json.pages.map(p => p.data);\n      const sampleOrdered = allPages.every(p => p.voiceId) ? allPages.slice().sort((a, b) => (a.voiceId < b.voiceId ? -1 : (a.voiceId > b.voiceId ? 1 : 0))) : null;\n      const pages = sampleOrdered || (() => {\n        const byRecency = allPages.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));\n        const claimedIndexes = new Set();\n        const winners = [];\n        for (const page of byRecency) {\n          const coveredIndexes = page.knitPages ? page.knitPages.map(Number) : [Number(page.pageIndex)];\n          if (coveredIndexes.some(index => claimedIndexes.has(index))) continue;\n          coveredIndexes.forEach(index => claimedIndexes.add(index));\n          winners.push(page);\n        }\n        return winners.sort((a, b) => Math.min(...(a.knitPages ? a.knitPages.map(Number) : [a.pageIndex])) - Math.min(...(b.knitPages ? b.knitPages.map(Number) : [b.pageIndex])));\n      })();\n      const allChunks = [];\n      let timeOffset = 0, chunkIdx = 1;\n      for (const page of pages) {\n        const { chunks, pageDuration } = buildSubtitleChunksForPage(page, timeOffset, chunkIdx);\n        allChunks.push(...chunks);\n        chunkIdx += chunks.length;\n        timeOffset += pageDuration;\n      }\n      return allChunks;\n    })() }}",
               "type": "array"
             },
             {
               "id": "b49b8042-e188-4a3f-aa09-7799a268fd15",
               "name": "chaptersContent",
-              "value": "={{ (() => {\n      const allPages = $json.pages.map(p => p.data).sort((a, b) => (a.voiceId && b.voiceId) ? (a.voiceId < b.voiceId ? -1 : (a.voiceId > b.voiceId ? 1 : 0)) : (a.pageIndex - b.pageIndex));\n      const knitCovered = new Set(allPages.filter(p => p.knitPages).flatMap(p => p.knitPages.map(Number)));\n      const pages = allPages.filter(p => p.knitPages || !knitCovered.has(Number(p.pageIndex)));\n\n      let meta = ';FFMETADATA1\\n', offset = 0;\n\n      for (const page of pages) {\n        const dur = page.audioDuration ?? page.timestamps[page.timestamps.length - 1].end_time;\n        const title = page.voiceLabel ? page.voiceLabel : (page.knitPages ? `Pages ${page.knitPages[0]} & ${page.knitPages[1]}` : `Page ${page.pageIndex}`);\n        meta += `\\n[CHAPTER]\\nTIMEBASE=1/1000\\nSTART=${Math.round(offset * 1000)}\\nEND=${Math.round((offset + dur) * 1000)}\\ntitle=${title}\\n`;\n        offset += dur;\n      }\n\n      return meta;\n    })() }}",
+              "value": "={{ (() => {\n      const allPages = $('Aggregate All Timestamps').item.json.pages.map(p => p.data);\n      const sampleOrdered = allPages.every(p => p.voiceId) ? allPages.slice().sort((a, b) => (a.voiceId < b.voiceId ? -1 : (a.voiceId > b.voiceId ? 1 : 0))) : null;\n      const pages = sampleOrdered || (() => {\n        const byRecency = allPages.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));\n        const claimedIndexes = new Set();\n        const winners = [];\n        for (const page of byRecency) {\n          const coveredIndexes = page.knitPages ? page.knitPages.map(Number) : [Number(page.pageIndex)];\n          if (coveredIndexes.some(index => claimedIndexes.has(index))) continue;\n          coveredIndexes.forEach(index => claimedIndexes.add(index));\n          winners.push(page);\n        }\n        return winners.sort((a, b) => Math.min(...(a.knitPages ? a.knitPages.map(Number) : [a.pageIndex])) - Math.min(...(b.knitPages ? b.knitPages.map(Number) : [b.pageIndex])));\n      })();\n\n      let meta = ';FFMETADATA1\\n', offset = 0;\n\n      for (const page of pages) {\n        const dur = page.audioDuration ?? page.timestamps[page.timestamps.length - 1].end_time;\n        const title = page.voiceLabel ? page.voiceLabel : (page.knitPages ? `Pages ${page.knitPages[0]} & ${page.knitPages[1]}` : `Page ${page.pageIndex}`);\n        meta += `\\n[CHAPTER]\\nTIMEBASE=1/1000\\nSTART=${Math.round(offset * 1000)}\\nEND=${Math.round((offset + dur) * 1000)}\\ntitle=${title}\\n`;\n        offset += dur;\n      }\n\n      return meta;\n    })() }}",
               "type": "string"
             }
           ]
@@ -1358,7 +1358,7 @@
     {
       "parameters": {
         "defineForm": "json",
-        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"⬅️ Left Page Number\",\n    fieldName: \"⬅️ Left Page Number\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: (() => {\n        const allPages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n        const knitCovered = new Set(allPages.filter(p => p.knitPages).flatMap(p => p.knitPages.map(Number)));\n        const singlePages = allPages.filter(p => !p.knitPages && !knitCovered.has(Number(p.pageIndex)));\n        return singlePages.map(p => ({ option: String(p.pageIndex) }));\n      })()\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"Right Page Number ➡️\",\n    fieldName: \"Right Page Number ➡️\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: (() => {\n        const allPages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n        const knitCovered = new Set(allPages.filter(p => p.knitPages).flatMap(p => p.knitPages.map(Number)));\n        const singlePages = allPages.filter(p => !p.knitPages && !knitCovered.has(Number(p.pageIndex)));\n        return singlePages.map(p => ({ option: String(p.pageIndex) }));\n      })()\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"In what voice?\",\n    fieldName: \"voice\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: $('Fetch Available Voices').item.json.voices.map(v => {\n        const langMap = { a: 'English (US)', b: 'English (UK)', e: 'Spanish', f: 'French', h: 'Hindi', i: 'Italian', j: 'Japanese', p: 'Portuguese (BR)', z: 'Chinese' };\n        const genderMap = { f: 'Female', m: 'Male' };\n        const lang = langMap[v.id[0]] || v.id[0];\n        const gender = genderMap[v.id[1]] || v.id[1];\n        const friendlyName = v.id.split('_')[1][0].toUpperCase() + v.id.split('_')[1].slice(1);\n        return { option: v.id + \" - \" + friendlyName + \" \" + gender + \" \" + lang };\n      })\n    },\n    requiredField: true\n  }\n] }}",
+        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"⬅️ Left Page Number\",\n    fieldName: \"⬅️ Left Page Number\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: (() => {\n        const allPages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n        const singlePages = allPages.filter(p => !p.knitPages);\n        return singlePages.map(p => ({ option: String(p.pageIndex) }));\n      })()\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"Right Page Number ➡️\",\n    fieldName: \"Right Page Number ➡️\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: (() => {\n        const allPages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n        const singlePages = allPages.filter(p => !p.knitPages);\n        return singlePages.map(p => ({ option: String(p.pageIndex) }));\n      })()\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"In what voice?\",\n    fieldName: \"voice\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: $('Fetch Available Voices').item.json.voices.map(v => {\n        const langMap = { a: 'English (US)', b: 'English (UK)', e: 'Spanish', f: 'French', h: 'Hindi', i: 'Italian', j: 'Japanese', p: 'Portuguese (BR)', z: 'Chinese' };\n        const genderMap = { f: 'Female', m: 'Male' };\n        const lang = langMap[v.id[0]] || v.id[0];\n        const gender = genderMap[v.id[1]] || v.id[1];\n        const friendlyName = v.id.split('_')[1][0].toUpperCase() + v.id.split('_')[1].slice(1);\n        return { option: v.id + \" - \" + friendlyName + \" \" + gender + \" \" + lang };\n      })\n    },\n    requiredField: true\n  }\n] }}",
         "options": {}
       },
       "id": "0a341644-cb35-465b-993c-8788c356a6f5",
@@ -1397,7 +1397,7 @@
       ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "8KqonhngaL2L1jox",
+          "id": "dT2rDdHX1TfPrVi1",
           "name": "D2V Webhook Shared Secret"
         }
       }
@@ -1421,12 +1421,12 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/prompt",
+        "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl + '/webhook/' + ($('Set Transcription Engine').item.json.engineKey === 'ollama' ? 'prompt' : $('Set Transcription Engine').item.json.engineKey + '-prompt') }}",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n    model: $('Populate Variables').item.json.ollamaModel,\n    imageBase64: $json.imageBase64,\n    prompt: [\n      \"You are given two consecutive page transcriptions from a document and a combined image showing both pages side by side. Merge them into one transcription following these rules:\",\n      \"1. Assume all transcribed text is completely correct. Do not change, correct, or paraphrase any words.\",\n      \"2. Reorder the text if necessary so it reads naturally across the full double-page spread, left to right, top to bottom, as a reader would experience it.\",\n      \"3. Always place image descriptions at the end of the transcription, including where on the spread the image appears, for example: 'The image in the top left displays...'. Descriptions of charts, graphs, tables, and other visual data should remain where they appear in the reading order.\",\n      \"4. Only rewrite descriptions of images, charts, graphs, or tables that clearly span both pages and can be better described when seen as a whole.\",\n      \"5. If data values on one page lack labels because the legend or column headers appear on the other page, use those labels to identify all unlabeled values across both pages.\",\n      \"6. Preserve all numbers, names, dates, abbreviations, and symbols exactly as written.\",\n      \"7. Return only the merged transcription as plain text, nothing else.\",\n      \"Left page:\",\n      $('Extract Left Page Transcription from File').item.json.text,\n      \"Right page:\",\n      $('Extract Right Page Transcription from File').item.json.text\n    ].join(\"\\n\")\n  }) }}",
+        "jsonBody": "={{ JSON.stringify({\n    model: $('Set Transcription Model').item.json.transcriptionModel,\n    imageBase64: $json.imageBase64,\n    prompt: [\n      \"You are given two consecutive page transcriptions from a document and a combined image showing both pages side by side. Merge them into one transcription following these rules:\",\n      \"1. Assume all transcribed text is completely correct. Do not change, correct, or paraphrase any words.\",\n      \"2. Reorder the text if necessary so it reads naturally across the full double-page spread, left to right, top to bottom, as a reader would experience it.\",\n      \"3. Always place image descriptions at the end of the transcription, including where on the spread the image appears, for example: 'The image in the top left displays...'. Descriptions of charts, graphs, tables, and other visual data should remain where they appear in the reading order.\",\n      \"4. Only rewrite descriptions of images, charts, graphs, or tables that clearly span both pages and can be better described when seen as a whole.\",\n      \"5. If data values on one page lack labels because the legend or column headers appear on the other page, use those labels to identify all unlabeled values across both pages.\",\n      \"6. Preserve all numbers, names, dates, abbreviations, and symbols exactly as written.\",\n      \"7. Return only the merged transcription as plain text, nothing else.\",\n      \"Left page:\",\n      $('Extract Left Page Transcription from File').item.json.text,\n      \"Right page:\",\n      $('Extract Right Page Transcription from File').item.json.text\n    ].join(\"\\n\")\n  }) }}",
         "options": {
           "timeout": 3600000
         }
@@ -1441,7 +1441,7 @@
       ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "8KqonhngaL2L1jox",
+          "id": "dT2rDdHX1TfPrVi1",
           "name": "D2V Webhook Shared Secret"
         }
       }
@@ -1749,29 +1749,6 @@
     },
     {
       "parameters": {
-        "formFields": {
-          "values": [
-            {
-              "fieldLabel": "What phrase should each voice say? Use {voice} where the voice's name should go.",
-              "fieldType": "textarea",
-              "defaultValue": "This is what {voice} sounds like. The North Wind and the Sun were disputing which was the stronger, when a traveler came along wrapped in a warm cloak. They agreed that the one who first succeeded in making the traveler take his cloak off should be considered stronger than the other. Then the North Wind blew as hard as he could, but the more he blew the more closely did the traveler fold his cloak around him; and at last the North Wind gave up the attempt. Then the Sun shone out warmly, and immediately the traveler took off his cloak. And so the North Wind was obliged to confess that the Sun was the stronger of the two."
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "4c3bcc17-f301-4989-b51f-89224ac605d4",
-      "name": "Sample Video Configuration",
-      "webhookId": "e909f839-5893-469e-886a-846e2bd15b55",
-      "type": "n8n-nodes-base.form",
-      "typeVersion": 2.5,
-      "position": [
-        -10144,
-        720
-      ]
-    },
-    {
-      "parameters": {
         "rules": {
           "values": [
             {
@@ -1982,7 +1959,7 @@
     {
       "parameters": {
         "defineForm": "json",
-        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"Which voice should narrate this document by default?\",\n    fieldName: \"voice\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: $('Fetch Available Voices').item.json.voices.map(v => {\n        const langMap = { a: 'English (US)', b: 'English (UK)', e: 'Spanish', f: 'French', h: 'Hindi', i: 'Italian', j: 'Japanese', p: 'Portuguese (BR)', z: 'Chinese' };\n        const genderMap = { f: 'Female', m: 'Male' };\n        const lang = langMap[v.id[0]] || v.id[0];\n        const gender = genderMap[v.id[1]] || v.id[1];\n        const friendlyName = v.id.split('_')[1][0].toUpperCase() + v.id.split('_')[1].slice(1);\n        return { option: v.id + \" - \" + friendlyName + \" \" + gender + \" \" + lang };\n      })\n    },\n    requiredField: true\n  }\n] }}",
+        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"Which voice should narrate this document?\",\n    fieldName: \"voice\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: $('Fetch Available Voices').item.json.voices.map(v => {\n        const langMap = { a: 'English (US)', b: 'English (UK)', e: 'Spanish', f: 'French', h: 'Hindi', i: 'Italian', j: 'Japanese', p: 'Portuguese (BR)', z: 'Chinese' };\n        const genderMap = { f: 'Female', m: 'Male' };\n        const lang = langMap[v.id[0]] || v.id[0];\n        const gender = genderMap[v.id[1]] || v.id[1];\n        const friendlyName = v.id.split('_')[1][0].toUpperCase() + v.id.split('_')[1].slice(1);\n        return { option: v.id + \" - \" + friendlyName + \" \" + gender + \" \" + lang };\n      })\n    },\n    requiredField: true\n  },\n  {\n    fieldLabel: \"Select PDF File\",\n    fieldType: \"file\",\n    multipleFiles: false,\n    acceptFileTypes: \".pdf, .PDF\",\n    requiredField: true\n  }\n] }}",
         "options": {}
       },
       "id": "24b05ae8-fd9a-4ee5-85f6-bf023beaaa2a",
@@ -2219,13 +2196,13 @@
             {
               "id": "ddf-0001",
               "name": "docFolder",
-              "value": "={{ (() => {\n  const raw = $binary[Object.keys($binary)[0]].fileName.replace(/\\.pdf$/i, '');\n  return (raw.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'document');\n})() }}",
+              "value": "={{ (() => {\n  const bin = $('Select PDF File').isExecuted ? $binary : $('Select Default Voice').item.binary;\n  const raw = bin[Object.keys(bin)[0]].fileName.replace(/\\.pdf$/i, '');\n  return (raw.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'document');\n})() }}",
               "type": "string"
             },
             {
               "id": "ddf-0002",
               "name": "originalFilename",
-              "value": "={{ $binary[Object.keys($binary)[0]].fileName }}",
+              "value": "={{ (() => {\n  const bin = $('Select PDF File').isExecuted ? $binary : $('Select Default Voice').item.binary;\n  return bin[Object.keys(bin)[0]].fileName;\n})() }}",
               "type": "string"
             }
           ]
@@ -2379,7 +2356,7 @@
           "conditions": [
             {
               "id": "adf-0001",
-              "leftValue": "={{ $json.documents.filter(d => d.doc && d.doc.docFolder).length }}",
+              "leftValue": "={{ $('Aggregate Document List').item.json.documents.filter(d => d.doc && d.doc.docFolder).length }}",
               "rightValue": 0,
               "operator": {
                 "type": "number",
@@ -2421,34 +2398,18 @@
     },
     {
       "parameters": {
-        "defineForm": "json",
-        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"Which document do you want to work on?\",\n    fieldName: \"document\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: $json.documents.filter(d => d.doc && d.doc.docFolder).map(d => ({ option: d.doc.originalFilename }))\n    },\n    requiredField: true\n  }\n] }}",
-        "options": {}
-      },
-      "id": "73a4bc13-9343-41ee-9d43-c43dd4609767",
-      "name": "Select Document",
-      "webhookId": "e6f27de5-2df2-49a1-849c-198f3b46cb45",
-      "type": "n8n-nodes-base.form",
-      "typeVersion": 2.5,
-      "position": [
-        -9552,
-        -48
-      ]
-    },
-    {
-      "parameters": {
         "assignments": {
           "assignments": [
             {
               "id": "psd-0001",
               "name": "docFolder",
-              "value": "={{ (() => {\n  const raw = $json.document.replace(/\\.pdf$/i, '');\n  return (raw.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'document');\n})() }}",
+              "value": "={{ (() => {\n  const raw = $('Select Mode').item.json.document.replace(/\\.pdf$/i, '');\n  return (raw.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'document');\n})() }}",
               "type": "string"
             },
             {
               "id": "psd-0002",
               "name": "originalFilename",
-              "value": "={{ $json.document }}",
+              "value": "={{ $('Select Mode').item.json.document }}",
               "type": "string"
             }
           ]
@@ -2638,7 +2599,7 @@
     {
       "parameters": {
         "defineForm": "json",
-        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"Select Mode\",\n    fieldName: \"Select Mode\",\n    fieldType: \"radio\",\n    fieldOptions: {\n      values: [\n        { option: $('Populate Variables').item.json.modeNewConversion },\n        { option: $('Populate Variables').item.json.modeContinue },\n        { option: $('Populate Variables').item.json.modeKnit },\n        { option: $('Populate Variables').item.json.modeChangeVoice },\n        { option: $('Populate Variables').item.json.modeSample }\n      ]\n    },\n    requiredField: true\n  }\n] }}",
+        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"Which engine and model should transcribe document pages?\",\n    fieldName: \"engineModel\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: (() => {\n        const opts = [];\n        const ollama = $('Fetch Ollama Models').isExecuted ? $('Fetch Ollama Models').item.json : null;\n        if (ollama && ollama.models && ollama.models.length) {\n          ollama.models.forEach(m => opts.push({ option: \"🦙 Local Gemma (Ollama) - \" + m }));\n        }\n        const claude = $('Fetch Claude Models').isExecuted ? $('Fetch Claude Models').item.json : null;\n        const claudeReleases = (claude && claude.result && claude.result.releases) ? claude.result.releases.filter(x => x.isMaintained).map(x => x.name) : null;\n        if (claudeReleases && claudeReleases.length) {\n          claudeReleases.forEach(m => opts.push({ option: \"🟣 Claude Code - \" + m }));\n        }\n        const codex = $('Fetch Codex Models').isExecuted ? $('Fetch Codex Models').item.json : null;\n        if (codex && codex.models && codex.models.length) {\n          codex.models.forEach(m => opts.push({ option: \"⚪ OpenAI Codex - \" + m }));\n        }\n        return opts;\n      })()\n    },\n    requiredField: true,\n    defaultValue: ($('Carry Forward Previous Answers').isExecuted ? $('Carry Forward Previous Answers').item.json.prevEngineModel : undefined)\n  },\n  {\n    fieldLabel: \"Select Mode\",\n    fieldName: \"Select Mode\",\n    fieldType: \"radio\",\n    fieldOptions: {\n      values: [\n        { option: $('Populate Variables').item.json.modeNewConversion },\n        { option: $('Populate Variables').item.json.modeContinue },\n        { option: $('Populate Variables').item.json.modeKnit },\n        { option: $('Populate Variables').item.json.modeChangeVoice },\n        { option: $('Populate Variables').item.json.modeSample }\n      ]\n    },\n    requiredField: true,\n    defaultValue: ($('Carry Forward Previous Answers').isExecuted ? $('Carry Forward Previous Answers').item.json.prevMode : undefined)\n  },\n  {\n    fieldLabel: \"🔁🧶🎙️ Which document? (Continue, Knit, Change Voice only)\",\n    fieldName: \"document\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: $('Aggregate Document List').item.json.documents.filter(d => d.doc && d.doc.docFolder).map(d => ({ option: d.doc.originalFilename }))\n    },\n    defaultValue: ($('Carry Forward Previous Answers').isExecuted ? $('Carry Forward Previous Answers').item.json.prevDocument : undefined)\n  },\n  {\n    fieldLabel: \"🔊 Sample Video only: phrase for the voice to say\",\n    fieldName: \"samplePhrase\",\n    fieldType: \"textarea\",\n    defaultValue: ($('Carry Forward Previous Answers').isExecuted ? $('Carry Forward Previous Answers').item.json.prevSamplePhrase : \"This is what {voice} sounds like. The North Wind and the Sun were disputing which was the stronger, when a traveler came along wrapped in a warm cloak. They agreed that the one who first succeeded in making the traveler take his cloak off should be considered stronger than the other. Then the North Wind blew as hard as he could, but the more he blew the more closely did the traveler fold his cloak around him; and at last the North Wind gave up the attempt. Then the Sun shone out warmly, and immediately the traveler took off his cloak. And so the North Wind was obliged to confess that the Sun was the stronger of the two.\")\n  }\n] }}",
         "options": {}
       },
       "id": "acce9165-d58d-4f15-9ea4-1b95bf19e3b1",
@@ -2679,7 +2640,7 @@
       ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "8KqonhngaL2L1jox",
+          "id": "dT2rDdHX1TfPrVi1",
           "name": "D2V Webhook Shared Secret"
         }
       }
@@ -2727,7 +2688,7 @@
       ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "8KqonhngaL2L1jox",
+          "id": "dT2rDdHX1TfPrVi1",
           "name": "D2V Webhook Shared Secret"
         }
       }
@@ -2879,7 +2840,7 @@
             {
               "id": "eptk-0001",
               "leftValue": "true",
-              "rightValue": "={{ (() => {\n  const allPages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n  const knitCovered = new Set(allPages.filter(p => p.knitPages).flatMap(p => p.knitPages.map(Number)));\n  const singlePages = allPages.filter(p => !p.knitPages && !knitCovered.has(Number(p.pageIndex)));\n  return (singlePages.length >= 2).toString();\n})() }}",
+              "rightValue": "={{ (() => {\n  const allPages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n  const singlePages = allPages.filter(p => !p.knitPages);\n  return (singlePages.length >= 2).toString();\n})() }}",
               "operator": {
                 "type": "string",
                 "operation": "equals"
@@ -2905,7 +2866,7 @@
           "values": []
         },
         "options": {
-          "formDescription": "={{ (() => {\n  const allPages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n  const knitCovered = new Set(allPages.filter(p => p.knitPages).flatMap(p => p.knitPages.map(Number)));\n  const singlePages = allPages.filter(p => !p.knitPages && !knitCovered.has(Number(p.pageIndex)));\n  const docName = $('Set Document Folder').isExecuted ? $('Set Document Folder').item.json.docFolder : \"This document\";\n  return \"\\\"\" + docName + \"\\\" only has \" + singlePages.length + \" page\" + (singlePages.length === 1 ? \"\" : \"s\") + \" available to knit, at least 2 are needed. Please convert more pages first, then come back. Click Submit to return to the main menu.\";\n})() }}"
+          "formDescription": "={{ (() => {\n  const allPages = $json.pages.map(p => p.data).sort((a, b) => a.pageIndex - b.pageIndex);\n  const singlePages = allPages.filter(p => !p.knitPages);\n  const docName = $('Set Document Folder').isExecuted ? $('Set Document Folder').item.json.docFolder : \"This document\";\n  return \"\\\"\" + docName + \"\\\" only has \" + singlePages.length + \" page\" + (singlePages.length === 1 ? \"\" : \"s\") + \" available to knit, at least 2 are needed. Please convert more pages first, then come back. Click Submit to return to the main menu.\";\n})() }}"
         }
       },
       "id": "error-not-enough-pages-to-knit",
@@ -2947,7 +2908,7 @@
       ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "8KqonhngaL2L1jox",
+          "id": "dT2rDdHX1TfPrVi1",
           "name": "D2V Webhook Shared Secret"
         }
       }
@@ -3004,7 +2965,7 @@
       ],
       "credentials": {
         "httpHeaderAuth": {
-          "id": "8KqonhngaL2L1jox",
+          "id": "dT2rDdHX1TfPrVi1",
           "name": "D2V Webhook Shared Secret"
         }
       }
@@ -3452,7 +3413,7 @@
             {
               "id": "6ad12437-104a-4061-a88c-c80bcfc46e60",
               "name": "text",
-              "value": "={{ $('Sample Video Configuration').item.json[\"What phrase should each voice say? Use {voice} where the voice's name should go.\"].replace('{voice}', $json.id.split('_')[1][0].toUpperCase() + $json.id.split('_')[1].slice(1)) }}",
+              "value": "={{ $('Select Mode').item.json.samplePhrase.replace('{voice}', $json.id.split('_')[1][0].toUpperCase() + $json.id.split('_')[1].slice(1)) }}",
               "type": "string"
             },
             {
@@ -3657,6 +3618,578 @@
         -11696,
         1472
       ]
+    },
+    {
+      "id": "d0691af2-9098-4bec-b7aa-e632e7d88be1",
+      "name": "Set Transcription Engine",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -10336,
+        -32
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "te-1",
+              "name": "engine",
+              "value": "={{ $('Select Mode').item.json.engineModel.split(' - ')[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "te-2",
+              "name": "engineKey",
+              "value": "={{ $('Select Mode').item.json.engineModel.includes('Ollama') ? 'ollama' : ($('Select Mode').item.json.engineModel.includes('Claude') ? 'claude' : 'codex') }}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "09530317-db43-4a1e-8f68-1e4abf8fc804",
+      "name": "Fetch Ollama Models",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -9888,
+        -112
+      ],
+      "parameters": {
+        "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/ollama-models",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dT2rDdHX1TfPrVi1",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
+    },
+    {
+      "id": "e4288a06-9f3d-4fed-b887-d06d523c4029",
+      "name": "Set Transcription Model",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -9216,
+        -32
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "stm-1",
+              "name": "transcriptionModel",
+              "value": "={{ $('Select Mode').item.json.engineModel.split(' - ').slice(1).join(' - ') }}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "342db9c8-3fc8-46f6-9101-4eed9608a5a0",
+      "name": "Fetch Claude Models",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -9888,
+        -272
+      ],
+      "parameters": {
+        "url": "https://endoflife.date/api/v1/products/claude/",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "725b3b26-b5cb-4b6e-88c4-6fa2fe0e4a55",
+      "name": "Fetch Codex Models",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -9888,
+        -32
+      ],
+      "parameters": {
+        "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/codex-models",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "onError": "continueRegularOutput",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dT2rDdHX1TfPrVi1",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
+    },
+    {
+      "id": "6b205559-ae2e-4afb-8066-f12e5af481ff",
+      "name": "Detect Video Encoder Support",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -11568,
+        -288
+      ],
+      "parameters": {
+        "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/clip",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "command",
+              "value": "={{ 'export PATH=' + $('Populate Variables').item.json.ffmpegPath + ':$PATH; ( [ -c /dev/dri/renderD128 ] && ffmpeg -hide_banner -loglevel error -y -vaapi_device /dev/dri/renderD128 -f lavfi -i color=black:s=64x64:d=0.05 -vf format=nv12,hwupload -frames:v 1 -c:v h264_vaapi -f null - ) >/dev/null 2>&1 && printf \"vaapi=available\\\\n\" || printf \"vaapi=unavailable\\\\n\"; ffmpeg -hide_banner -loglevel error -y -f lavfi -i color=black:s=64x64:d=0.05 -frames:v 1 -c:v h264_videotoolbox -f null - >/dev/null 2>&1 && printf \"videotoolbox=available\\\\n\" || printf \"videotoolbox=unavailable\\\\n\"' }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dT2rDdHX1TfPrVi1",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
+    },
+    {
+      "id": "57e3bebe-7be4-41db-a534-974d7c39ac2d",
+      "name": "Route Video Encoder",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -11344,
+        -288
+      ],
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "encoder-vaapi-capability",
+                    "leftValue": "={{ $json.stdout.includes('vaapi=available') }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "VA-API"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "encoder-videotoolbox-capability",
+                    "leftValue": "={{ $json.stdout.includes('videotoolbox=available') }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "VideoToolbox"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Software"
+        }
+      }
+    },
+    {
+      "id": "63881f19-7ff1-4921-8e5a-e1ee7094189d",
+      "name": "Configure VA-API Encoding",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -11120,
+        -448
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "vaapi-backend",
+              "name": "videoEncoderBackend",
+              "value": "vaapi",
+              "type": "string"
+            },
+            {
+              "id": "vaapi-device",
+              "name": "ffmpegHardwareDeviceArgs",
+              "value": "-vaapi_device /dev/dri/renderD128",
+              "type": "string"
+            },
+            {
+              "id": "vaapi-filter",
+              "name": "ffmpegVideoFilterSuffix",
+              "value": ",format=nv12,hwupload",
+              "type": "string"
+            },
+            {
+              "id": "vaapi-clip",
+              "name": "ffmpegVideoEncoderArgs",
+              "value": "-c:v h264_vaapi -profile:v high -qp 24",
+              "type": "string"
+            },
+            {
+              "id": "vaapi-final",
+              "name": "ffmpegFinalVideoEncoderArgs",
+              "value": "-c:v h264_vaapi -profile:v high -qp 24",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "459f2bf0-35b3-4189-af66-6ebc16c8f205",
+      "name": "Configure VideoToolbox Encoding",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -11120,
+        -288
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "videotoolbox-backend",
+              "name": "videoEncoderBackend",
+              "value": "videotoolbox",
+              "type": "string"
+            },
+            {
+              "id": "videotoolbox-device",
+              "name": "ffmpegHardwareDeviceArgs",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "videotoolbox-filter",
+              "name": "ffmpegVideoFilterSuffix",
+              "value": ",format=yuv420p",
+              "type": "string"
+            },
+            {
+              "id": "videotoolbox-clip",
+              "name": "ffmpegVideoEncoderArgs",
+              "value": "-c:v h264_videotoolbox -profile:v high -q:v 65",
+              "type": "string"
+            },
+            {
+              "id": "videotoolbox-final",
+              "name": "ffmpegFinalVideoEncoderArgs",
+              "value": "-c:v h264_videotoolbox -profile:v high -q:v 65",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "66dfebb0-e576-404b-baa6-7028b63802e8",
+      "name": "Configure Software Encoding",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -11120,
+        -128
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "software-backend",
+              "name": "videoEncoderBackend",
+              "value": "software",
+              "type": "string"
+            },
+            {
+              "id": "software-device",
+              "name": "ffmpegHardwareDeviceArgs",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "software-filter",
+              "name": "ffmpegVideoFilterSuffix",
+              "value": ",format=yuv420p",
+              "type": "string"
+            },
+            {
+              "id": "software-clip",
+              "name": "ffmpegVideoEncoderArgs",
+              "value": "-c:v libx264 -tune stillimage",
+              "type": "string"
+            },
+            {
+              "id": "software-final",
+              "name": "ffmpegFinalVideoEncoderArgs",
+              "value": "-c:v libx264 -preset ultrafast",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "a384ed17-49c2-4da2-8309-4f3ffc45c949",
+      "name": "Store Video Encoding Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -10896,
+        -288
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "selected-encoder-backend",
+              "name": "videoEncoderBackend",
+              "value": "={{ $json.videoEncoderBackend }}",
+              "type": "string"
+            },
+            {
+              "id": "selected-encoder-device",
+              "name": "ffmpegHardwareDeviceArgs",
+              "value": "={{ $json.ffmpegHardwareDeviceArgs }}",
+              "type": "string"
+            },
+            {
+              "id": "selected-encoder-filter",
+              "name": "ffmpegVideoFilterSuffix",
+              "value": "={{ $json.ffmpegVideoFilterSuffix }}",
+              "type": "string"
+            },
+            {
+              "id": "selected-encoder-clip",
+              "name": "ffmpegVideoEncoderArgs",
+              "value": "={{ $json.ffmpegVideoEncoderArgs }}",
+              "type": "string"
+            },
+            {
+              "id": "selected-encoder-final",
+              "name": "ffmpegFinalVideoEncoderArgs",
+              "value": "={{ $json.ffmpegFinalVideoEncoderArgs }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "35ee5d6a-4c8f-4921-ace6-bad64c2de7ec",
+      "name": "Document Required For This Mode?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -10672,
+        96
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "drftm-0001",
+              "leftValue": "={{ [$('Populate Variables').item.json.modeContinue, $('Populate Variables').item.json.modeKnit, $('Populate Variables').item.json.modeChangeVoice].includes($('Select Mode').item.json['Select Mode']) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "drftm-0002",
+              "leftValue": "={{ !$('Select Mode').item.json.document }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "1eff5ca9-c147-4540-a9b4-3204d81aaa37",
+      "name": "Error Message [\"Document Required\"]",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        -9552,
+        450
+      ],
+      "parameters": {
+        "formFields": {
+          "values": []
+        },
+        "options": {
+          "formDescription": "Please select a document to continue. Click Submit below to go back and choose one."
+        }
+      },
+      "webhookId": "d861e662-2ea0-4d6f-8360-19782fb6376e"
+    },
+    {
+      "id": "afebf543-896e-4d0d-9b55-28bc671674e3",
+      "name": "Carry Forward Previous Answers",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -10500,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cfpa-1",
+              "name": "prevEngineModel",
+              "value": "={{ $('Select Mode').item.json.engineModel }}",
+              "type": "string"
+            },
+            {
+              "id": "cfpa-2",
+              "name": "prevMode",
+              "value": "={{ $('Select Mode').item.json['Select Mode'] }}",
+              "type": "string"
+            },
+            {
+              "id": "cfpa-3",
+              "name": "prevDocument",
+              "value": "={{ $('Select Mode').item.json.document }}",
+              "type": "string"
+            },
+            {
+              "id": "cfpa-4",
+              "name": "prevSamplePhrase",
+              "value": "={{ $('Select Mode').item.json.samplePhrase }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "6451f073-e748-4a53-a1ea-df5c76190b83",
+      "name": "Preserve PDF Binary",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -8944,
+        832
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ppb-0001",
+              "name": "pdfBinaryKey",
+              "value": "={{ Object.keys($binary)[0] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "6724ea5c-9848-40ec-9634-d0403604fad0",
+      "name": "Merge PDF Binary Before Save",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -10976,
+        832
+      ],
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      }
     }
   ],
   "pinData": {},
@@ -4513,28 +5046,28 @@
         ],
         [
           {
-            "node": "List Document Folders",
+            "node": "Parse Selected Document",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "List Document Folders",
+            "node": "Parse Selected Document",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "List Document Folders",
+            "node": "Parse Selected Document",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Sample Video Configuration",
+            "node": "Ensure Sample Folder Exists",
             "type": "main",
             "index": 0
           }
@@ -4546,17 +5079,6 @@
         [
           {
             "node": "Voice-Fetch Mode Router",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Sample Video Configuration": {
-      "main": [
-        [
-          {
-            "node": "Ensure Sample Folder Exists",
             "type": "main",
             "index": 0
           }
@@ -4664,6 +5186,11 @@
             "node": "Set Default Voice",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Preserve PDF Binary",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -4690,33 +5217,11 @@
         ]
       ]
     },
-    "Save Default Voice to Disk": {
-      "main": [
-        [
-          {
-            "node": "Select PDF File",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Read Default Voice": {
       "main": [
         [
           {
             "node": "Extract Default Voice",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Extract Default Voice": {
-      "main": [
-        [
-          {
-            "node": "Select Mode Router",
             "type": "main",
             "index": 0
           }
@@ -4805,22 +5310,11 @@
         ]
       ]
     },
-    "Aggregate Document List": {
-      "main": [
-        [
-          {
-            "node": "Any Documents Found?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Any Documents Found?": {
       "main": [
         [
           {
-            "node": "Select Document",
+            "node": "Error Message [\"Document Required\"]",
             "type": "main",
             "index": 0
           }
@@ -4828,28 +5322,6 @@
         [
           {
             "node": "Error Message [\"No Documents Found\"]",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Error Message [\"No Documents Found\"]": {
-      "main": [
-        [
-          {
-            "node": "List Document Folders",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Select Document": {
-      "main": [
-        [
-          {
-            "node": "Parse Selected Document",
             "type": "main",
             "index": 0
           }
@@ -5001,12 +5473,12 @@
       "main": [
         [
           {
-            "node": "Save PDF File to Disk",
+            "node": "Build Document Meta JSON",
             "type": "main",
             "index": 0
           },
           {
-            "node": "Build Document Meta JSON",
+            "node": "Merge PDF Binary Before Save",
             "type": "main",
             "index": 0
           }
@@ -5127,17 +5599,6 @@
         [
           {
             "node": "Ensure Base Folders Exist",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Ensure Base Folders Exist": {
-      "main": [
-        [
-          {
-            "node": "Select Mode",
             "type": "main",
             "index": 0
           }
@@ -5365,6 +5826,258 @@
           }
         ]
       ]
+    },
+    "Ensure Base Folders Exist": {
+      "main": [
+        [
+          {
+            "node": "Detect Video Encoder Support",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detect Video Encoder Support": {
+      "main": [
+        [
+          {
+            "node": "Route Video Encoder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Video Encoder": {
+      "main": [
+        [
+          {
+            "node": "Configure VA-API Encoding",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Configure VideoToolbox Encoding",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Configure Software Encoding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configure VA-API Encoding": {
+      "main": [
+        [
+          {
+            "node": "Store Video Encoding Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configure VideoToolbox Encoding": {
+      "main": [
+        [
+          {
+            "node": "Store Video Encoding Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configure Software Encoding": {
+      "main": [
+        [
+          {
+            "node": "Store Video Encoding Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Default Voice": {
+      "main": [
+        [
+          {
+            "node": "Set Transcription Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Transcription Engine": {
+      "main": [
+        [
+          {
+            "node": "Set Transcription Model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Transcription Model": {
+      "main": [
+        [
+          {
+            "node": "Document Required For This Mode?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Document Required For This Mode?": {
+      "main": [
+        [
+          {
+            "node": "Any Documents Found?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Select Mode Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Message [\"No Documents Found\"]": {
+      "main": [
+        [
+          {
+            "node": "Select Mode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Video Encoding Configuration": {
+      "main": [
+        [
+          {
+            "node": "Fetch Ollama Models",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Ollama Models": {
+      "main": [
+        [
+          {
+            "node": "Fetch Claude Models",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Claude Models": {
+      "main": [
+        [
+          {
+            "node": "Fetch Codex Models",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Codex Models": {
+      "main": [
+        [
+          {
+            "node": "List Document Folders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Document List": {
+      "main": [
+        [
+          {
+            "node": "Select Mode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Default Voice to Disk": {
+      "main": [
+        [
+          {
+            "node": "Derive Document Folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Message [\"Document Required\"]": {
+      "main": [
+        [
+          {
+            "node": "Carry Forward Previous Answers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Carry Forward Previous Answers": {
+      "main": [
+        [
+          {
+            "node": "Select Mode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preserve PDF Binary": {
+      "main": [
+        [
+          {
+            "node": "Merge PDF Binary Before Save",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge PDF Binary Before Save": {
+      "main": [
+        [
+          {
+            "node": "Save PDF File to Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -5374,142 +6087,124 @@
     "timeSavedMode": "fixed",
     "timezone": "Europe/Stockholm",
     "callerPolicy": "workflowsFromSameOwner",
-    "availableInMCP": false,
+    "availableInMCP": true,
     "saveExecutionProgress": true
   },
-  "versionId": "849aeb6c-16b7-4809-832c-30d8e76ee743",
+  "versionId": "a1c5ac60-88b5-4321-bcee-19eced5f33b9",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "0d58a7a3f156139856be42466a14e05f00173514ac9794a8494b09c53ea173a0"
+    "instanceId": "0d58a7a3f156139856be42466a14e05f00173514ac9794a8494b09c53ea173a0",
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp"
   },
   "nodeGroups": [
     {
-      "id": "2536f858-6d97-4370-869b-a81760a29144",
-      "name": "Setup & Mode Selection",
-      "nodeIds": [
-        "d1074198-3c0d-46ef-8386-d0d8a50e71f4",
-        "cd6e8ae5-1894-47e9-a22c-72ecf2eae0d8",
-        "4fb342a8-6e48-4afd-a09f-739cf85a7d07"
-      ]
-    },
-    {
-      "id": "8e605308-ff3d-4eb8-994e-d57b9f1884d2",
-      "name": "Default Voice Setup",
-      "nodeIds": [
-        "24b05ae8-fd9a-4ee5-85f6-bf023beaaa2a",
-        "ccb99f79-1578-477d-93dc-a9d6ab78febd",
-        "f423e9c8-3abd-43df-a0a2-33023df7ce79",
-        "0c692900-a64b-4a84-aeba-437bea824d5b"
-      ]
-    },
-    {
       "id": "7f1af08c-ed64-4b89-97b0-e5b89d398384",
       "name": "Document Picker",
-      "nodeIds": [
-        "4111729b-35c2-44dd-9859-0deaa165ef1d",
-        "734c2b6d-f299-408a-be07-8bae061bcdb8",
-        "525340d7-fcd6-45e5-bf7e-5504e89b4d1c"
+      "nodeNames": [
+        "Extract Document Meta List",
+        "Parse Document Meta Item",
+        "Aggregate Document List"
       ]
     },
     {
       "id": "a0a16b29-a03f-463e-b853-a4fc11a41a55",
       "name": "Document Folder Setup",
-      "nodeIds": [
-        "b4bdb253-3ff9-4172-a060-a8406a61500d",
-        "fef73ddb-2548-4a3b-a9b6-06a59065a841",
-        "110186cf-3ed6-4512-b27e-b79f403cf7d3"
+      "nodeNames": [
+        "Build Document Meta JSON",
+        "Convert Document Meta to File",
+        "Save Document Meta to Disk"
       ]
     },
     {
       "id": "35799d9f-5588-44b8-8556-0bf238dd9a4e",
       "name": "New Conversion - PDF Upload & Page Extraction",
-      "nodeIds": [
-        "a6c61e91-f96d-42ae-9ee8-145f77258e41",
-        "c0aba882-7fa6-46e7-a7e2-e3cb421f4c95",
-        "5dd1bf69-114c-48c6-8c86-3e53422b476c"
+      "nodeNames": [
+        "Extract Images from PDF",
+        "Unzip Images",
+        "Send Images One by One"
       ]
     },
     {
       "id": "3aff9f6c-a739-4079-a257-dd74f2abde95",
       "name": "Transcript Normalization & Word Map",
-      "nodeIds": [
-        "0e5f6212-20e6-4acb-961e-ed28a51afdd6",
-        "5f6fa4e9-18da-4512-b1f2-93376fdab3a0",
-        "837a24a3-e583-4fbe-8e1a-5b17ae35e099",
-        "96280d0d-3829-42a5-8322-a6ad126e24eb",
-        "d8a9e5a9-de94-46a6-8eec-0ade0f39b774",
-        "5ff896cf-3123-4e77-8278-b2755807fa97",
-        "9ac766e8-fef2-462f-9834-d27e5d4dc1a2"
+      "nodeNames": [
+        "Request Transcript Normalization",
+        "Assemble Normalized Text and Configure Word Map",
+        "Convert Normalized Transcription to Text File",
+        "Convert Word Map to File",
+        "Save Word Map to Disk",
+        "Set Doc Prefix",
+        "Create Normalized Temporary Text File on Disk"
       ]
     },
     {
       "id": "698472ee-8313-41a8-9fb5-42bff875238c",
       "name": "TTS & Clip Assembly",
-      "nodeIds": [
-        "0e416aa8-3241-4e14-8bce-4d9dc133d91d",
-        "e88f9b03-a71a-4b8e-9b24-bf1612abcdcf",
-        "d5a067ce-d69a-40a0-a872-b631a2f5fbf7",
-        "2d844c92-584d-498e-b943-70c9ce934f51",
-        "8f0d9b8e-22a5-4498-ab7c-653655b23891",
-        "6af65ae0-d648-4f2a-9536-e6ad53759884",
-        "7fb9918c-40ba-4776-b5f4-ba7ebb09277d",
-        "0a861c0e-859b-4849-a6e6-efc437699497",
-        "0a85c2c1-4ed6-4fd9-9e1f-a2b9ea0b8eae"
+      "nodeNames": [
+        "Request TTS with Timestamps",
+        "Convert Base64 to Audio File",
+        "Read Word Map from Disk",
+        "Create Temporary Audio File on Disk",
+        "Extract Word Map from File",
+        "Add Page Index to Audio Timestamps",
+        "Convert Timestamps to File",
+        "Save Timestamps to Disk",
+        "Merge Audio File & Timestamps"
       ]
     },
     {
       "id": "6ca7c2de-8c88-4b4a-893c-1bf4ed51088e",
       "name": "Knit Mode",
-      "nodeIds": [
-        "0a341644-cb35-465b-993c-8788c356a6f5",
-        "8764539e-e318-4e17-bfc1-9adadaf03f0a",
-        "f774a94d-d2d3-4dab-bd16-6c43c7bcf1d0",
-        "4bf3a017-2bd3-46dd-bea9-3bc68a923659",
-        "34033c1e-8ea6-406c-8692-559a8ee14094",
-        "b55dd822-6a36-4db9-9e57-7fe232d0350e",
-        "ac49d3de-3c4e-4b43-b351-09d0ac385243",
-        "be697eda-9a3f-4f77-864b-da5c58ca73cf",
-        "33d02734-00b9-4a71-93ec-1df5cb30a777",
-        "25a8edf8-7ad9-41e6-991c-855997c3defc",
-        "46692609-688b-4f3b-88b6-0daaa14b1d96",
-        "04378658-7dab-42e4-9676-2fdfe547673d",
-        "d65954a8-d998-4d57-9556-dcaa657ec252",
-        "28cdd014-aeff-4fff-aeb6-b71c21a9d420",
-        "63b7c043-b1f3-4021-801c-4909dda61d4b",
-        "64ab376b-6958-44a3-96ba-983eefe7b767"
+      "nodeNames": [
+        "Page Knitting Configuration",
+        "Knit Images",
+        "Check if Knitted Transcription Exists",
+        "Knitted Transcription Done Already",
+        "Read Left Page Transcription from Disk",
+        "Extract Left Page Transcription from File",
+        "Read Right Page Transcription from Disk",
+        "Extract Right Page Transcription from File",
+        "Read Knitted Image from Disk",
+        "Extract Knitted Image to Base64",
+        "Knit Transcriptions",
+        "Convert Knitted Transcription to Text File",
+        "Create Temporary Knitted Text File on Disk",
+        "Read Temporary Knitted Text File from Disk",
+        "Extract Knitted Transcription from Text File",
+        "Set Knit Page Number"
       ]
     },
     {
       "id": "81e2464d-7509-42ce-aa19-173e35d0816b",
       "name": "Voice Fetching & Sample Setup",
-      "nodeIds": [
-        "4c3bcc17-f301-4989-b51f-89224ac605d4",
-        "996a93e7-6dd0-469c-8ecb-d0cd23bf7ddf"
+      "nodeNames": [
+        "Ensure Sample Folder Exists"
       ]
     },
     {
       "id": "72a96016-e7c7-4fb4-b07e-2f056a08d175",
       "name": "Finalization & Video Assembly",
-      "nodeIds": [
-        "511103b3-8179-475c-a0a7-8a856f1c8dd7",
-        "ec91e12f-1e66-46df-8ed2-f77195e93742",
-        "a5b82290-809d-415f-83b7-cdbb34575e7a",
-        "8de182f8-3454-4498-a737-47ab2ecabf38",
-        "5932d857-856b-4307-a922-eae4f4a9b499",
-        "43a9add9-c4e6-41f8-8a1e-41ae735171a2",
-        "46c88e05-2bfd-4c0b-9ec8-dc9c841fc635",
-        "a1aa3900-7c65-4216-9b0b-e6965f3dc6e5"
+      "nodeNames": [
+        "Generate Subtitle File and Video Chapters",
+        "Generate Final Subtitles",
+        "Convert Chapters to File",
+        "Convert Subtitles to File",
+        "Save Chapters to Disk",
+        "Save Subtitles to Disk",
+        "Merge Subtitles & Chapters",
+        "Request Final Video Assembly"
       ]
     },
     {
       "id": "311c12d8-e681-42f7-9543-ac9981d09ee8",
       "name": "Change Voice Mode",
-      "nodeIds": [
-        "99c165d5-b8a7-4517-902f-cd7439b3dd29",
-        "needs-text-selection",
-        "change-voice-text-selection",
-        "850f9621-bd56-4994-b7d7-90d3bf23d247",
-        "9d9aca69-8e80-4906-8d86-5046bd5aefb4"
+      "nodeNames": [
+        "Change Voice Configuration",
+        "Needs Text Selection?",
+        "Change Voice Text Selection",
+        "Set Change-Voice Page Number",
+        "Read Normalized Transcript for Voice Change"
       ]
     }
   ],
