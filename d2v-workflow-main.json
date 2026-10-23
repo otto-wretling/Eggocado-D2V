@@ -939,7 +939,7 @@
             {
               "id": "7533fc03-f9f5-467a-a7ad-9c8db4565d1f",
               "name": "subtitleChunks",
-              "value": "={{ (() => {\n      function formatSrtTimestamp(seconds) {\n        seconds = Math.max(0, seconds);\n        const hours = String(Math.floor(seconds / 3600)).padStart(2, '0');\n        const minutes = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');\n        const secs = String(Math.floor(seconds % 60)).padStart(2, '0');\n        const ms = String(Math.round((seconds % 1) * 1000)).padStart(3, '0');\n        return hours + ':' + minutes + ':' + secs + ',' + ms;\n      }\n\n      function stripNonAlphanumeric(word) {\n        return word.toLowerCase().replace(/[^a-z0-9]/g, '');\n      }\n\n      function buildNormalizedWordList(wordMap) {\n        const normList = [];\n        for (let origIdx = 0; origIdx < wordMap.length; origIdx++) {\n          const normalizedTokens = wordMap[origIdx].normalized.toLowerCase().match(/[a-z0-9]+(?:'[a-z0-9]+)*/g) || [];\n          for (const token of normalizedTokens) normList.push({ word: token, origIdx });\n        }\n        return normList;\n      }\n\n      function alignTimestampsToOriginalWords(timestamps, normList) {\n        let cursor = 0;\n        let lastOrigIdx = 0;\n\n        return timestamps.map((timestamp, timestampIdx) => {\n          const spokenWord = stripNonAlphanumeric(timestamp.word);\n          const searchEnd = Math.min(cursor + 8, normList.length);\n          let bestPosition = -1;\n          let bestScore = -Infinity;\n\n          for (let position = cursor; position < searchEnd; position++) {\n            if (stripNonAlphanumeric(normList[position].word) !== spokenWord) continue;\n\n            let score = -(position - cursor) * 2;\n            for (let lookahead = 1; lookahead <= 3; lookahead++) {\n              const nextTimestamp = timestamps[timestampIdx + lookahead];\n              const nextNormalized = normList[position + lookahead];\n              if (!nextTimestamp || !nextNormalized) break;\n              if (stripNonAlphanumeric(nextTimestamp.word) === stripNonAlphanumeric(nextNormalized.word)) score += 4 - lookahead;\n            }\n\n            if (score > bestScore) {\n              bestScore = score;\n              bestPosition = position;\n            }\n          }\n\n          const matchedPosition = bestPosition >= 0 ? bestPosition : Math.min(cursor, normList.length - 1);\n          cursor = Math.min(normList.length, matchedPosition + 1);\n          lastOrigIdx = Math.max(lastOrigIdx, normList[matchedPosition].origIdx);\n          return lastOrigIdx;\n        });\n      }\n\n      function buildSubtitleChunksForPage(page, timeOffset, startIdx) {\n        const timestamps = page.timestamps.filter(t => /\\w/.test(t.word));\n        const pageDuration = page.audioDuration ?? page.timestamps[page.timestamps.length - 1].end_time;\n        const originalWords = page.wordMap.map(w => w.original);\n        const normList = buildNormalizedWordList(page.wordMap);\n        const alignedOrigIdx = alignTimestampsToOriginalWords(timestamps, normList);\n\n        const chunks = [];\n        let timestampIdx = 0;\n        let chunkIdx = startIdx;\n\n        while (timestampIdx < timestamps.length) {\n          const chunkStartTimestampIdx = timestampIdx;\n          const startOrigIdx = alignedOrigIdx[chunkStartTimestampIdx];\n          const targetEnd = timestamps[chunkStartTimestampIdx].start_time + 4;\n\n          timestampIdx++;\n          while (\n            timestampIdx < timestamps.length &&\n            (\n              timestamps[timestampIdx].start_time < targetEnd ||\n              alignedOrigIdx[timestampIdx] === alignedOrigIdx[timestampIdx - 1]\n            )\n          ) {\n            timestampIdx++;\n          }\n\n          const isLastChunk = timestampIdx >= timestamps.length;\n          const nextOrigIdx = isLastChunk ? originalWords.length : alignedOrigIdx[timestampIdx];\n          const endOrigIdx = Math.max(startOrigIdx, nextOrigIdx - 1);\n\n          chunks.push({\n            idx: chunkIdx,\n            start: formatSrtTimestamp(timestamps[chunkStartTimestampIdx].start_time + timeOffset),\n            end: formatSrtTimestamp((isLastChunk ? pageDuration : timestamps[timestampIdx].start_time) + timeOffset),\n            text: originalWords.slice(startOrigIdx, endOrigIdx + 1).join(' ')\n          });\n          chunkIdx++;\n        }\n\n        return { chunks, pageDuration };\n      }\n\n      const allPages = $('Aggregate All Timestamps').item.json.pages.map(p => p.data);\n      const sampleOrdered = allPages.every(p => p.voiceId) ? allPages.slice().sort((a, b) => (a.voiceId < b.voiceId ? -1 : (a.voiceId > b.voiceId ? 1 : 0))) : null;\n      const pages = sampleOrdered || (() => {\n        const byRecency = allPages.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));\n        const claimedIndexes = new Set();\n        const winners = [];\n        for (const page of byRecency) {\n          const coveredIndexes = page.knitPages ? page.knitPages.map(Number) : [Number(page.pageIndex)];\n          if (coveredIndexes.some(index => claimedIndexes.has(index))) continue;\n          coveredIndexes.forEach(index => claimedIndexes.add(index));\n          winners.push(page);\n        }\n        return winners.sort((a, b) => Math.min(...(a.knitPages ? a.knitPages.map(Number) : [a.pageIndex])) - Math.min(...(b.knitPages ? b.knitPages.map(Number) : [b.pageIndex])));\n      })();\n      const allChunks = [];\n      let timeOffset = 0, chunkIdx = 1;\n      for (const page of pages) {\n        const { chunks, pageDuration } = buildSubtitleChunksForPage(page, timeOffset, chunkIdx);\n        allChunks.push(...chunks);\n        chunkIdx += chunks.length;\n        timeOffset += pageDuration;\n      }\n      return allChunks;\n    })() }}",
+              "value": "={{ (() => {\n      function formatSrtTimestamp(seconds) {\n        seconds = Math.max(0, seconds);\n        const hours = String(Math.floor(seconds / 3600)).padStart(2, '0');\n        const minutes = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');\n        const secs = String(Math.floor(seconds % 60)).padStart(2, '0');\n        const ms = String(Math.round((seconds % 1) * 1000)).padStart(3, '0');\n        return hours + ':' + minutes + ':' + secs + ',' + ms;\n      }\n\n      function stripNonAlphanumeric(word) {\n        return word.toLowerCase().replace(/[^a-z0-9]/g, '');\n      }\n\n      function buildNormalizedWordList(wordMap) {\n        const normList = [];\n        for (let origIdx = 0; origIdx < wordMap.length; origIdx++) {\n          const normalizedTokens = wordMap[origIdx].normalized.toLowerCase().match(/[a-z0-9]+(?:'[a-z0-9]+)*/g) || [];\n          for (const token of normalizedTokens) normList.push({ word: token, origIdx });\n        }\n        return normList;\n      }\n\n      function alignTimestampsToOriginalWords(timestamps, normList) {\n        let cursor = 0;\n        let lastOrigIdx = 0;\n\n        return timestamps.map((timestamp, timestampIdx) => {\n          const spokenWord = stripNonAlphanumeric(timestamp.word);\n          const searchEnd = Math.min(cursor + 8, normList.length);\n          let bestPosition = -1;\n          let bestScore = -Infinity;\n\n          for (let position = cursor; position < searchEnd; position++) {\n            if (stripNonAlphanumeric(normList[position].word) !== spokenWord) continue;\n\n            let score = -(position - cursor) * 2;\n            for (let lookahead = 1; lookahead <= 3; lookahead++) {\n              const nextTimestamp = timestamps[timestampIdx + lookahead];\n              const nextNormalized = normList[position + lookahead];\n              if (!nextTimestamp || !nextNormalized) break;\n              if (stripNonAlphanumeric(nextTimestamp.word) === stripNonAlphanumeric(nextNormalized.word)) score += 4 - lookahead;\n            }\n\n            if (score > bestScore) {\n              bestScore = score;\n              bestPosition = position;\n            }\n          }\n\n          const matchedPosition = bestPosition >= 0 ? bestPosition : Math.min(cursor, normList.length - 1);\n          if (bestPosition >= 0) {\n            cursor = Math.min(normList.length, matchedPosition + 1);\n          }\n          lastOrigIdx = Math.max(lastOrigIdx, normList[matchedPosition].origIdx);\n          return lastOrigIdx;\n        });\n      }\n\n      function buildSubtitleChunksForPage(page, timeOffset, startIdx) {\n        const timestamps = page.timestamps.filter(t => /\\w/.test(t.word));\n        const pageDuration = page.audioDuration ?? page.timestamps[page.timestamps.length - 1].end_time;\n        const originalWords = page.wordMap.map(w => w.original);\n        const normList = buildNormalizedWordList(page.wordMap);\n        const alignedOrigIdx = alignTimestampsToOriginalWords(timestamps, normList);\n\n        const chunks = [];\n        let timestampIdx = 0;\n        let chunkIdx = startIdx;\n\n        while (timestampIdx < timestamps.length) {\n          const chunkStartTimestampIdx = timestampIdx;\n          const startOrigIdx = alignedOrigIdx[chunkStartTimestampIdx];\n          const targetEnd = timestamps[chunkStartTimestampIdx].start_time + 4;\n\n          timestampIdx++;\n          while (\n            timestampIdx < timestamps.length &&\n            (\n              timestamps[timestampIdx].start_time < targetEnd ||\n              alignedOrigIdx[timestampIdx] === alignedOrigIdx[timestampIdx - 1]\n            )\n          ) {\n            timestampIdx++;\n          }\n\n          const isLastChunk = timestampIdx >= timestamps.length;\n          const nextOrigIdx = isLastChunk ? originalWords.length : alignedOrigIdx[timestampIdx];\n          const endOrigIdx = Math.max(startOrigIdx, nextOrigIdx - 1);\n\n          chunks.push({\n            idx: chunkIdx,\n            start: formatSrtTimestamp(timestamps[chunkStartTimestampIdx].start_time + timeOffset),\n            end: formatSrtTimestamp((isLastChunk ? pageDuration : timestamps[timestampIdx].start_time) + timeOffset),\n            text: originalWords.slice(startOrigIdx, endOrigIdx + 1).join(' ')\n          });\n          chunkIdx++;\n        }\n\n        return { chunks, pageDuration };\n      }\n\n      const allPages = $('Aggregate All Timestamps').item.json.pages.map(p => p.data);\n      const sampleOrdered = allPages.every(p => p.voiceId) ? allPages.slice().sort((a, b) => (a.voiceId < b.voiceId ? -1 : (a.voiceId > b.voiceId ? 1 : 0))) : null;\n      const pages = sampleOrdered || (() => {\n        const byRecency = allPages.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));\n        const claimedIndexes = new Set();\n        const winners = [];\n        for (const page of byRecency) {\n          const coveredIndexes = page.knitPages ? page.knitPages.map(Number) : [Number(page.pageIndex)];\n          if (coveredIndexes.some(index => claimedIndexes.has(index))) continue;\n          coveredIndexes.forEach(index => claimedIndexes.add(index));\n          winners.push(page);\n        }\n        return winners.sort((a, b) => Math.min(...(a.knitPages ? a.knitPages.map(Number) : [a.pageIndex])) - Math.min(...(b.knitPages ? b.knitPages.map(Number) : [b.pageIndex])));\n      })();\n      const allChunks = [];\n      let timeOffset = 0, chunkIdx = 1;\n      for (const page of pages) {\n        const { chunks, pageDuration } = buildSubtitleChunksForPage(page, timeOffset, chunkIdx);\n        allChunks.push(...chunks);\n        chunkIdx += chunks.length;\n        timeOffset += pageDuration;\n      }\n      return allChunks;\n    })() }}",
               "type": "array"
             },
             {
@@ -3620,14 +3620,6 @@
       ]
     },
     {
-      "id": "d0691af2-9098-4bec-b7aa-e632e7d88be1",
-      "name": "Set Transcription Engine",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -10336,
-        -32
-      ],
       "parameters": {
         "assignments": {
           "assignments": [
@@ -3644,18 +3636,19 @@
               "type": "string"
             }
           ]
-        }
-      }
+        },
+        "options": {}
+      },
+      "id": "d0691af2-9098-4bec-b7aa-e632e7d88be1",
+      "name": "Set Transcription Engine",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -10336,
+        -32
+      ]
     },
     {
-      "id": "09530317-db43-4a1e-8f68-1e4abf8fc804",
-      "name": "Fetch Ollama Models",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.3,
-      "position": [
-        -9888,
-        -112
-      ],
       "parameters": {
         "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/ollama-models",
         "authentication": "genericCredentialType",
@@ -3668,23 +3661,23 @@
           }
         }
       },
-      "onError": "continueRegularOutput",
+      "id": "09530317-db43-4a1e-8f68-1e4abf8fc804",
+      "name": "Fetch Ollama Models",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -9888,
+        -112
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "dT2rDdHX1TfPrVi1",
           "name": "D2V Webhook Shared Secret"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
-      "id": "e4288a06-9f3d-4fed-b887-d06d523c4029",
-      "name": "Set Transcription Model",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -9216,
-        -32
-      ],
       "parameters": {
         "assignments": {
           "assignments": [
@@ -3695,18 +3688,19 @@
               "type": "string"
             }
           ]
-        }
-      }
+        },
+        "options": {}
+      },
+      "id": "e4288a06-9f3d-4fed-b887-d06d523c4029",
+      "name": "Set Transcription Model",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -9216,
+        -32
+      ]
     },
     {
-      "id": "342db9c8-3fc8-46f6-9101-4eed9608a5a0",
-      "name": "Fetch Claude Models",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.3,
-      "position": [
-        -9888,
-        -272
-      ],
       "parameters": {
         "url": "https://endoflife.date/api/v1/products/claude/",
         "options": {
@@ -3717,17 +3711,17 @@
           }
         }
       },
-      "onError": "continueRegularOutput"
-    },
-    {
-      "id": "725b3b26-b5cb-4b6e-88c4-6fa2fe0e4a55",
-      "name": "Fetch Codex Models",
+      "id": "342db9c8-3fc8-46f6-9101-4eed9608a5a0",
+      "name": "Fetch Claude Models",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
         -9888,
-        -32
+        -272
       ],
+      "onError": "continueRegularOutput"
+    },
+    {
       "parameters": {
         "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/codex-models",
         "authentication": "genericCredentialType",
@@ -3740,23 +3734,23 @@
           }
         }
       },
-      "onError": "continueRegularOutput",
+      "id": "725b3b26-b5cb-4b6e-88c4-6fa2fe0e4a55",
+      "name": "Fetch Codex Models",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -9888,
+        -32
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "dT2rDdHX1TfPrVi1",
           "name": "D2V Webhook Shared Secret"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
-      "id": "6b205559-ae2e-4afb-8066-f12e5af481ff",
-      "name": "Detect Video Encoder Support",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        -11568,
-        -288
-      ],
       "parameters": {
         "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/clip",
         "authentication": "genericCredentialType",
@@ -3774,6 +3768,14 @@
           "timeout": 30000
         }
       },
+      "id": "6b205559-ae2e-4afb-8066-f12e5af481ff",
+      "name": "Detect Video Encoder Support",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -11568,
+        -288
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "dT2rDdHX1TfPrVi1",
@@ -3782,16 +3784,7 @@
       }
     },
     {
-      "id": "57e3bebe-7be4-41db-a534-974d7c39ac2d",
-      "name": "Route Video Encoder",
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
-      "position": [
-        -11344,
-        -288
-      ],
       "parameters": {
-        "mode": "rules",
         "rules": {
           "values": [
             {
@@ -3850,19 +3843,18 @@
           "fallbackOutput": "extra",
           "renameFallbackOutput": "Software"
         }
-      }
+      },
+      "id": "57e3bebe-7be4-41db-a534-974d7c39ac2d",
+      "name": "Route Video Encoder",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -11344,
+        -288
+      ]
     },
     {
-      "id": "63881f19-7ff1-4921-8e5a-e1ee7094189d",
-      "name": "Configure VA-API Encoding",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.5,
-      "position": [
-        -11120,
-        -448
-      ],
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -3899,19 +3891,18 @@
         },
         "includeOtherFields": true,
         "options": {}
-      }
-    },
-    {
-      "id": "459f2bf0-35b3-4189-af66-6ebc16c8f205",
-      "name": "Configure VideoToolbox Encoding",
+      },
+      "id": "63881f19-7ff1-4921-8e5a-e1ee7094189d",
+      "name": "Configure VA-API Encoding",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
         -11120,
-        -288
-      ],
+        -448
+      ]
+    },
+    {
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -3948,19 +3939,18 @@
         },
         "includeOtherFields": true,
         "options": {}
-      }
-    },
-    {
-      "id": "66dfebb0-e576-404b-baa6-7028b63802e8",
-      "name": "Configure Software Encoding",
+      },
+      "id": "459f2bf0-35b3-4189-af66-6ebc16c8f205",
+      "name": "Configure VideoToolbox Encoding",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
         -11120,
-        -128
-      ],
+        -288
+      ]
+    },
+    {
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -3997,19 +3987,18 @@
         },
         "includeOtherFields": true,
         "options": {}
-      }
-    },
-    {
-      "id": "a384ed17-49c2-4da2-8309-4f3ffc45c949",
-      "name": "Store Video Encoding Configuration",
+      },
+      "id": "66dfebb0-e576-404b-baa6-7028b63802e8",
+      "name": "Configure Software Encoding",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -10896,
-        -288
-      ],
+        -11120,
+        -128
+      ]
+    },
+    {
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -4046,17 +4035,17 @@
         },
         "includeOtherFields": true,
         "options": {}
-      }
+      },
+      "id": "a384ed17-49c2-4da2-8309-4f3ffc45c949",
+      "name": "Store Video Encoding Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -10896,
+        -288
+      ]
     },
     {
-      "id": "35ee5d6a-4c8f-4921-ace6-bad64c2de7ec",
-      "name": "Document Required For This Mode?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -10672,
-        96
-      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -4090,17 +4079,17 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "35ee5d6a-4c8f-4921-ace6-bad64c2de7ec",
+      "name": "Document Required For This Mode?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -10672,
+        96
+      ]
     },
     {
-      "id": "1eff5ca9-c147-4540-a9b4-3204d81aaa37",
-      "name": "Error Message [\"Document Required\"]",
-      "type": "n8n-nodes-base.form",
-      "typeVersion": 2.5,
-      "position": [
-        -9552,
-        450
-      ],
       "parameters": {
         "formFields": {
           "values": []
@@ -4109,17 +4098,17 @@
           "formDescription": "Please select a document to continue. Click Submit below to go back and choose one."
         }
       },
+      "id": "1eff5ca9-c147-4540-a9b4-3204d81aaa37",
+      "name": "Error Message [\"Document Required\"]",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        -9552,
+        464
+      ],
       "webhookId": "d861e662-2ea0-4d6f-8360-19782fb6376e"
     },
     {
-      "id": "afebf543-896e-4d0d-9b55-28bc671674e3",
-      "name": "Carry Forward Previous Answers",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -10500,
-        300
-      ],
       "parameters": {
         "assignments": {
           "assignments": [
@@ -4150,17 +4139,17 @@
           ]
         },
         "options": {}
-      }
+      },
+      "id": "afebf543-896e-4d0d-9b55-28bc671674e3",
+      "name": "Carry Forward Previous Answers",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -10496,
+        304
+      ]
     },
     {
-      "id": "6451f073-e748-4a53-a1ea-df5c76190b83",
-      "name": "Preserve PDF Binary",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.5,
-      "position": [
-        -8944,
-        832
-      ],
       "parameters": {
         "assignments": {
           "assignments": [
@@ -4174,9 +4163,22 @@
         },
         "includeOtherFields": true,
         "options": {}
-      }
+      },
+      "id": "6451f073-e748-4a53-a1ea-df5c76190b83",
+      "name": "Preserve PDF Binary",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -8944,
+        832
+      ]
     },
     {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
       "id": "6724ea5c-9848-40ec-9634-d0403604fad0",
       "name": "Merge PDF Binary Before Save",
       "type": "n8n-nodes-base.merge",
@@ -4184,12 +4186,7 @@
       "position": [
         -10976,
         832
-      ],
-      "parameters": {
-        "mode": "combine",
-        "combineBy": "combineByPosition",
-        "options": {}
-      }
+      ]
     }
   ],
   "pinData": {},
@@ -6090,10 +6087,10 @@
     "availableInMCP": true,
     "saveExecutionProgress": true
   },
-  "versionId": "a1c5ac60-88b5-4321-bcee-19eced5f33b9",
+  "versionId": "2d1c22d2-a2c0-425c-9d80-9f2558910415",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "0d58a7a3f156139856be42466a14e05f00173514ac9794a8494b09c53ea173a0",
+    "instanceId": "ede368576a12b390ec4a52da8bae17c0cbfd5bb85b107acb15f9037c674fe88c",
     "aiBuilderAssisted": true,
     "builderVariant": "mcp"
   },
@@ -6101,110 +6098,110 @@
     {
       "id": "7f1af08c-ed64-4b89-97b0-e5b89d398384",
       "name": "Document Picker",
-      "nodeNames": [
-        "Extract Document Meta List",
-        "Parse Document Meta Item",
-        "Aggregate Document List"
+      "nodeIds": [
+        "4111729b-35c2-44dd-9859-0deaa165ef1d",
+        "734c2b6d-f299-408a-be07-8bae061bcdb8",
+        "525340d7-fcd6-45e5-bf7e-5504e89b4d1c"
       ]
     },
     {
       "id": "a0a16b29-a03f-463e-b853-a4fc11a41a55",
       "name": "Document Folder Setup",
-      "nodeNames": [
-        "Build Document Meta JSON",
-        "Convert Document Meta to File",
-        "Save Document Meta to Disk"
+      "nodeIds": [
+        "b4bdb253-3ff9-4172-a060-a8406a61500d",
+        "fef73ddb-2548-4a3b-a9b6-06a59065a841",
+        "110186cf-3ed6-4512-b27e-b79f403cf7d3"
       ]
     },
     {
       "id": "35799d9f-5588-44b8-8556-0bf238dd9a4e",
       "name": "New Conversion - PDF Upload & Page Extraction",
-      "nodeNames": [
-        "Extract Images from PDF",
-        "Unzip Images",
-        "Send Images One by One"
+      "nodeIds": [
+        "a6c61e91-f96d-42ae-9ee8-145f77258e41",
+        "c0aba882-7fa6-46e7-a7e2-e3cb421f4c95",
+        "5dd1bf69-114c-48c6-8c86-3e53422b476c"
       ]
     },
     {
       "id": "3aff9f6c-a739-4079-a257-dd74f2abde95",
       "name": "Transcript Normalization & Word Map",
-      "nodeNames": [
-        "Request Transcript Normalization",
-        "Assemble Normalized Text and Configure Word Map",
-        "Convert Normalized Transcription to Text File",
-        "Convert Word Map to File",
-        "Save Word Map to Disk",
-        "Set Doc Prefix",
-        "Create Normalized Temporary Text File on Disk"
+      "nodeIds": [
+        "0e5f6212-20e6-4acb-961e-ed28a51afdd6",
+        "5f6fa4e9-18da-4512-b1f2-93376fdab3a0",
+        "837a24a3-e583-4fbe-8e1a-5b17ae35e099",
+        "96280d0d-3829-42a5-8322-a6ad126e24eb",
+        "d8a9e5a9-de94-46a6-8eec-0ade0f39b774",
+        "5ff896cf-3123-4e77-8278-b2755807fa97",
+        "9ac766e8-fef2-462f-9834-d27e5d4dc1a2"
       ]
     },
     {
       "id": "698472ee-8313-41a8-9fb5-42bff875238c",
       "name": "TTS & Clip Assembly",
-      "nodeNames": [
-        "Request TTS with Timestamps",
-        "Convert Base64 to Audio File",
-        "Read Word Map from Disk",
-        "Create Temporary Audio File on Disk",
-        "Extract Word Map from File",
-        "Add Page Index to Audio Timestamps",
-        "Convert Timestamps to File",
-        "Save Timestamps to Disk",
-        "Merge Audio File & Timestamps"
+      "nodeIds": [
+        "0e416aa8-3241-4e14-8bce-4d9dc133d91d",
+        "e88f9b03-a71a-4b8e-9b24-bf1612abcdcf",
+        "d5a067ce-d69a-40a0-a872-b631a2f5fbf7",
+        "2d844c92-584d-498e-b943-70c9ce934f51",
+        "8f0d9b8e-22a5-4498-ab7c-653655b23891",
+        "6af65ae0-d648-4f2a-9536-e6ad53759884",
+        "7fb9918c-40ba-4776-b5f4-ba7ebb09277d",
+        "0a861c0e-859b-4849-a6e6-efc437699497",
+        "0a85c2c1-4ed6-4fd9-9e1f-a2b9ea0b8eae"
       ]
     },
     {
       "id": "6ca7c2de-8c88-4b4a-893c-1bf4ed51088e",
       "name": "Knit Mode",
-      "nodeNames": [
-        "Page Knitting Configuration",
-        "Knit Images",
-        "Check if Knitted Transcription Exists",
-        "Knitted Transcription Done Already",
-        "Read Left Page Transcription from Disk",
-        "Extract Left Page Transcription from File",
-        "Read Right Page Transcription from Disk",
-        "Extract Right Page Transcription from File",
-        "Read Knitted Image from Disk",
-        "Extract Knitted Image to Base64",
-        "Knit Transcriptions",
-        "Convert Knitted Transcription to Text File",
-        "Create Temporary Knitted Text File on Disk",
-        "Read Temporary Knitted Text File from Disk",
-        "Extract Knitted Transcription from Text File",
-        "Set Knit Page Number"
+      "nodeIds": [
+        "0a341644-cb35-465b-993c-8788c356a6f5",
+        "8764539e-e318-4e17-bfc1-9adadaf03f0a",
+        "f774a94d-d2d3-4dab-bd16-6c43c7bcf1d0",
+        "4bf3a017-2bd3-46dd-bea9-3bc68a923659",
+        "34033c1e-8ea6-406c-8692-559a8ee14094",
+        "b55dd822-6a36-4db9-9e57-7fe232d0350e",
+        "ac49d3de-3c4e-4b43-b351-09d0ac385243",
+        "be697eda-9a3f-4f77-864b-da5c58ca73cf",
+        "33d02734-00b9-4a71-93ec-1df5cb30a777",
+        "25a8edf8-7ad9-41e6-991c-855997c3defc",
+        "46692609-688b-4f3b-88b6-0daaa14b1d96",
+        "04378658-7dab-42e4-9676-2fdfe547673d",
+        "d65954a8-d998-4d57-9556-dcaa657ec252",
+        "28cdd014-aeff-4fff-aeb6-b71c21a9d420",
+        "63b7c043-b1f3-4021-801c-4909dda61d4b",
+        "64ab376b-6958-44a3-96ba-983eefe7b767"
       ]
     },
     {
       "id": "81e2464d-7509-42ce-aa19-173e35d0816b",
       "name": "Voice Fetching & Sample Setup",
-      "nodeNames": [
-        "Ensure Sample Folder Exists"
+      "nodeIds": [
+        "996a93e7-6dd0-469c-8ecb-d0cd23bf7ddf"
       ]
     },
     {
       "id": "72a96016-e7c7-4fb4-b07e-2f056a08d175",
       "name": "Finalization & Video Assembly",
-      "nodeNames": [
-        "Generate Subtitle File and Video Chapters",
-        "Generate Final Subtitles",
-        "Convert Chapters to File",
-        "Convert Subtitles to File",
-        "Save Chapters to Disk",
-        "Save Subtitles to Disk",
-        "Merge Subtitles & Chapters",
-        "Request Final Video Assembly"
+      "nodeIds": [
+        "511103b3-8179-475c-a0a7-8a856f1c8dd7",
+        "ec91e12f-1e66-46df-8ed2-f77195e93742",
+        "a5b82290-809d-415f-83b7-cdbb34575e7a",
+        "8de182f8-3454-4498-a737-47ab2ecabf38",
+        "5932d857-856b-4307-a922-eae4f4a9b499",
+        "43a9add9-c4e6-41f8-8a1e-41ae735171a2",
+        "46c88e05-2bfd-4c0b-9ec8-dc9c841fc635",
+        "a1aa3900-7c65-4216-9b0b-e6965f3dc6e5"
       ]
     },
     {
       "id": "311c12d8-e681-42f7-9543-ac9981d09ee8",
       "name": "Change Voice Mode",
-      "nodeNames": [
-        "Change Voice Configuration",
-        "Needs Text Selection?",
-        "Change Voice Text Selection",
-        "Set Change-Voice Page Number",
-        "Read Normalized Transcript for Voice Change"
+      "nodeIds": [
+        "99c165d5-b8a7-4517-902f-cd7439b3dd29",
+        "needs-text-selection",
+        "change-voice-text-selection",
+        "850f9621-bd56-4994-b7d7-90d3bf23d247",
+        "9d9aca69-8e80-4906-8d86-5046bd5aefb4"
       ]
     }
   ],
