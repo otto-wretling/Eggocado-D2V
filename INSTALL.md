@@ -34,14 +34,14 @@ If you install Ollama, it must be running and listening on `http://127.0.0.1:114
 ### Transcription engines
 Page transcription can use any of three engines, selected at the start of each conversion (the first form field in the main workflow). Ollama (above) always works out of the box; the other two need their CLI installed and logged in once before they'll work:
 
-- **Local Gemma (Ollama)** — covered by the Ollama section above.
-- **Claude Code** — see Claude Code's ["Quickstart"](https://code.claude.com/docs/en/quickstart) for the current install steps, then run `claude` once and follow the interactive login prompt. Needs a Claude subscription or API access.
-- **OpenAI Codex** — see ["Codex CLI"](https://learn.chatgpt.com/docs/codex/cli) for the current install steps, then run `codex login` once. Needs a ChatGPT Plus/Pro/Team/Enterprise plan or API access.
+- **Local Ollama model**: covered by the Ollama section above.
+- **Claude Code**: see Claude Code's ["Quickstart"](https://code.claude.com/docs/en/quickstart) for the current install steps, then run `claude` once and follow the interactive login prompt. Needs a Claude subscription or API access.
+- **OpenAI Codex**: see ["Codex CLI"](https://learn.chatgpt.com/docs/codex/cli) for the current install steps, then run `codex login` once. Needs a ChatGPT Plus/Pro/Team/Enterprise plan or API access.
 
 Both CLIs cache their login after the first run, so this is a one-time step per machine. Available models for each engine are fetched live (same pattern as the Kokoro voice picker), so whatever your account has access to shows up in the model dropdown.
 
 ### n8n (bare-metal)
-A second n8n instance runs directly on the host at port 5679, separate from the Docker one. This is what actually runs ffmpeg and talks to Ollama, so it needs host access. See ["Host n8n"](https://docs.n8n.io/hosting/installation/) for the current method.
+A second n8n instance runs directly on the host at port 5679, separate from the Docker one. This is what actually runs ffmpeg, calls Ollama's API, and shells out to the Claude Code/Codex CLIs, so it needs host access. See ["Host n8n"](https://docs.n8n.io/hosting/installation/) for the current method.
 
 Start it from the project directory so that relative paths (`temp/`, `output/`) resolve correctly:
 

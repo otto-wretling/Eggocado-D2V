@@ -25,7 +25,7 @@ Any mode can be combined with any other: knit two pages, then change voice on th
 | Component | Port | Where | Role |
 |---|---|---|---|
 | Docker n8n | `5678` | Docker | Main workflow: PDF to images, orchestrating everything |
-| stirling-pdf | `8080` | Docker | Converts PDF pages to images |
+| stirling-pdf | `8080` | Docker | Converts PDF pages to PNG images |
 | nemo-normalizer | `8765` | Docker | Normalizes transcribed text for speech |
 | Bare-metal n8n | `5679` | Host process | Runs ffmpeg and shells out to the Claude Code/Codex CLIs, directly on the host so they can use the GPU and the CLIs' own host-level logins |
 | Kokoro-FastAPI | `8881` | Host process | Text-to-speech, running natively: Apple Silicon GPU (MPS) acceleration on macOS, CPU inference on Linux |
