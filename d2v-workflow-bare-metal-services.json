@@ -19,7 +19,7 @@
       "webhookId": "b7917a21-6f88-48ff-b989-7b3254cc3882",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "8yazpC42gz05PGnT",
+          "id": "dRqthEKRrh5quPrB",
           "name": "D2V Webhook Shared Secret"
         }
       }
@@ -57,7 +57,7 @@
       "webhookId": "b6bd0ddb-3bc7-4bbc-a6ec-fa544436db20",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "8yazpC42gz05PGnT",
+          "id": "dRqthEKRrh5quPrB",
           "name": "D2V Webhook Shared Secret"
         }
       }
@@ -162,7 +162,7 @@
       "webhookId": "8a0bee15-c5f7-4781-8685-74dd93111ae9",
       "credentials": {
         "httpHeaderAuth": {
-          "id": "8yazpC42gz05PGnT",
+          "id": "dRqthEKRrh5quPrB",
           "name": "D2V Webhook Shared Secret"
         }
       }
@@ -179,7 +179,8 @@
             "response": {
               "responseFormat": "json"
             }
-          }
+          },
+          "timeout": 3600000
         }
       },
       "id": "a9d7d149-7a15-4d04-a916-a19634f9e62c",
@@ -204,6 +205,399 @@
       "position": [
         448,
         448
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "claude-prompt",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "23997232-b802-4c99-91d5-6a526f35db27",
+      "name": "Receive Claude Prompt",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        672
+      ],
+      "webhookId": "d05f9c92-906b-4eb9-8f9e-c3e032427a17",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dRqthEKRrh5quPrB",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "body.imageBase64",
+        "options": {
+          "mimeType": "image/png"
+        }
+      },
+      "id": "56975d44-261f-455e-b26a-29fac5e92e72",
+      "name": "Convert Claude Image to Binary",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/tmp/d2v-claude-image-{{ $now.toMillis() }}.png",
+        "dataPropertyName": "={{ Object.keys($binary)[0] }}",
+        "options": {}
+      },
+      "id": "9a9ea9d8-4f93-4205-8a35-17cede265858",
+      "name": "Write Claude Image to Disk",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "promptText",
+        "options": {
+          "encoding": "utf8",
+          "fileName": "prompt.txt"
+        }
+      },
+      "id": "7eb13492-85a5-473c-9ee1-2138c44cfbb0",
+      "name": "Convert Claude Prompt to Binary",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        896,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "claude-prompt-text",
+              "name": "promptText",
+              "value": "={{ (Array.isArray($('Receive Claude Prompt').item.json.body.prompt) ? $('Receive Claude Prompt').item.json.body.prompt.join('\\n') : $('Receive Claude Prompt').item.json.body.prompt) + '\\n\\nThe page image to transcribe is saved at: ' + $('Write Claude Image to Disk').item.json.fileName }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "67a1f455-6472-46df-9de5-f32b32549c7f",
+      "name": "Set Claude Prompt Text",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/tmp/d2v-claude-prompt-{{ $now.toMillis() }}.txt",
+        "dataPropertyName": "={{ Object.keys($binary)[0] }}",
+        "options": {}
+      },
+      "id": "b9f18cb7-a1f8-42c4-a327-c013413537c9",
+      "name": "Write Claude Prompt to Disk",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "command": "=claude --add-dir /tmp -p \"Follow the transcription instructions and the image file path given in the input below, then output ONLY the final transcription text with no commentary, preamble, or markdown formatting.\" < {{ $('Write Claude Prompt to Disk').item.json.fileName }}"
+      },
+      "id": "f6a3b2ba-b958-4e76-8dd7-f4d66b38f88c",
+      "name": "Run Claude CLI",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ text: $json.stdout.trim() }) }}",
+        "options": {}
+      },
+      "id": "cb85ba62-9cc4-4c5e-94d1-a14d3186d95c",
+      "name": "Return Claude Output",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1568,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "codex-prompt",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "f3a3b111-0e4d-4085-99f3-69eed36f89b4",
+      "name": "Receive Codex Prompt",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        896
+      ],
+      "webhookId": "299ec52b-3f86-4622-b860-37d2f504ed35",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dRqthEKRrh5quPrB",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "body.imageBase64",
+        "options": {
+          "mimeType": "image/png"
+        }
+      },
+      "id": "0b2b6838-4baf-4c71-96a4-e5df9afcfaac",
+      "name": "Convert Codex Image to Binary",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        896
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/tmp/d2v-codex-image-{{ $now.toMillis() }}.png",
+        "dataPropertyName": "={{ Object.keys($binary)[0] }}",
+        "options": {}
+      },
+      "id": "2a5191b2-4872-4c46-b29f-7fc6c847a3f2",
+      "name": "Write Codex Image to Disk",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        896
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "codex-prompt-text",
+              "name": "promptText",
+              "value": "={{ Array.isArray($('Receive Codex Prompt').item.json.body.prompt) ? $('Receive Codex Prompt').item.json.body.prompt.join('\\n') : $('Receive Codex Prompt').item.json.body.prompt }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d0809b53-6d5b-4d8c-8ec9-e1e15e9dd79b",
+      "name": "Set Codex Prompt Text",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        672,
+        896
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "promptText",
+        "options": {
+          "encoding": "utf8",
+          "fileName": "prompt.txt"
+        }
+      },
+      "id": "22f751db-d07a-4e17-bbbe-a8b02d4653a4",
+      "name": "Convert Codex Prompt to Binary",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        896,
+        896
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/tmp/d2v-codex-prompt-{{ $now.toMillis() }}.txt",
+        "dataPropertyName": "={{ Object.keys($binary)[0] }}",
+        "options": {}
+      },
+      "id": "f4c48112-cb8a-4d32-a36a-e0631c70c57a",
+      "name": "Write Codex Prompt to Disk",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        896
+      ]
+    },
+    {
+      "parameters": {
+        "command": "=codex exec -i {{ $('Write Codex Image to Disk').item.json.fileName }} \"Follow the transcription instructions given via stdin and output ONLY the final transcription text with no commentary, preamble, or markdown formatting.\" < {{ $('Write Codex Prompt to Disk').item.json.fileName }}"
+      },
+      "id": "dc5d0f24-f8db-4b1a-b834-3b04d1b87fd9",
+      "name": "Run Codex CLI",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        896
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ text: $json.stdout.trim() }) }}",
+        "options": {}
+      },
+      "id": "bdff29a0-f664-48a9-a779-93c59630642c",
+      "name": "Return Codex Output",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1568,
+        896
+      ]
+    },
+    {
+      "parameters": {
+        "path": "ollama-models",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "8d49e582-6f61-4c09-88fd-f46bccc9c38b",
+      "name": "Receive Ollama Models Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        1120
+      ],
+      "webhookId": "2296a585-cfeb-485f-a4be-43c30aeab1dd",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dRqthEKRrh5quPrB",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "http://127.0.0.1:11434/api/tags",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "b3b6845f-41e2-4679-b529-cbddf990f8e0",
+      "name": "List Ollama Models",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        224,
+        1120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ models: ($json.models || []).map(m => m.name) }) }}",
+        "options": {}
+      },
+      "id": "7feb8285-c9e2-43c9-94ae-494f6b851d0f",
+      "name": "Return Ollama Models",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        448,
+        1120
+      ]
+    },
+    {
+      "parameters": {
+        "path": "codex-models",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "d9bad8b8-1f0c-4d48-ab3a-b0254f5ad3c6",
+      "name": "Receive Codex Models Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        1344
+      ],
+      "webhookId": "33b4d41b-cffe-4c53-b7c1-8aaabb17a339",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dRqthEKRrh5quPrB",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "codex debug models"
+      },
+      "id": "f59c27f6-18fc-45af-853e-9ecd72e6a3d7",
+      "name": "List Codex Models",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        224,
+        1344
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ (() => { try { const parsed = JSON.parse($json.stdout); return JSON.stringify({ models: (parsed.models || []).map(m => m.slug) }); } catch (e) { return JSON.stringify({ models: [] }); } })() }}",
+        "options": {}
+      },
+      "id": "d21d68c9-91d3-439b-bd07-8c9ddcf131fd",
+      "name": "Return Codex Models",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        448,
+        1344
       ]
     }
   ],
@@ -285,22 +679,224 @@
           }
         ]
       ]
+    },
+    "Receive Claude Prompt": {
+      "main": [
+        [
+          {
+            "node": "Convert Claude Image to Binary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Claude Image to Binary": {
+      "main": [
+        [
+          {
+            "node": "Write Claude Image to Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Claude Image to Disk": {
+      "main": [
+        [
+          {
+            "node": "Set Claude Prompt Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Claude Prompt Text": {
+      "main": [
+        [
+          {
+            "node": "Convert Claude Prompt to Binary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Claude Prompt to Binary": {
+      "main": [
+        [
+          {
+            "node": "Write Claude Prompt to Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Claude Prompt to Disk": {
+      "main": [
+        [
+          {
+            "node": "Run Claude CLI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Claude CLI": {
+      "main": [
+        [
+          {
+            "node": "Return Claude Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receive Codex Prompt": {
+      "main": [
+        [
+          {
+            "node": "Convert Codex Image to Binary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Codex Image to Binary": {
+      "main": [
+        [
+          {
+            "node": "Write Codex Image to Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Codex Image to Disk": {
+      "main": [
+        [
+          {
+            "node": "Set Codex Prompt Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Codex Prompt Text": {
+      "main": [
+        [
+          {
+            "node": "Convert Codex Prompt to Binary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Codex Prompt to Binary": {
+      "main": [
+        [
+          {
+            "node": "Write Codex Prompt to Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Codex Prompt to Disk": {
+      "main": [
+        [
+          {
+            "node": "Run Codex CLI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Codex CLI": {
+      "main": [
+        [
+          {
+            "node": "Return Codex Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receive Ollama Models Request": {
+      "main": [
+        [
+          {
+            "node": "List Ollama Models",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Ollama Models": {
+      "main": [
+        [
+          {
+            "node": "Return Ollama Models",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receive Codex Models Request": {
+      "main": [
+        [
+          {
+            "node": "List Codex Models",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Codex Models": {
+      "main": [
+        [
+          {
+            "node": "Return Codex Models",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1",
+    "binaryMode": "separate",
     "saveDataErrorExecution": "all",
     "saveDataSuccessExecution": "all",
     "saveManualExecutions": true,
     "saveExecutionProgress": true,
     "callerPolicy": "workflowsFromSameOwner",
-    "availableInMCP": false
+    "availableInMCP": true
   },
-  "versionId": "eb954deb-b08e-4853-9015-631552d6603f",
+  "versionId": "90aed6d5-2900-41b2-9694-ca4c3e797379",
   "meta": {
-    "instanceId": "ed1f09f33a1c588a9b788156ad40bc434be9b1b6114805fd77608f02e470ebf4"
+    "instanceId": "3fd84405050e00d2cc357ced77dffc2222b29392681815b3f0564e87a28f1803",
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp"
   },
+  "nodeGroups": [],
   "id": "EgnxPB0c3RNOTsbk",
   "tags": []
 }
