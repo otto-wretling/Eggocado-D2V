@@ -20,6 +20,10 @@
 - For installing anything not part of this repo (not a Nix config, script, or other file checked in here), prefer linking to that thing's own official documentation over spelling out exact install commands, to the greatest extent possible. Official docs stay current as install methods change; hardcoded steps here don't. Don't add the install command alongside the link either, even as a convenience: it's just as likely to go stale, and there's no one keeping this file updated as each dependency's install instructions change.
 - Link text should match the linked page's own title or main heading, not a paraphrase of it.
 
+## Dockerfile package pins
+
+- `nemo-normalizer/Dockerfile` pins `gcc` and `python3-dev` to exact apt versions for build reproducibility. When `python:3.10-slim`'s Debian release moves on and the pinned versions stop resolving, run `docker run --rm python:3.10-slim bash -c "apt-get update -qq && apt-cache policy gcc python3-dev"` against the current base image and update the pins to the versions it reports as `Candidate`.
+
 ## Commit messages
 
 - Never truncate or abbreviate a word in the title (e.g. "dedup" for "deduplication", "config" for "configuration"). Spell it out in full.
