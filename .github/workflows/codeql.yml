@@ -5,9 +5,11 @@ on:
     branches: [main]
     paths:
       - "nemo-normalizer/**.py"
+      - ".github/workflows/**.yml"
   pull_request:
     paths:
       - "nemo-normalizer/**.py"
+      - ".github/workflows/**.yml"
   schedule:
     - cron: "0 6 * * 1"
 
@@ -18,11 +20,14 @@ permissions:
 jobs:
   analyze:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        language: [python, actions]
     steps:
       - uses: actions/checkout@v7
 
       - uses: github/codeql-action/init@v4
         with:
-          languages: python
+          languages: ${{ matrix.language }}
 
       - uses: github/codeql-action/analyze@v4
