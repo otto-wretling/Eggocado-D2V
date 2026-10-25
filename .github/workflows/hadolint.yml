@@ -3,11 +3,7 @@ name: Hadolint
 on:
   push:
     branches: [main]
-    paths:
-      - "nemo-normalizer/Dockerfile"
   pull_request:
-    paths:
-      - "nemo-normalizer/Dockerfile"
 
 permissions:
   contents: read
