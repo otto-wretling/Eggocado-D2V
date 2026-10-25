@@ -3,11 +3,7 @@ name: Hadolint
 on:
   push:
     branches: [main]
-    paths:
-      - "nemo-normalizer/Dockerfile"
   pull_request:
-    paths:
-      - "nemo-normalizer/Dockerfile"
 
 permissions:
   contents: read
@@ -17,13 +13,13 @@ jobs:
   hadolint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Run hadolint
         run: docker run --rm -v "$PWD":/workdir -w /workdir hadolint/hadolint:v2.15.1@sha256:32dac94127fd60b7b7e3fbfc65e1383b9b5e25c9bfd7b8536de7a539fe68a12d hadolint --format sarif nemo-normalizer/Dockerfile | tee hadolint.sarif
 
       - name: Upload SARIF to code scanning
         if: always()
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@793b778da9c9275a0f276522b27cb5fc14bba279 # v4
         with:
           sarif_file: hadolint.sarif
