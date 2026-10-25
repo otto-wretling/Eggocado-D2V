@@ -22,15 +22,18 @@ Any mode can be combined with any other: knit two pages, then change voice on th
 
 ## Architecture
 
-Three things run side by side:
+| Component | Port | Where | Role |
+|---|---|---|---|
+| Docker n8n | `5678` | Docker | Main workflow: PDF to images, orchestrating everything |
+| stirling-pdf | `8080` | Docker | Converts PDF pages to images |
+| nemo-normalizer | `8765` | Docker | Normalizes transcribed text for speech |
+| Bare-metal n8n | `5679` | Host process | Runs ffmpeg and shells out to the Claude Code/Codex CLIs, directly on the host so they can use the GPU and the CLIs' own host-level logins |
+| Kokoro-FastAPI | `8881` | Host process | Text-to-speech, running natively: Apple Silicon GPU (MPS) acceleration on macOS, CPU inference on Linux |
+| Ollama | `11434` | Host process | One of three transcription engines (optional, only if you use it), running natively so it can use the GPU |
 
-| Component | Port | Role |
-|---|---|---|
-| Docker n8n | `5678` | Main workflow: PDF to images, calling the transcription/normalization/TTS services, orchestrating everything |
-| Bare-metal n8n | `5679` | Runs ffmpeg, Ollama, and the Claude Code/Codex CLIs directly on the host, outside Docker, so they can use the GPU and the CLIs' own host-level logins |
-| Native Kokoro-FastAPI | `8881` | Text-to-speech, running natively: Apple Silicon GPU (MPS) acceleration on macOS, CPU inference on Linux |
+Claude Code and Codex run as CLI calls from bare-metal n8n, not standalone services: each uses its own cached host-level login instead of listening on a port.
 
-The split exists because GPU-accelerated tools (ffmpeg hardware encoding, Ollama, Kokoro) need direct host GPU access, only available outside Docker Desktop's VM on macOS. As much as possible (PDF rendering, text normalization, orchestration) stays in the easy-to-set-up Docker instance. Only the pieces that need the GPU run natively.
+The Docker/host-process split exists because GPU-accelerated tools (ffmpeg hardware encoding, Ollama, Kokoro) need direct host GPU access, only available outside Docker Desktop's VM on macOS. As much as possible (PDF rendering, text normalization, orchestration) stays in the easy-to-set-up Docker stack. Only the pieces that need the GPU run on the host.
 
 **The transcription engine is chosen per run**, from a dropdown at the start of each conversion: a local vision-capable Ollama model (any model you've pulled), Claude Code, or OpenAI Codex. The two CLI-based engines bill to your own existing subscription or API account, an alternative to running a large local model for transcription. Whichever engine you pick, its available models are fetched live.
 
