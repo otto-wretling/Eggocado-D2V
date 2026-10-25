@@ -24,7 +24,7 @@ services:
     restart: unless-stopped
 
   stirling-pdf:
-    image: stirlingtools/stirling-pdf:2.14.3
+    image: stirlingtools/stirling-pdf:3.2.1
     container_name: stirling-pdf
     restart: unless-stopped
     ports:
