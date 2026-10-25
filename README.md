@@ -31,7 +31,7 @@ Any mode can be combined with any other: knit two pages, then change voice on th
 | Kokoro-FastAPI | `8881` | Host process | Text-to-speech, running natively: Apple Silicon GPU (MPS) acceleration on macOS, CPU inference on Linux |
 | Ollama | `11434` | Host process | One of three transcription engines (optional, only if you use it), running natively so it can use the GPU |
 
-Claude Code and Codex run as CLI calls from bare-metal n8n, not standalone services: each uses its own cached host-level login instead of listening on a port.
+Claude Code and Codex run as CLI calls from bare-metal n8n, each using its own cached host-level login instead of listening on a port.
 
 The Docker/host-process split exists because GPU-accelerated tools (ffmpeg hardware encoding, Ollama, Kokoro) need direct host GPU access, only available outside Docker Desktop's VM on macOS. As much as possible (PDF rendering, text normalization, orchestration) stays in the easy-to-set-up Docker stack. Only the pieces that need the GPU run on the host.
 
