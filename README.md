@@ -33,7 +33,7 @@ Any mode can be combined with any other: knit two pages, then change voice on th
 
 Claude Code and Codex run as CLI calls from bare-metal n8n, authenticated via each CLI's own cached host-level login.
 
-The Docker/host-process split exists because GPU-accelerated tools (ffmpeg hardware encoding, Ollama, Kokoro) need direct host GPU access, only available outside Docker Desktop's VM on macOS. As much as possible (PDF rendering, text normalization, orchestration) stays in the easy-to-set-up Docker stack. Only the pieces that need the GPU run on the host.
+The Docker/host-process split exists because GPU-accelerated tools (ffmpeg hardware encoding, Ollama, Kokoro) need direct host GPU access, only available outside Docker. As much as possible (PDF rendering, text normalization, orchestration) stays in the easy-to-set-up Docker stack. Only the pieces that need the GPU run on the host.
 
 **The transcription engine is chosen per run**, from a dropdown at the start of each conversion: a local vision-capable Ollama model (any model you've pulled), Claude Code, or OpenAI Codex. The two CLI-based engines bill to your own existing subscription or API account, an alternative to running a large local model for transcription. Whichever engine you pick, its available models are fetched live.
 
