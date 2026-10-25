@@ -31,7 +31,7 @@ Any mode can be combined with any other: knit two pages, then change voice on th
 | Kokoro-FastAPI | `8881` | Host process | Text-to-speech, running natively: Apple Silicon GPU (MPS) acceleration on macOS, CPU inference on Linux |
 | Ollama | `11434` | Host process | One of three transcription engines (optional, only if you use it), running natively so it can use the GPU |
 
-Claude Code and Codex run as CLI calls from bare-metal n8n, each using its own cached host-level login instead of listening on a port.
+Claude Code and Codex run as CLI calls from bare-metal n8n, authenticated via each CLI's own cached host-level login.
 
 The Docker/host-process split exists because GPU-accelerated tools (ffmpeg hardware encoding, Ollama, Kokoro) need direct host GPU access, only available outside Docker Desktop's VM on macOS. As much as possible (PDF rendering, text normalization, orchestration) stays in the easy-to-set-up Docker stack. Only the pieces that need the GPU run on the host.
 
@@ -39,7 +39,7 @@ The Docker/host-process split exists because GPU-accelerated tools (ffmpeg hardw
 
 ### Security note
 
-The bare-metal n8n instance executes shell commands (ffmpeg, Ollama calls) sent to it by the Docker instance over HTTP. Both sides are gated by a shared-secret header (see [INSTALL.md](INSTALL.md) for setup); without the secret, requests are rejected. That said, **this is a local single-user tool by design.** The security model is "block casual/opportunistic access," not "safe to expose to the internet": whoever holds the secret can run arbitrary shell commands on the host. If you choose to host the bare-metal service somewhere reachable beyond your own machine, that's possible, but the security implications are entirely your own responsibility.
+The bare-metal n8n instance executes shell commands (ffmpeg, Ollama calls) sent to it by the Docker instance over HTTP. Both sides are gated by a shared-secret header (see [INSTALL.md](INSTALL.md) for setup): every request must include the matching secret to be accepted. That said, **this is a local single-user tool by design.** The security model blocks casual or opportunistic access: whoever holds the secret can run arbitrary shell commands on the host. If you choose to host the bare-metal service somewhere reachable beyond your own machine, that's possible, but the security implications are entirely your own responsibility.
 
 ## Output
 
@@ -90,7 +90,7 @@ Eggocado D2V orchestrates these tools, run locally. None of their code is bundle
 - [Ollama](https://ollama.com) (MIT) running whichever vision model you configure. The default config uses Google's [Gemma](https://ai.google.dev/gemma/terms), but any Ollama-compatible vision model works
 - [Stirling PDF](https://github.com/Stirling-Tools/Stirling-PDF) for PDF-to-image conversion (MIT for the self-hosted core this project uses; some other parts of that project are separately licensed)
 - [ffmpeg](https://ffmpeg.org) for video assembly
-- [n8n](https://n8n.io) for workflow orchestration (n8n itself runs under its own [Sustainable Use License](https://github.com/n8n-io/n8n/blob/master/LICENSE.md), not included in this project's license)
+- [n8n](https://n8n.io) for workflow orchestration, under its own [Sustainable Use License](https://github.com/n8n-io/n8n/blob/master/LICENSE.md)
 
 ## License
 
