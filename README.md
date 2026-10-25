@@ -2,7 +2,7 @@
 
 Eggocado D2V converts a PDF document into a narrated video. Each page is transcribed by a vision-language model, normalized for speech, synthesized to audio, and assembled into a video clip. Clips are concatenated into a final video with subtitles and chapters.
 
-> **Platform support:** macOS (Apple Silicon) only, for now. Linux/Windows support is on the roadmap but not implemented yet.
+> **Platform support:** macOS (Apple Silicon) and Linux/NixOS. Windows support is planned.
 
 > **Language support:** English only, for now. Kokoro and some other TTS backends support additional languages, but the transcription prompt, text normalization, and the TTS call are all currently hardcoded for English.
 
@@ -27,12 +27,12 @@ Three things run side by side:
 | Component | Port | Role |
 |---|---|---|
 | Docker n8n | `5678` | Main workflow: PDF to images, calling the transcription/normalization/TTS services, orchestrating everything |
-| Bare-metal n8n | `5679` | Runs ffmpeg and Ollama directly on the host, outside Docker, so they can use the GPU |
-| Native Kokoro-FastAPI | `8881` | Text-to-speech, running natively (not in Docker) for Apple Silicon GPU (MPS) acceleration |
+| Bare-metal n8n | `5679` | Runs ffmpeg, Ollama, and the Claude Code/Codex CLIs directly on the host, outside Docker, so they can use the GPU and the CLIs' own host-level logins |
+| Native Kokoro-FastAPI | `8881` | Text-to-speech, running natively: Apple Silicon GPU (MPS) acceleration on macOS, CPU inference on Linux |
 
-The split exists because GPU-accelerated tools (ffmpeg hardware encoding, Ollama, Kokoro) don't get useful GPU access inside Docker Desktop on macOS. As much as possible (PDF rendering, text normalization, orchestration) stays in the easy-to-set-up Docker instance. Only the pieces that need the GPU run natively.
+The split exists because GPU-accelerated tools (ffmpeg hardware encoding, Ollama, Kokoro) need direct host GPU access, only available outside Docker Desktop's VM on macOS. As much as possible (PDF rendering, text normalization, orchestration) stays in the easy-to-set-up Docker instance. Only the pieces that need the GPU run natively.
 
-**The transcription model is swappable.** Transcription runs through Ollama, so you can use any vision-capable model Ollama supports, not just the one in the default config. This is one of the more useful things to customize for your own documents and hardware. The model name lives in the `Populate Variables` node in the main workflow, not hardcoded into any logic.
+**The transcription engine is chosen per run**, from a dropdown at the start of each conversion: a local vision-capable Ollama model (any model you've pulled), Claude Code, or OpenAI Codex. The two CLI-based engines bill to your own existing subscription or API account, an alternative to running a large local model for transcription. Whichever engine you pick, its available models are fetched live.
 
 ### Security note
 
@@ -42,19 +42,37 @@ The bare-metal n8n instance executes shell commands (ffmpeg, Ollama calls) sent 
 
 Each document gets its own folder: `temp/{document}/` for intermediate files, `output/{document}/final_video.mp4` for the finished video. Sample Video mode's per-voice files live in `temp/sample/`.
 
+## Glossary
+
+Paths below are relative to the repo's main folder. Every per-page file lives in `temp/{document}/`, prefixed with its page number (or `{a}-{b}_knit_` for a knitted pair). The finished video's files live in `output/{document}/`.
+
+| Term | File | What it is |
+|---|---|---|
+| Page image | `temp/{document}/{page}_image.png` | The page rendered from the PDF |
+| Transcription | `temp/{document}/{page}_transcription.txt` | The page's text, read from its image by the transcription engine |
+| Normalized text | `temp/{document}/{page}_transcription_normalized.txt` | The transcription rewritten for speech |
+| Narration audio | `temp/{document}/{page}_audio.wav` | The page's narration, synthesized from the normalized text |
+| Timestamps | `temp/{document}/{page}_timestamps.json` | Word-level timing for the narration audio, produced in the same call as the narration audio |
+| Word map | `temp/{document}/{page}_wordmap.json` | The mapping between original and normalized words, used to build subtitles |
+| Clip | `temp/{document}/{page}_clip.mp4` | The page's image and narration audio, assembled into one short video |
+| Final video | `output/{document}/final_video.mp4` | Every clip in the document, concatenated with chapters |
+| Final subtitles | `output/{document}/final_video.srt` | The final video's subtitle file |
+
 ## Reprocessing pages
 
-The workflow skips stages that already have output files in `temp/{document}/`. To reprocess a specific stage, delete the corresponding files and re-run Continue mode. All files listed in a row must be deleted to trigger the stages shown. If any earlier-stage file still exists, that stage is skipped and all later stages are skipped with it.
+The workflow skips a page's stages when their output files already exist in `temp/{document}/`. To regenerate something, delete its files below, then run Continue mode.
 
-| Files to delete | Stages that rerun |
+| What you want to recreate | How |
 |---|---|
-| `{page}_clip.mp4` | Clip assembly |
-| `{page}_timestamps.json` + `{page}_clip.mp4` | TTS, clip assembly |
-| `{page}_transcription_normalized.txt` + `{page}_timestamps.json` + `{page}_clip.mp4` | Normalization, TTS, clip assembly |
-| `{page}_transcription.txt` + `{page}_transcription_normalized.txt` + `{page}_timestamps.json` + `{page}_clip.mp4` | Transcription, normalization, TTS, clip assembly |
-| All files for that document | Full pipeline from scratch |
+| The final video, its subtitles, or its chapters | Run Continue mode; finalization always rebuilds these from the current clips |
+| A page's clip | Delete `temp/{document}/{page}_clip.mp4`, then run Continue mode |
+| A page's narration audio | Delete `temp/{document}/{page}_audio.wav` and `temp/{document}/{page}_clip.mp4`, then run Continue mode |
+| The normalized text a page's narration audio is read from | Delete `temp/{document}/{page}_transcription_normalized.txt`, `temp/{document}/{page}_audio.wav`, and `temp/{document}/{page}_clip.mp4`, then run Continue mode |
+| A page's transcription | Delete `temp/{document}/{page}_transcription.txt`, `temp/{document}/{page}_transcription_normalized.txt`, `temp/{document}/{page}_audio.wav`, and `temp/{document}/{page}_clip.mp4`, then run Continue mode |
+| Everything for one page | Delete all of that page's files in `temp/{document}/`, then run Continue mode |
+| Everything for the whole document | Delete `temp/{document}/`, then run Continue mode |
 
-> Audio files (`{page}_audio.wav`) don't need to be deleted separately. Kokoro's API returns audio and word-level timestamps in a single response, so deleting the timestamps file is sufficient to trigger a TTS re-run, which regenerates both.
+> Deleting a page's narration audio also regenerates its timestamps and word map, since Kokoro produces all three from one call.
 
 ## Setup
 

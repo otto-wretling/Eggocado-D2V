@@ -1,6 +1,6 @@
 services:
   n8n:
-    image: n8nio/n8n:2.41.7
+    image: n8nio/n8n:2.44.6
     container_name: n8n
     restart: unless-stopped
     ports:
@@ -31,6 +31,7 @@ services:
       - "8080:8080"
     environment:
       SECURITY_ENABLELOGIN: "false"
+      JAVA_TOOL_OPTIONS: "-Dcom.sun.net.ssl.checkRevocation=true -Dcom.sun.security.enableCRLDP=true"
 
 networks:
   default:

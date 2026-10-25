@@ -8,11 +8,20 @@
 
 ## Writing style
 
-- No em dashes (—) in user-facing messages (form descriptions, error messages, labels, dropdown option text, etc.). Use a comma, period, colon, or plain hyphen instead, whichever reads most naturally.
+- No em dashes (—) in user-facing messages (form descriptions, error messages, labels, dropdown option text, etc.), or in GitHub issues, pull requests, or comments. Use a comma, period, colon, or plain hyphen instead, whichever reads most naturally.
+- In documentation, commit messages, or any other written content, never state what something doesn't do, doesn't contain, or isn't. This includes comparative phrasing that implies the same thing, like "rather than X", "instead of X", "without X", "not just X", or "no X". State only what it actually is or does.
+- Never use "real", "actual", "genuine", "tested" or similar meaningless emphasis as a qualifier, in documentation, commit messages, or any other written content. If something needs distinguishing, name what it's being distinguished from; otherwise drop the word entirely.
+- Don't frame a requirement as a choice between two options when only one side is real (e.g. "keep this running in the background" falsely implies a meaningful "foreground" alternative exists). State the actual requirement directly instead.
+- Don't list self-evident or trivial options as if they were meaningful guidance (e.g. "run it in a terminal tab" as a way to keep a service running). Only state specifics that are actually non-obvious or that this repo itself provides.
+- Instructions tell the user what to do, never what not to do or what they don't need to do. If a row/step has no action, state the action that applies instead of noting the absence of one (e.g. "Run Continue mode again", not "Nothing to delete").
+
+## Installation instructions
+
+- For installing anything not part of this repo (not a Nix config, script, or other file checked in here), prefer linking to that thing's own official documentation over spelling out exact install commands, to the greatest extent possible. Official docs stay current as install methods change; hardcoded steps here don't. Don't add the install command alongside the link either, even as a convenience: it's just as likely to go stale, and there's no one keeping this file updated as each dependency's install instructions change.
+- Link text should match the linked page's own title or main heading, not a paraphrase of it.
 
 ## Commit messages
 
-- Never use the word "real" (or similar meaningless emphasis like "actual", "genuine") as a qualifier. If something needs distinguishing, name what it's being distinguished from; otherwise drop the word entirely.
 - Never truncate or abbreviate a word in the title (e.g. "dedup" for "deduplication", "config" for "configuration"). Spell it out in full.
 - Keep the title at or under 50 characters, 72 as a hard ceiling. GitHub and most git tools truncate titles past ~72 characters with an ellipsis, and that cut lands mid-word regardless of what you wrote — a title that's too long causes exactly the mid-word truncation this file already forbids, just via the renderer instead of your own wording. If spelling a word out in full would push the title past the ceiling, cut other content from the title and move it to the body instead; never shorten a word to make it fit.
 - Never state the current state of a specific machine or instance (e.g. "still unpublished in n8n") — that's true only right now, on one system, and is wrong or irrelevant the moment anything changes or anyone else reads the history.
