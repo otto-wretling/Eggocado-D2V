@@ -1362,7 +1362,7 @@
         "options": {}
       },
       "id": "0a341644-cb35-465b-993c-8788c356a6f5",
-      "name": "Page Knitting Configuration",
+      "name": "Page Knitting Configuration Page",
       "webhookId": "b6c2ed1a-c196-4079-ba1d-41c055ed1832",
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
@@ -1963,7 +1963,7 @@
         "options": {}
       },
       "id": "24b05ae8-fd9a-4ee5-85f6-bf023beaaa2a",
-      "name": "Select Default Voice",
+      "name": "Select Default Voice Page",
       "webhookId": "3b8d0b5d-4b63-4d2a-a0ed-e192c5110ccc",
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
@@ -2603,7 +2603,7 @@
         "options": {}
       },
       "id": "acce9165-d58d-4f15-9ea4-1b95bf19e3b1",
-      "name": "Select Mode",
+      "name": "Select Mode Page",
       "webhookId": "fd2442bc-2371-4f32-8072-9c927fd5c5a4",
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
@@ -3263,7 +3263,7 @@
         "options": {}
       },
       "id": "change-voice-text-selection",
-      "name": "Change Voice Text Selection",
+      "name": "Change Voice Text Selection Page",
       "webhookId": "1c19a416-256d-4cbe-a415-193dc905ef5b",
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
@@ -3312,7 +3312,7 @@
         "options": {}
       },
       "id": "99c165d5-b8a7-4517-902f-cd7439b3dd29",
-      "name": "Change Voice Configuration",
+      "name": "Change Voice Configuration Page",
       "webhookId": "4b275d02-b3b2-42f6-a019-5cfbab8d8b0d",
       "type": "n8n-nodes-base.form",
       "typeVersion": 2.5,
@@ -3620,6 +3620,14 @@
       ]
     },
     {
+      "id": "d0691af2-9098-4bec-b7aa-e632e7d88be1",
+      "name": "Set Transcription Engine",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -10336,
+        -32
+      ],
       "parameters": {
         "assignments": {
           "assignments": [
@@ -3636,19 +3644,18 @@
               "type": "string"
             }
           ]
-        },
-        "options": {}
-      },
-      "id": "d0691af2-9098-4bec-b7aa-e632e7d88be1",
-      "name": "Set Transcription Engine",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -10336,
-        -32
-      ]
+        }
+      }
     },
     {
+      "id": "09530317-db43-4a1e-8f68-1e4abf8fc804",
+      "name": "Fetch Ollama Models",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -9888,
+        -112
+      ],
       "parameters": {
         "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/ollama-models",
         "authentication": "genericCredentialType",
@@ -3661,14 +3668,6 @@
           }
         }
       },
-      "id": "09530317-db43-4a1e-8f68-1e4abf8fc804",
-      "name": "Fetch Ollama Models",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.3,
-      "position": [
-        -9888,
-        -112
-      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "dT2rDdHX1TfPrVi1",
@@ -3678,6 +3677,14 @@
       "onError": "continueRegularOutput"
     },
     {
+      "id": "e4288a06-9f3d-4fed-b887-d06d523c4029",
+      "name": "Set Transcription Model",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -9216,
+        -32
+      ],
       "parameters": {
         "assignments": {
           "assignments": [
@@ -3688,19 +3695,18 @@
               "type": "string"
             }
           ]
-        },
-        "options": {}
-      },
-      "id": "e4288a06-9f3d-4fed-b887-d06d523c4029",
-      "name": "Set Transcription Model",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -9216,
-        -32
-      ]
+        }
+      }
     },
     {
+      "id": "342db9c8-3fc8-46f6-9101-4eed9608a5a0",
+      "name": "Fetch Claude Models",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -9888,
+        -272
+      ],
       "parameters": {
         "url": "https://endoflife.date/api/v1/products/claude/",
         "options": {
@@ -3711,17 +3717,17 @@
           }
         }
       },
-      "id": "342db9c8-3fc8-46f6-9101-4eed9608a5a0",
-      "name": "Fetch Claude Models",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "725b3b26-b5cb-4b6e-88c4-6fa2fe0e4a55",
+      "name": "Fetch Codex Models",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
         -9888,
-        -272
+        -32
       ],
-      "onError": "continueRegularOutput"
-    },
-    {
       "parameters": {
         "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/codex-models",
         "authentication": "genericCredentialType",
@@ -3734,14 +3740,6 @@
           }
         }
       },
-      "id": "725b3b26-b5cb-4b6e-88c4-6fa2fe0e4a55",
-      "name": "Fetch Codex Models",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.3,
-      "position": [
-        -9888,
-        -32
-      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "dT2rDdHX1TfPrVi1",
@@ -3751,6 +3749,14 @@
       "onError": "continueRegularOutput"
     },
     {
+      "id": "6b205559-ae2e-4afb-8066-f12e5af481ff",
+      "name": "Detect Video Encoder Support",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -11568,
+        -288
+      ],
       "parameters": {
         "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/clip",
         "authentication": "genericCredentialType",
@@ -3768,14 +3774,6 @@
           "timeout": 30000
         }
       },
-      "id": "6b205559-ae2e-4afb-8066-f12e5af481ff",
-      "name": "Detect Video Encoder Support",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        -11568,
-        -288
-      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "dT2rDdHX1TfPrVi1",
@@ -3784,7 +3782,16 @@
       }
     },
     {
+      "id": "57e3bebe-7be4-41db-a534-974d7c39ac2d",
+      "name": "Route Video Encoder",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -11344,
+        -288
+      ],
       "parameters": {
+        "mode": "rules",
         "rules": {
           "values": [
             {
@@ -3843,18 +3850,19 @@
           "fallbackOutput": "extra",
           "renameFallbackOutput": "Software"
         }
-      },
-      "id": "57e3bebe-7be4-41db-a534-974d7c39ac2d",
-      "name": "Route Video Encoder",
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
-      "position": [
-        -11344,
-        -288
-      ]
+      }
     },
     {
+      "id": "63881f19-7ff1-4921-8e5a-e1ee7094189d",
+      "name": "Configure VA-API Encoding",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -11120,
+        -448
+      ],
       "parameters": {
+        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -3891,18 +3899,19 @@
         },
         "includeOtherFields": true,
         "options": {}
-      },
-      "id": "63881f19-7ff1-4921-8e5a-e1ee7094189d",
-      "name": "Configure VA-API Encoding",
+      }
+    },
+    {
+      "id": "459f2bf0-35b3-4189-af66-6ebc16c8f205",
+      "name": "Configure VideoToolbox Encoding",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
         -11120,
-        -448
-      ]
-    },
-    {
+        -288
+      ],
       "parameters": {
+        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -3939,18 +3948,19 @@
         },
         "includeOtherFields": true,
         "options": {}
-      },
-      "id": "459f2bf0-35b3-4189-af66-6ebc16c8f205",
-      "name": "Configure VideoToolbox Encoding",
+      }
+    },
+    {
+      "id": "66dfebb0-e576-404b-baa6-7028b63802e8",
+      "name": "Configure Software Encoding",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
         -11120,
-        -288
-      ]
-    },
-    {
+        -128
+      ],
       "parameters": {
+        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -3987,18 +3997,19 @@
         },
         "includeOtherFields": true,
         "options": {}
-      },
-      "id": "66dfebb0-e576-404b-baa6-7028b63802e8",
-      "name": "Configure Software Encoding",
+      }
+    },
+    {
+      "id": "a384ed17-49c2-4da2-8309-4f3ffc45c949",
+      "name": "Store Video Encoding Configuration",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -11120,
-        -128
-      ]
-    },
-    {
+        -10896,
+        -288
+      ],
       "parameters": {
+        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -4035,17 +4046,17 @@
         },
         "includeOtherFields": true,
         "options": {}
-      },
-      "id": "a384ed17-49c2-4da2-8309-4f3ffc45c949",
-      "name": "Store Video Encoding Configuration",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.5,
-      "position": [
-        -10896,
-        -288
-      ]
+      }
     },
     {
+      "id": "35ee5d6a-4c8f-4921-ace6-bad64c2de7ec",
+      "name": "Document Required For This Mode?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -10672,
+        96
+      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -4079,17 +4090,17 @@
           "combinator": "and"
         },
         "options": {}
-      },
-      "id": "35ee5d6a-4c8f-4921-ace6-bad64c2de7ec",
-      "name": "Document Required For This Mode?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -10672,
-        96
-      ]
+      }
     },
     {
+      "id": "1eff5ca9-c147-4540-a9b4-3204d81aaa37",
+      "name": "Error Message [\"Document Required\"]",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        -9552,
+        450
+      ],
       "parameters": {
         "formFields": {
           "values": []
@@ -4098,17 +4109,17 @@
           "formDescription": "Please select a document to continue. Click Submit below to go back and choose one."
         }
       },
-      "id": "1eff5ca9-c147-4540-a9b4-3204d81aaa37",
-      "name": "Error Message [\"Document Required\"]",
-      "type": "n8n-nodes-base.form",
-      "typeVersion": 2.5,
-      "position": [
-        -9552,
-        464
-      ],
       "webhookId": "d861e662-2ea0-4d6f-8360-19782fb6376e"
     },
     {
+      "id": "afebf543-896e-4d0d-9b55-28bc671674e3",
+      "name": "Carry Forward Previous Answers",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -10500,
+        300
+      ],
       "parameters": {
         "assignments": {
           "assignments": [
@@ -4139,17 +4150,17 @@
           ]
         },
         "options": {}
-      },
-      "id": "afebf543-896e-4d0d-9b55-28bc671674e3",
-      "name": "Carry Forward Previous Answers",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -10496,
-        304
-      ]
+      }
     },
     {
+      "id": "6451f073-e748-4a53-a1ea-df5c76190b83",
+      "name": "Preserve PDF Binary",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -8944,
+        832
+      ],
       "parameters": {
         "assignments": {
           "assignments": [
@@ -4163,22 +4174,9 @@
         },
         "includeOtherFields": true,
         "options": {}
-      },
-      "id": "6451f073-e748-4a53-a1ea-df5c76190b83",
-      "name": "Preserve PDF Binary",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.5,
-      "position": [
-        -8944,
-        832
-      ]
+      }
     },
     {
-      "parameters": {
-        "mode": "combine",
-        "combineBy": "combineByPosition",
-        "options": {}
-      },
       "id": "6724ea5c-9848-40ec-9634-d0403604fad0",
       "name": "Merge PDF Binary Before Save",
       "type": "n8n-nodes-base.merge",
@@ -4186,7 +4184,934 @@
       "position": [
         -10976,
         832
-      ]
+      ],
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      }
+    },
+    {
+      "id": "aae715ac-7fd9-4ef0-9b9c-fc477adf678c",
+      "name": "Select Mode",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -11568,
+        250
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "hl-sm-1",
+              "name": "engineModel",
+              "type": "string",
+              "value": "={{ $('Receive Headless API Request').isExecuted ? (() => { const raw = $('Receive Headless API Request').item.json.body.engineModel; const idx = raw.indexOf(':'); const engine = idx === -1 ? raw : raw.slice(0, idx); const model = idx === -1 ? '' : raw.slice(idx + 1); const labels = { ollama: '🦙 Local Gemma (Ollama)', claude: '🟣 Claude Code', codex: '⚪ OpenAI Codex' }; return (labels[engine] || engine) + ' - ' + model; })() : $json.engineModel }}"
+            },
+            {
+              "id": "hl-sm-2",
+              "name": "Select Mode",
+              "type": "string",
+              "value": "={{ $('Receive Headless API Request').isExecuted ? ({ new: $('Populate Variables').item.json.modeNewConversion, continue: $('Populate Variables').item.json.modeContinue, knit: $('Populate Variables').item.json.modeKnit, changeVoice: $('Populate Variables').item.json.modeChangeVoice, sample: $('Populate Variables').item.json.modeSample })[$('Receive Headless API Request').item.json.body.mode] : $json['Select Mode'] }}"
+            },
+            {
+              "id": "hl-sm-3",
+              "name": "document",
+              "type": "string",
+              "value": "={{ $('Receive Headless API Request').isExecuted ? $('Receive Headless API Request').item.json.body.document : $json.document }}"
+            },
+            {
+              "id": "hl-sm-4",
+              "name": "samplePhrase",
+              "type": "string",
+              "value": "={{ $('Receive Headless API Request').isExecuted ? $('Receive Headless API Request').item.json.body.samplePhrase : $json.samplePhrase }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "ab384d6a-4942-48c8-bd93-28e8f4434904",
+      "name": "Select Default Voice",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -8944,
+        900
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "hl-sdv-1",
+              "name": "voice",
+              "type": "string",
+              "value": "={{ $('Receive Headless API Request').isExecuted ? $('Receive Headless API Request').item.json.body.voice : $json.voice }}"
+            },
+            {
+              "id": "hl-sdv-2",
+              "name": "data",
+              "type": "binary",
+              "value": "={{ $binary[Object.keys($binary)[0]] }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "15b36e34-3b9a-4d59-bc72-17242380f4ac",
+      "name": "Page Knitting Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -12208,
+        1700
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "hl-pkc-1",
+              "name": "⬅️ Left Page Number",
+              "type": "string",
+              "value": "={{ $('Receive Headless API Request').isExecuted ? $('Receive Headless API Request').item.json.body.leftPage : $json['⬅️ Left Page Number'] }}"
+            },
+            {
+              "id": "hl-pkc-2",
+              "name": "Right Page Number ➡️",
+              "type": "string",
+              "value": "={{ $('Receive Headless API Request').isExecuted ? $('Receive Headless API Request').item.json.body.rightPage : $json['Right Page Number ➡️'] }}"
+            },
+            {
+              "id": "hl-pkc-3",
+              "name": "voice",
+              "type": "string",
+              "value": "={{ $('Receive Headless API Request').isExecuted ? $('Receive Headless API Request').item.json.body.voice : $json.voice }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "f12d565f-a290-44ab-977c-42251e9410b1",
+      "name": "Change Voice Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -12160,
+        1830
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "hl-cvc-1",
+              "name": "pageSelection",
+              "type": "string",
+              "value": "={{ $('Receive Headless API Request').isExecuted ? $('Receive Headless API Request').item.json.body.pageSelection : $json.pageSelection }}"
+            },
+            {
+              "id": "hl-cvc-2",
+              "name": "voice",
+              "type": "string",
+              "value": "={{ $('Receive Headless API Request').isExecuted ? $('Receive Headless API Request').item.json.body.voice : $json.voice }}"
+            },
+            {
+              "id": "hl-cvc-3",
+              "name": "target",
+              "type": "string",
+              "value": "={{ $('Receive Headless API Request').isExecuted ? ({ wholePage: 'The entire page (starts converting right away)', selectedText: 'Selected text (continue to the next page to choose the exact words)' })[$('Receive Headless API Request').item.json.body.target] : $json.target }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "d667bff0-07bf-4f8f-8061-f830a06d9818",
+      "name": "Change Voice Text Selection",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -11712,
+        1830
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "hl-cvts-1",
+              "name": "textToChange",
+              "type": "string",
+              "value": "={{ $('Receive Headless API Request').isExecuted ? $('Receive Headless API Request').item.json.body.textToChange : $json.textToChange }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "7d867dbf-f67f-4ce8-ae8e-1022b8b3accb",
+      "name": "Receive Headless API Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        -12240,
+        2200
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "d2v-headless",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {
+          "binaryPropertyName": "data",
+          "responseData": "={{ $json.body.mode }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dT2rDdHX1TfPrVi1",
+          "name": "D2V Webhook Shared Secret"
+        }
+      },
+      "webhookId": "62d563c5-f2ab-4fa3-8529-dd52c60e00a2"
+    },
+    {
+      "id": "2cf0503b-38da-46ba-b392-ff50dd209dcb",
+      "name": "Is Headless Request?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -9500,
+        200
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "hl-0001",
+              "leftValue": "={{ $('Receive Headless API Request').isExecuted }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "0cf071ab-39a5-4fca-849a-6c406921ab6c",
+      "name": "Is Headless Request (Voice Page)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -7900,
+        -200
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "hl-0002",
+              "leftValue": "={{ $('Receive Headless API Request').isExecuted }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "66d5c1d6-2814-4df5-b849-4d5dedcfadf0",
+      "name": "Is Headless Request (Knit Page)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -7900,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "hl-0003",
+              "leftValue": "={{ $('Receive Headless API Request').isExecuted }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "804c8c2e-b8e8-46fb-9e45-c3281a393308",
+      "name": "Is Headless Request (Change Voice Page)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -7900,
+        200
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "hl-0004",
+              "leftValue": "={{ $('Receive Headless API Request').isExecuted }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "d1b74b8c-f27a-4414-bc21-5f0d07e1ed27",
+      "name": "Is Headless Request (Change Voice Text)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -7900,
+        400
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "hl-0005",
+              "leftValue": "={{ $('Receive Headless API Request').isExecuted }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "5e823013-a4be-481d-b6ea-8b12266fd2dc",
+      "name": "Is Headless (No PDF File)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -7088,
+        -100
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "eh-0001",
+              "leftValue": "={{ $('Receive Headless API Request').isExecuted }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "9e8915de-a7f6-40a0-8c68-faad25dba52a",
+      "name": "Fail: No PDF File Found",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        -7088,
+        -250
+      ],
+      "parameters": {
+        "errorType": "errorMessage",
+        "errorMessage": "No PDF file was found for this document."
+      }
+    },
+    {
+      "id": "2ce1e062-c545-45ea-a005-ecc0fc98c0b7",
+      "name": "Is Headless (No Documents)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -9552,
+        130
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "eh-0002",
+              "leftValue": "={{ $('Receive Headless API Request').isExecuted }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "db6f5ddb-8340-4dd3-945e-32828f1ff6f3",
+      "name": "Fail: No Documents Found",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        -9552,
+        -20
+      ],
+      "parameters": {
+        "errorType": "errorMessage",
+        "errorMessage": "No documents have been uploaded yet."
+      }
+    },
+    {
+      "id": "b8c5198b-766c-41d4-9155-6e2a9bcc05aa",
+      "name": "Is Headless (Document Required)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -9552,
+        600
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "eh-0003",
+              "leftValue": "={{ $('Receive Headless API Request').isExecuted }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "2b0ec6b7-2fef-4ea1-8f10-e81113831923",
+      "name": "Fail: Document Required",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        -9552,
+        750
+      ],
+      "parameters": {
+        "errorType": "errorMessage",
+        "errorMessage": "This mode requires selecting a document, but the \"document\" field was empty or did not match an existing document."
+      }
+    },
+    {
+      "id": "bbe4678f-bd9a-4be4-8516-5aa2e1f4199e",
+      "name": "Is Headless (No Pages Processed)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -7648,
+        1100
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "eh-0004",
+              "leftValue": "={{ $('Receive Headless API Request').isExecuted }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "780359ca-604e-43b2-a0d5-cac877ce7491",
+      "name": "Fail: No Pages Processed Yet",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        -7648,
+        1250
+      ],
+      "parameters": {
+        "errorType": "errorMessage",
+        "errorMessage": "This document has no processed pages yet, so this mode cannot run."
+      }
+    },
+    {
+      "id": "8f1085e9-e381-4c10-bb9e-fd61a3088f83",
+      "name": "Is Headless (Not Enough Pages)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -6304,
+        940
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "eh-0005",
+              "leftValue": "={{ $('Receive Headless API Request').isExecuted }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "ba8bddab-1c7a-4059-8b54-3f9b072ca402",
+      "name": "Fail: Not Enough Pages To Knit",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        -6304,
+        1090
+      ],
+      "parameters": {
+        "errorType": "errorMessage",
+        "errorMessage": "Not enough single pages are available to knit together."
+      }
+    },
+    {
+      "id": "f0ab5f3f-3c9a-42a0-bb3c-f136f77b48d4",
+      "name": "Is Headless (Text Not Found)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -10800,
+        1770
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "eh-0006",
+              "leftValue": "={{ $('Receive Headless API Request').isExecuted }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "fc01fa14-f4ea-4570-a705-f7bf6fab675d",
+      "name": "Fail: Text Not Found",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        -10800,
+        1920
+      ],
+      "parameters": {
+        "errorType": "errorMessage",
+        "errorMessage": "The requested text was not found in this page's transcript."
+      }
+    },
+    {
+      "id": "6f6febec-d71e-43a1-8cdb-8fccf665d202",
+      "name": "Is Headless (Page Not Found)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -11472,
+        1770
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "eh-0007",
+              "leftValue": "={{ $('Receive Headless API Request').isExecuted }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "5d7737f0-f0f6-407a-95f8-6cd9023b3c3e",
+      "name": "Fail: Page Not Found",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        -11472,
+        1920
+      ],
+      "parameters": {
+        "errorType": "errorMessage",
+        "errorMessage": "The requested page selection does not match an existing processed page."
+      }
+    },
+    {
+      "id": "92660ab4-e967-4487-9bca-70e06a62a306",
+      "name": "Has Uploaded File?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -9552,
+        -400
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "huf-0001",
+              "leftValue": "={{ Object.keys($binary || {}).length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "a1f4cd98-7742-4503-8278-2a61a9685109",
+      "name": "Save Headless Upload to Disk",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -9552,
+        -550
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ '/home/node/project/temp/' + $('Receive Headless API Request').item.binary[Object.keys($('Receive Headless API Request').item.binary)[0]].fileName }}",
+        "dataPropertyName": "={{ Object.keys($binary)[0] }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "f36490a2-f885-460f-b18b-b239cf4f3b5f",
+      "name": "Read Headless Upload from Disk",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -8200,
+        -200
+      ],
+      "parameters": {
+        "fileSelector": "={{ '/home/node/project/temp/' + $('Receive Headless API Request').item.binary[Object.keys($('Receive Headless API Request').item.binary)[0]].fileName }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "2856e2ff-165d-4d82-9e8e-224e0250280d",
+      "name": "Receive Status Check Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        -12200,
+        -800
+      ],
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "d2v-headless-status",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "webhookId": "8176433a-5e24-4172-9e9d-8205c9930b10",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dT2rDdHX1TfPrVi1",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
+    },
+    {
+      "id": "48082077-2a7e-4efe-a670-4378f5b6c10d",
+      "name": "Check Job Output Exists",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        -12000,
+        -800
+      ],
+      "parameters": {
+        "fileSelector": "={{ '/home/node/project/output/' + $json.query.jobId + '/final_video.srt' }}",
+        "options": {}
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "f73600c1-84fc-441e-a2f6-4efa24d92a50",
+      "name": "Respond Job Done",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -11600,
+        -860
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { jobId: $('Receive Status Check Request').item.json.query.jobId, status: 'done' } }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "d2111a3f-b5cf-4103-be38-67b73a28d2bb",
+      "name": "Respond Job Not Done",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -11600,
+        -740
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { jobId: $('Receive Status Check Request').item.json.query.jobId, status: 'processing_or_not_found' } }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "0396282a-e4a2-41a1-9ff6-b37f286f2d40",
+      "name": "Compute Job Info",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": true,
+        "options": {
+          "stripBinary": false
+        },
+        "assignments": {
+          "assignments": [
+            {
+              "id": "jobId",
+              "name": "jobId",
+              "type": "string",
+              "value": "={{ (() => { const mode = $json.body.mode; const slugify = (raw) => (raw.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'document'); return mode === 'sample' ? 'sample' : slugify((($json.body.document) || '').replace(/\\.pdf$/i, '')); })() }}"
+            },
+            {
+              "id": "mode",
+              "name": "mode",
+              "type": "string",
+              "value": "={{ $json.body.mode }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "99166f2d-e359-425f-8abd-1d1441294c17",
+      "name": "Respond with Job Info",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { jobId: $json.jobId, mode: $json.mode } }}"
+      }
+    },
+    {
+      "id": "a046bc7e-a7af-4840-b48f-585134a2fd0b",
+      "name": "Is Headless (Sample Phrase Required)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "shpr-0001",
+              "leftValue": "={{ $('Receive Headless API Request').isExecuted && !$('Select Mode').item.json.samplePhrase }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "82d0c6d7-8808-4dc1-ac06-20f49b9eda0f",
+      "name": "Fail: Sample Phrase Required",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "errorType": "errorMessage",
+        "errorMessage": "This mode requires a samplePhrase, but the \"samplePhrase\" field was empty."
+      }
     }
   ],
   "pinData": {},
@@ -4385,7 +5310,7 @@
         ],
         [
           {
-            "node": "Error Message [\"No PDF File Found\"]",
+            "node": "Is Headless (No PDF File)?",
             "type": "main",
             "index": 0
           }
@@ -4893,17 +5818,6 @@
         ]
       ]
     },
-    "Page Knitting Configuration": {
-      "main": [
-        [
-          {
-            "node": "Knit Images",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Knit Images": {
       "main": [
         [
@@ -5086,7 +6000,7 @@
       "main": [
         [
           {
-            "node": "Select Default Voice",
+            "node": "Is Headless Request (Voice Page)?",
             "type": "main",
             "index": 0
           }
@@ -5108,17 +6022,6 @@
         [
           {
             "node": "Read All Timestamps from Disk",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Split Out Sample Voices": {
-      "main": [
-        [
-          {
-            "node": "Process Voices One by One",
             "type": "main",
             "index": 0
           }
@@ -5170,22 +6073,6 @@
         [
           {
             "node": "Determine Output Basename",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Select Default Voice": {
-      "main": [
-        [
-          {
-            "node": "Set Default Voice",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Preserve PDF Binary",
             "type": "main",
             "index": 0
           }
@@ -5311,14 +6198,14 @@
       "main": [
         [
           {
-            "node": "Error Message [\"Document Required\"]",
+            "node": "Is Headless (Document Required)?",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Error Message [\"No Documents Found\"]",
+            "node": "Is Headless (No Documents)?",
             "type": "main",
             "index": 0
           }
@@ -5411,17 +6298,6 @@
         ]
       ]
     },
-    "Select Mode": {
-      "main": [
-        [
-          {
-            "node": "Read Default Voice",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Ensure Document Folder Exists": {
       "main": [
         [
@@ -5493,7 +6369,7 @@
         ],
         [
           {
-            "node": "Change Voice Configuration",
+            "node": "Is Headless Request (Change Voice Page)?",
             "type": "main",
             "index": 0
           }
@@ -5522,7 +6398,7 @@
         ],
         [
           {
-            "node": "Error Message [\"No Pages Processed Yet\"]",
+            "node": "Is Headless (No Pages Processed)?",
             "type": "main",
             "index": 0
           }
@@ -5533,7 +6409,7 @@
       "main": [
         [
           {
-            "node": "Select Mode",
+            "node": "Select Mode Page",
             "type": "main",
             "index": 0
           }
@@ -5544,14 +6420,14 @@
       "main": [
         [
           {
-            "node": "Page Knitting Configuration",
+            "node": "Is Headless Request (Knit Page)?",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Error Message [\"Not Enough Pages To Knit\"]",
+            "node": "Is Headless (Not Enough Pages)?",
             "type": "main",
             "index": 0
           }
@@ -5562,7 +6438,7 @@
       "main": [
         [
           {
-            "node": "Select Mode",
+            "node": "Select Mode Page",
             "type": "main",
             "index": 0
           }
@@ -5624,22 +6500,11 @@
         ]
       ]
     },
-    "Change Voice Text Selection": {
-      "main": [
-        [
-          {
-            "node": "Set Change-Voice Page Number",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Needs Text Selection?": {
       "main": [
         [
           {
-            "node": "Change Voice Text Selection",
+            "node": "Is Headless Request (Change Voice Text)?",
             "type": "main",
             "index": 0
           }
@@ -5647,17 +6512,6 @@
         [
           {
             "node": "Set Change-Voice Page Number",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Change Voice Configuration": {
-      "main": [
-        [
-          {
-            "node": "Needs Text Selection?",
             "type": "main",
             "index": 0
           }
@@ -5766,7 +6620,7 @@
         ],
         [
           {
-            "node": "Error Message [\"Text Not Found\"]",
+            "node": "Is Headless (Text Not Found)?",
             "type": "main",
             "index": 0
           }
@@ -5817,7 +6671,7 @@
         ],
         [
           {
-            "node": "Error Message [\"Page Not Found\"]",
+            "node": "Is Headless (Page Not Found)?",
             "type": "main",
             "index": 0
           }
@@ -5959,7 +6813,7 @@
       "main": [
         [
           {
-            "node": "Select Mode",
+            "node": "Select Mode Page",
             "type": "main",
             "index": 0
           }
@@ -6010,17 +6864,6 @@
         ]
       ]
     },
-    "Aggregate Document List": {
-      "main": [
-        [
-          {
-            "node": "Select Mode",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Save Default Voice to Disk": {
       "main": [
         [
@@ -6047,7 +6890,7 @@
       "main": [
         [
           {
-            "node": "Select Mode",
+            "node": "Select Mode Page",
             "type": "main",
             "index": 0
           }
@@ -6075,6 +6918,466 @@
           }
         ]
       ]
+    },
+    "Select Mode Page": {
+      "main": [
+        [
+          {
+            "node": "Select Mode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Mode": {
+      "main": [
+        [
+          {
+            "node": "Read Default Voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Default Voice Page": {
+      "main": [
+        [
+          {
+            "node": "Select Default Voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Default Voice": {
+      "main": [
+        [
+          {
+            "node": "Set Default Voice",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Preserve PDF Binary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Page Knitting Configuration Page": {
+      "main": [
+        [
+          {
+            "node": "Page Knitting Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Page Knitting Configuration": {
+      "main": [
+        [
+          {
+            "node": "Knit Images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Change Voice Configuration Page": {
+      "main": [
+        [
+          {
+            "node": "Change Voice Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Change Voice Configuration": {
+      "main": [
+        [
+          {
+            "node": "Needs Text Selection?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Change Voice Text Selection Page": {
+      "main": [
+        [
+          {
+            "node": "Change Voice Text Selection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Change Voice Text Selection": {
+      "main": [
+        [
+          {
+            "node": "Set Change-Voice Page Number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Document List": {
+      "main": [
+        [
+          {
+            "node": "Is Headless Request?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Headless Request?": {
+      "main": [
+        [
+          {
+            "node": "Select Mode",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Select Mode Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Headless Request (Voice Page)?": {
+      "main": [
+        [
+          {
+            "node": "Read Headless Upload from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Select Default Voice Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Headless Request (Knit Page)?": {
+      "main": [
+        [
+          {
+            "node": "Page Knitting Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Page Knitting Configuration Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Headless Request (Change Voice Page)?": {
+      "main": [
+        [
+          {
+            "node": "Change Voice Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Change Voice Configuration Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Headless Request (Change Voice Text)?": {
+      "main": [
+        [
+          {
+            "node": "Change Voice Text Selection",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Change Voice Text Selection Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Headless (No PDF File)?": {
+      "main": [
+        [
+          {
+            "node": "Fail: No PDF File Found",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Message [\"No PDF File Found\"]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Headless (No Documents)?": {
+      "main": [
+        [
+          {
+            "node": "Fail: No Documents Found",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Message [\"No Documents Found\"]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Headless (Document Required)?": {
+      "main": [
+        [
+          {
+            "node": "Fail: Document Required",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Message [\"Document Required\"]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Headless (No Pages Processed)?": {
+      "main": [
+        [
+          {
+            "node": "Fail: No Pages Processed Yet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Message [\"No Pages Processed Yet\"]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Headless (Not Enough Pages)?": {
+      "main": [
+        [
+          {
+            "node": "Fail: Not Enough Pages To Knit",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Message [\"Not Enough Pages To Knit\"]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Headless (Text Not Found)?": {
+      "main": [
+        [
+          {
+            "node": "Fail: Text Not Found",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Message [\"Text Not Found\"]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Headless (Page Not Found)?": {
+      "main": [
+        [
+          {
+            "node": "Fail: Page Not Found",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Message [\"Page Not Found\"]",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Uploaded File?": {
+      "main": [
+        [
+          {
+            "node": "Save Headless Upload to Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Headless Upload from Disk": {
+      "main": [
+        [
+          {
+            "node": "Select Default Voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receive Status Check Request": {
+      "main": [
+        [
+          {
+            "node": "Check Job Output Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Job Output Exists": {
+      "main": [
+        [
+          {
+            "node": "Respond Job Done",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Job Not Done",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receive Headless API Request": {
+      "main": [
+        [
+          {
+            "node": "Compute Job Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compute Job Info": {
+      "main": [
+        [
+          {
+            "node": "Respond with Job Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond with Job Info": {
+      "main": [
+        [
+          {
+            "node": "Populate Variables",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Has Uploaded File?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out Sample Voices": {
+      "main": [
+        [
+          {
+            "node": "Is Headless (Sample Phrase Required)?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Headless (Sample Phrase Required)?": {
+      "main": [
+        [
+          {
+            "node": "Fail: Sample Phrase Required",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Process Voices One by One",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -6087,10 +7390,10 @@
     "availableInMCP": true,
     "saveExecutionProgress": true
   },
-  "versionId": "2d1c22d2-a2c0-425c-9d80-9f2558910415",
+  "versionId": "93cb1854-ce06-4353-8f00-498f784bc369",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "ede368576a12b390ec4a52da8bae17c0cbfd5bb85b107acb15f9037c674fe88c",
+    "instanceId": "0d58a7a3f156139856be42466a14e05f00173514ac9794a8494b09c53ea173a0",
     "aiBuilderAssisted": true,
     "builderVariant": "mcp"
   },
@@ -6151,28 +7454,6 @@
       ]
     },
     {
-      "id": "6ca7c2de-8c88-4b4a-893c-1bf4ed51088e",
-      "name": "Knit Mode",
-      "nodeIds": [
-        "0a341644-cb35-465b-993c-8788c356a6f5",
-        "8764539e-e318-4e17-bfc1-9adadaf03f0a",
-        "f774a94d-d2d3-4dab-bd16-6c43c7bcf1d0",
-        "4bf3a017-2bd3-46dd-bea9-3bc68a923659",
-        "34033c1e-8ea6-406c-8692-559a8ee14094",
-        "b55dd822-6a36-4db9-9e57-7fe232d0350e",
-        "ac49d3de-3c4e-4b43-b351-09d0ac385243",
-        "be697eda-9a3f-4f77-864b-da5c58ca73cf",
-        "33d02734-00b9-4a71-93ec-1df5cb30a777",
-        "25a8edf8-7ad9-41e6-991c-855997c3defc",
-        "46692609-688b-4f3b-88b6-0daaa14b1d96",
-        "04378658-7dab-42e4-9676-2fdfe547673d",
-        "d65954a8-d998-4d57-9556-dcaa657ec252",
-        "28cdd014-aeff-4fff-aeb6-b71c21a9d420",
-        "63b7c043-b1f3-4021-801c-4909dda61d4b",
-        "64ab376b-6958-44a3-96ba-983eefe7b767"
-      ]
-    },
-    {
       "id": "81e2464d-7509-42ce-aa19-173e35d0816b",
       "name": "Voice Fetching & Sample Setup",
       "nodeIds": [
@@ -6191,17 +7472,6 @@
         "43a9add9-c4e6-41f8-8a1e-41ae735171a2",
         "46c88e05-2bfd-4c0b-9ec8-dc9c841fc635",
         "a1aa3900-7c65-4216-9b0b-e6965f3dc6e5"
-      ]
-    },
-    {
-      "id": "311c12d8-e681-42f7-9543-ac9981d09ee8",
-      "name": "Change Voice Mode",
-      "nodeIds": [
-        "99c165d5-b8a7-4517-902f-cd7439b3dd29",
-        "needs-text-selection",
-        "change-voice-text-selection",
-        "850f9621-bd56-4994-b7d7-90d3bf23d247",
-        "9d9aca69-8e80-4906-8d86-5046bd5aefb4"
       ]
     }
   ],
