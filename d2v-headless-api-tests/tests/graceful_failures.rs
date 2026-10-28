@@ -1,0 +1,257 @@
+use std::time::Duration;
+
+use d2v_headless_api_tests::{start_job, Config, Field, JobStatus};
+
+const FAILURE_POLL_TIMEOUT: Duration = Duration::from_secs(30);
+
+#[test]
+fn sample_mode_without_sample_phrase_fails_with_clear_message() {
+    let config = Config::from_env();
+
+    let started_job = start_job(&config, &[Field::Text("mode", "sample")]);
+
+    let job_status = d2v_headless_api_tests::poll_status(
+        &config,
+        &started_job.job_id,
+        FAILURE_POLL_TIMEOUT,
+    );
+    match job_status {
+        JobStatus::Failed(message) => {
+            assert!(message.contains("samplePhrase"));
+        }
+        other => panic!("expected Failed, got {other:?}"),
+    }
+}
+
+#[test]
+fn knit_mode_without_document_fails_with_clear_message() {
+    let config = Config::from_env();
+
+    start_job(
+        &config,
+        &[
+            Field::Text("mode", "new"),
+            Field::Text("document", "d2v-rust-suite-document-required-precondition.pdf"),
+            Field::Text("engineModel", "codex:gpt-5.6-sol"),
+            Field::Text("voice", "af_heart"),
+            Field::Text("overwrite", "true"),
+            Field::File {
+                name: "data",
+                filename: "d2v-rust-suite-document-required-precondition.pdf",
+                mime: "application/pdf",
+                bytes: d2v_headless_api_tests::generate_test_pdf(),
+            },
+        ],
+    );
+    std::thread::sleep(Duration::from_secs(5));
+
+    let started_job = start_job(&config, &[Field::Text("mode", "knit")]);
+
+    let job_status = d2v_headless_api_tests::poll_status(
+        &config,
+        &started_job.job_id,
+        FAILURE_POLL_TIMEOUT,
+    );
+    match job_status {
+        JobStatus::Failed(message) => {
+            assert!(message.contains("document"));
+        }
+        other => panic!("expected Failed, got {other:?}"),
+    }
+}
+
+#[test]
+fn new_conversion_on_existing_document_without_overwrite_fails_with_clear_message() {
+    let config = Config::from_env();
+    let document_filename = "d2v-rust-suite-overwrite-precondition.pdf";
+
+    start_job(
+        &config,
+        &[
+            Field::Text("mode", "new"),
+            Field::Text("document", document_filename),
+            Field::Text("engineModel", "codex:gpt-5.6-sol"),
+            Field::Text("voice", "af_heart"),
+            Field::Text("overwrite", "true"),
+            Field::File {
+                name: "data",
+                filename: document_filename,
+                mime: "application/pdf",
+                bytes: d2v_headless_api_tests::generate_test_pdf(),
+            },
+        ],
+    );
+    std::thread::sleep(Duration::from_secs(5));
+
+    let started_job = start_job(
+        &config,
+        &[
+            Field::Text("mode", "new"),
+            Field::Text("document", document_filename),
+            Field::Text("engineModel", "codex:gpt-5.6-sol"),
+            Field::Text("voice", "af_heart"),
+            Field::File {
+                name: "data",
+                filename: document_filename,
+                mime: "application/pdf",
+                bytes: d2v_headless_api_tests::generate_test_pdf(),
+            },
+        ],
+    );
+
+    let job_status = d2v_headless_api_tests::poll_status(
+        &config,
+        &started_job.job_id,
+        FAILURE_POLL_TIMEOUT,
+    );
+    match job_status {
+        JobStatus::Failed(message) => {
+            assert!(message.contains("overwrite"));
+        }
+        other => panic!("expected Failed, got {other:?}"),
+    }
+}
+
+#[test]
+fn change_voice_with_text_not_in_transcript_fails_with_clear_message() {
+    let config = Config::from_env();
+
+    let started_job = start_job(
+        &config,
+        &[
+            Field::Text("mode", "changeVoice"),
+            Field::Text("document", "d2v-rust-suite-new-conversion.pdf"),
+            Field::Text("engineModel", "codex:gpt-5.6-sol"),
+            Field::Text("pageSelection", "Page 1"),
+            Field::Text("target", "selectedText"),
+            Field::Text("textToChange", "zzzznotpresentzzzz"),
+            Field::Text("voice", "af_bella"),
+        ],
+    );
+
+    let job_status = d2v_headless_api_tests::poll_status(
+        &config,
+        &started_job.job_id,
+        FAILURE_POLL_TIMEOUT,
+    );
+    match job_status {
+        JobStatus::Failed(message) => {
+            assert!(message.contains("text"));
+        }
+        other => panic!("expected Failed, got {other:?}"),
+    }
+}
+
+#[test]
+fn change_voice_with_page_that_does_not_exist_fails_with_clear_message() {
+    let config = Config::from_env();
+
+    let started_job = start_job(
+        &config,
+        &[
+            Field::Text("mode", "changeVoice"),
+            Field::Text("document", "d2v-rust-suite-new-conversion.pdf"),
+            Field::Text("engineModel", "codex:gpt-5.6-sol"),
+            Field::Text("pageSelection", "Page 99"),
+            Field::Text("target", "wholePage"),
+            Field::Text("voice", "af_bella"),
+        ],
+    );
+
+    let job_status = d2v_headless_api_tests::poll_status(
+        &config,
+        &started_job.job_id,
+        FAILURE_POLL_TIMEOUT,
+    );
+    match job_status {
+        JobStatus::Failed(message) => {
+            assert!(message.contains("page"));
+        }
+        other => panic!("expected Failed, got {other:?}"),
+    }
+}
+
+#[test]
+fn knit_mode_on_a_document_with_no_processed_pages_yet_fails_with_clear_message() {
+    let config = Config::from_env();
+    let document_filename = "d2v-rust-suite-no-pages-yet-precondition.pdf";
+
+    start_job(
+        &config,
+        &[
+            Field::Text("mode", "new"),
+            Field::Text("document", document_filename),
+            Field::Text("engineModel", "codex:gpt-5.6-sol"),
+            Field::Text("voice", "af_heart"),
+            Field::Text("overwrite", "true"),
+            Field::File {
+                name: "data",
+                filename: document_filename,
+                mime: "application/pdf",
+                bytes: d2v_headless_api_tests::generate_test_pdf(),
+            },
+        ],
+    );
+    std::thread::sleep(Duration::from_secs(5));
+
+    let started_job = start_job(
+        &config,
+        &[
+            Field::Text("mode", "knit"),
+            Field::Text("document", document_filename),
+            Field::Text("engineModel", "codex:gpt-5.6-sol"),
+            Field::Text("leftPage", "1"),
+            Field::Text("rightPage", "2"),
+            Field::Text("voice", "af_heart"),
+        ],
+    );
+
+    let job_status = d2v_headless_api_tests::poll_status(
+        &config,
+        &started_job.job_id,
+        FAILURE_POLL_TIMEOUT,
+    );
+    match job_status {
+        JobStatus::Failed(message) => {
+            assert!(message.contains("processed pages"));
+        }
+        other => panic!("expected Failed, got {other:?}"),
+    }
+
+    d2v_headless_api_tests::wait_for_path_to_exist(
+        &format!(
+            "{}/final_video.mp4",
+            config.job_output_dir(&started_job.job_id)
+        ),
+        Duration::from_secs(10 * 60),
+    );
+}
+
+#[test]
+fn knit_mode_with_too_few_pages_fails_with_clear_message() {
+    let config = Config::from_env();
+
+    let started_job = start_job(
+        &config,
+        &[
+            Field::Text("mode", "knit"),
+            Field::Text("document", "d2v-jobid-match-test.pdf"),
+            Field::Text("engineModel", "codex:gpt-5.6-sol"),
+            Field::Text("leftPage", "1"),
+            Field::Text("rightPage", "2"),
+            Field::Text("voice", "af_heart"),
+        ],
+    );
+
+    let job_status = d2v_headless_api_tests::poll_status(
+        &config,
+        &started_job.job_id,
+        FAILURE_POLL_TIMEOUT,
+    );
+    match job_status {
+        JobStatus::Failed(message) => {
+            assert!(message.contains("knit"));
+        }
+        other => panic!("expected Failed, got {other:?}"),
+    }
+}

@@ -4,6 +4,7 @@
   homebrew.brews = [
     "espeak-ng"
     "ffmpeg-full"
+    "rust"
     "uv"
   ];
 
