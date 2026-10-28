@@ -95,7 +95,14 @@ fn knit_mode_without_document_fails_with_clear_message() {
     );
     std::thread::sleep(Duration::from_secs(5));
 
-    let started_job = start_job(&config, &[Field::Text("mode", "knit")]);
+    let started_job = start_job(
+        &config,
+        &[
+            Field::Text("mode", "knit"),
+            Field::Text("engineModel", &config.engine_model),
+            Field::Text("voice", "af_heart"),
+        ],
+    );
 
     let job_status = d2v_headless_api_tests::poll_status(
         &config,
