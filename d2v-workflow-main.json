@@ -309,7 +309,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "={{ (() => {\n    const basename = $('Determine Output Basename').item.json.outputBasename;\n    const clipGlob = $('Determine Output Basename').item.json.tempClipGlob;\n    const chaptersFile = $('Determine Output Basename').item.json.chaptersFile;\n    const simple = $('Determine Output Basename').item.json.useSimpleConcat;\n    const docPrefix = simple ? 'sample/' : ($('Set Document Folder').item.json.docFolder + '/');\n    const tempDir = $('Populate Variables').item.json.tempDirRelative;\n    const outputDir = $('Populate Variables').item.json.outputDirRelative;\n    const video = $('Store Video Encoding Configuration').item.json;\n    const deviceArgs = video.ffmpegHardwareDeviceArgs ? video.ffmpegHardwareDeviceArgs + ' ' : '';\n\n    const sortedVoiceIds = $('Aggregate All Timestamps').item.json.pages\n      .map(x => x.data)\n      .filter(d => d.voiceId)\n      .sort((a, b) => (a.voiceId < b.voiceId ? -1 : (a.voiceId > b.voiceId ? 1 : 0)))\n      .map(d => d.voiceId);\n\n    const winningClipLines = (() => {\n      const allPages = $('Aggregate All Timestamps').item.json.pages.map(p => p.data);\n      const byRecency = allPages.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));\n      const claimedIndexes = new Set();\n      const winners = [];\n      for (const page of byRecency) {\n        const coveredIndexes = page.knitPages ? page.knitPages.map(Number) : [Number(page.pageIndex)];\n        if (coveredIndexes.some(index => claimedIndexes.has(index))) continue;\n        coveredIndexes.forEach(index => claimedIndexes.add(index));\n        winners.push(page);\n      }\n      winners.sort((a, b) => Math.min(...(a.knitPages ? a.knitPages.map(Number) : [a.pageIndex])) - Math.min(...(b.knitPages ? b.knitPages.map(Number) : [b.pageIndex])));\n      return winners.map(page => {\n        const base = page.knitPages ? page.knitPages.join('-') + '_knit' : String(page.pageIndex);\n        return `echo \"file '$PWD/${tempDir}/${docPrefix}${base}_clip.mp4'\" >> ${tempDir}/${docPrefix}${basename}_concat_list.txt`;\n      }).join(' && ');\n    })();\n\n    const concatListCheck = `[ -s ${tempDir}/${docPrefix}${basename}_concat_list.txt ] || { echo \"ERROR: concat list ${tempDir}/${docPrefix}${basename}_concat_list.txt is empty, no clips matched\" >&2; exit 1; }`;\n\n    const simpleCmds = [\n      `mkdir -p ${outputDir}`,\n      `: > ${tempDir}/${docPrefix}${basename}_concat_list.txt`,\n      ...sortedVoiceIds.map(id => `echo \"file '$PWD/${tempDir}/${docPrefix}sample_${id}_clip.mp4'\" >> ${tempDir}/${docPrefix}${basename}_concat_list.txt`),\n      concatListCheck,\n      `ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy ${outputDir}/${docPrefix}${basename}.mp4.tmp`,\n      `mv ${outputDir}/${docPrefix}${basename}.mp4.tmp ${outputDir}/${docPrefix}${basename}.mp4`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    const complexCmds = [\n      `mkdir -p ${tempDir}/${docPrefix} ${outputDir}/${docPrefix}`,\n      `: > ${tempDir}/${docPrefix}${basename}_concat_list.txt && ${winningClipLines}`,\n      concatListCheck,\n      'MAX_W=0',\n      `for f in ${tempDir}/${docPrefix}*_knit_clip.mp4; do [ -f \"$f\" ] || break; W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$f\" | head -1); if [ \"$W\" -gt \"$MAX_W\" ]; then MAX_W=$W; fi; done`,\n      `SINGLE=$(find ${tempDir}/${docPrefix} -maxdepth 1 -name \"${clipGlob}\" ! -name \"*_knit_clip.mp4\" | sort -V | head -1)`,\n      'if [ -n \"$SINGLE\" ]; then CLIP_W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$SINGLE\" | head -1); PAGE_W=$((CLIP_W/2)); if [ \"$PAGE_W\" -gt \"$MAX_W\" ]; then MAX_W=$PAGE_W; fi; else CLIP_W=$MAX_W; fi',\n      'TARGET_W=$MAX_W',\n      `if [ \"$CLIP_W\" -eq \"$TARGET_W\" ]; then ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy ${outputDir}/${docPrefix}${basename}.mp4.tmp; elif [ \"$CLIP_W\" -gt \"$TARGET_W\" ]; then X=$(( (CLIP_W - TARGET_W) / 2 )) && ffmpeg -y ${deviceArgs}-f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"crop=\\${TARGET_W}:ih:\\${X}:0${video.ffmpegVideoFilterSuffix}\" ${video.ffmpegFinalVideoEncoderArgs} -c:a copy ${outputDir}/${docPrefix}${basename}.mp4.tmp; else OX=$(( (TARGET_W - CLIP_W) / 2 )) && ffmpeg -y ${deviceArgs}-f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"split[bg][fg];[bg]scale=\\${TARGET_W}:ih,boxblur=20:3[bg_b];[fg][bg_b]overlay=\\${OX}:0${video.ffmpegVideoFilterSuffix}\" ${video.ffmpegFinalVideoEncoderArgs} -c:a copy ${outputDir}/${docPrefix}${basename}.mp4.tmp; fi`,\n      `mv ${outputDir}/${docPrefix}${basename}.mp4.tmp ${outputDir}/${docPrefix}${basename}.mp4`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    return ['set -e', `export PATH=${$('Populate Variables').item.json.ffmpegPath}:$PATH`, ...(simple ? simpleCmds : complexCmds)].join(' && ');\n  })() }}"
+              "value": "={{ (() => {\n    const basename = $('Determine Output Basename').item.json.outputBasename;\n    const clipGlob = $('Determine Output Basename').item.json.tempClipGlob;\n    const chaptersFile = $('Determine Output Basename').item.json.chaptersFile;\n    const simple = $('Determine Output Basename').item.json.useSimpleConcat;\n    const docPrefix = simple ? 'sample/' : ($('Set Document Folder').item.json.docFolder + '/');\n    const tempDir = $('Populate Variables').item.json.tempDirRelative;\n    const outputDir = $('Populate Variables').item.json.outputDirRelative;\n    const video = $('Store Video Encoding Configuration').item.json;\n    const deviceArgs = video.ffmpegHardwareDeviceArgs ? video.ffmpegHardwareDeviceArgs + ' ' : '';\n\n    const sortedVoiceIds = $('Aggregate All Timestamps').item.json.pages\n      .map(x => x.data)\n      .filter(d => d.voiceId)\n      .sort((a, b) => (a.voiceId < b.voiceId ? -1 : (a.voiceId > b.voiceId ? 1 : 0)))\n      .map(d => d.voiceId);\n\n    const winningClipLines = (() => {\n      const allPages = $('Aggregate All Timestamps').item.json.pages.map(p => p.data);\n      const byRecency = allPages.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));\n      const claimedIndexes = new Set();\n      const winners = [];\n      for (const page of byRecency) {\n        const coveredIndexes = page.knitPages ? page.knitPages.map(Number) : [Number(page.pageIndex)];\n        if (coveredIndexes.some(index => claimedIndexes.has(index))) continue;\n        coveredIndexes.forEach(index => claimedIndexes.add(index));\n        winners.push(page);\n      }\n      winners.sort((a, b) => Math.min(...(a.knitPages ? a.knitPages.map(Number) : [a.pageIndex])) - Math.min(...(b.knitPages ? b.knitPages.map(Number) : [b.pageIndex])));\n      return winners.map(page => {\n        const base = page.knitPages ? page.knitPages.join('-') + '_knit' : String(page.pageIndex);\n        return `echo \"file '$PWD/${tempDir}/${docPrefix}${base}_clip.mp4'\" >> ${tempDir}/${docPrefix}${basename}_concat_list.txt`;\n      }).join(' && ');\n    })();\n\n    const concatListCheck = `[ -s ${tempDir}/${docPrefix}${basename}_concat_list.txt ] || { echo \"ERROR: concat list ${tempDir}/${docPrefix}${basename}_concat_list.txt is empty, no clips matched\" >&2; exit 1; }`;\n\n    const simpleCmds = [\n      `mkdir -p ${outputDir}`,\n      `: > ${tempDir}/${docPrefix}${basename}_concat_list.txt`,\n      ...sortedVoiceIds.map(id => `echo \"file '$PWD/${tempDir}/${docPrefix}sample_${id}_clip.mp4'\" >> ${tempDir}/${docPrefix}${basename}_concat_list.txt`),\n      concatListCheck,\n      `ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy -f mp4 ${outputDir}/${docPrefix}${basename}.mp4.tmp`,\n      `mv ${outputDir}/${docPrefix}${basename}.mp4.tmp ${outputDir}/${docPrefix}${basename}.mp4`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    const complexCmds = [\n      `mkdir -p ${tempDir}/${docPrefix} ${outputDir}/${docPrefix}`,\n      `: > ${tempDir}/${docPrefix}${basename}_concat_list.txt && ${winningClipLines}`,\n      concatListCheck,\n      'MAX_W=0',\n      `for f in ${tempDir}/${docPrefix}*_knit_clip.mp4; do [ -f \"$f\" ] || break; W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$f\" | head -1); if [ \"$W\" -gt \"$MAX_W\" ]; then MAX_W=$W; fi; done`,\n      `SINGLE=$(find ${tempDir}/${docPrefix} -maxdepth 1 -name \"${clipGlob}\" ! -name \"*_knit_clip.mp4\" | sort -V | head -1)`,\n      'if [ -n \"$SINGLE\" ]; then CLIP_W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$SINGLE\" | head -1); PAGE_W=$((CLIP_W/2)); if [ \"$PAGE_W\" -gt \"$MAX_W\" ]; then MAX_W=$PAGE_W; fi; else CLIP_W=$MAX_W; fi',\n      'TARGET_W=$MAX_W',\n      `if [ \"$CLIP_W\" -eq \"$TARGET_W\" ]; then ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy -f mp4 ${outputDir}/${docPrefix}${basename}.mp4.tmp; elif [ \"$CLIP_W\" -gt \"$TARGET_W\" ]; then X=$(( (CLIP_W - TARGET_W) / 2 )) && ffmpeg -y ${deviceArgs}-f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"crop=\\${TARGET_W}:ih:\\${X}:0${video.ffmpegVideoFilterSuffix}\" ${video.ffmpegFinalVideoEncoderArgs} -c:a copy -f mp4 ${outputDir}/${docPrefix}${basename}.mp4.tmp; else OX=$(( (TARGET_W - CLIP_W) / 2 )) && ffmpeg -y ${deviceArgs}-f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"split[bg][fg];[bg]scale=\\${TARGET_W}:ih,boxblur=20:3[bg_b];[fg][bg_b]overlay=\\${OX}:0${video.ffmpegVideoFilterSuffix}\" ${video.ffmpegFinalVideoEncoderArgs} -c:a copy -f mp4 ${outputDir}/${docPrefix}${basename}.mp4.tmp; fi`,\n      `mv ${outputDir}/${docPrefix}${basename}.mp4.tmp ${outputDir}/${docPrefix}${basename}.mp4`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    return ['set -e', `export PATH=${$('Populate Variables').item.json.ffmpegPath}:$PATH`, ...(simple ? simpleCmds : complexCmds)].join(' && ');\n  })() }}"
             }
           ]
         },
@@ -3668,13 +3668,13 @@
           }
         }
       },
+      "onError": "continueRegularOutput",
       "credentials": {
         "httpHeaderAuth": {
           "id": "dT2rDdHX1TfPrVi1",
           "name": "D2V Webhook Shared Secret"
         }
-      },
-      "onError": "continueRegularOutput"
+      }
     },
     {
       "id": "e4288a06-9f3d-4fed-b887-d06d523c4029",
@@ -3740,13 +3740,13 @@
           }
         }
       },
+      "onError": "continueRegularOutput",
       "credentials": {
         "httpHeaderAuth": {
           "id": "dT2rDdHX1TfPrVi1",
           "name": "D2V Webhook Shared Secret"
         }
-      },
-      "onError": "continueRegularOutput"
+      }
     },
     {
       "id": "6b205559-ae2e-4afb-8066-f12e5af481ff",
@@ -4386,13 +4386,13 @@
           }
         }
       },
+      "webhookId": "62d563c5-f2ab-4fa3-8529-dd52c60e00a2",
       "credentials": {
         "httpHeaderAuth": {
           "id": "dT2rDdHX1TfPrVi1",
           "name": "D2V Webhook Shared Secret"
         }
-      },
-      "webhookId": "62d563c5-f2ab-4fa3-8529-dd52c60e00a2"
+      }
     },
     {
       "id": "2cf0503b-38da-46ba-b392-ff50dd209dcb",
@@ -5001,8 +5001,11 @@
       ],
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ { jobId: $('Receive Status Check Request').item.json.query.jobId, status: 'processing_or_not_found' } }}",
-        "options": {}
+        "responseBody": "={{ { jobId: $('Receive Status Check Request').item.json.query.jobId, status: $json.status } }}",
+        "options": {},
+        "parameters": {
+          "responseBody": "={{ { jobId: $('Receive Status Check Request').item.json.query.jobId, status: $json.status } }}"
+        }
       }
     },
     {
@@ -5828,7 +5831,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "={{ (() => { const jobId = $('Receive Status Check Request').item.json.query.jobId; const j = 'output/' + jobId; return 'if [ -n \"$(find ' + j + '/.failed -newer ' + j + '/.started 2>/dev/null)\" ]; then echo failed; head -c 100000 ' + j + '/.failed; elif [ -n \"$(find ' + j + '/final_video.srt -newer ' + j + '/.started 2>/dev/null)\" ] && [ -n \"$(find ' + j + '/final_video.mp4 -newer ' + j + '/.started 2>/dev/null)\" ]; then echo done; else echo processing; fi'; })() }}"
+              "value": "={{ (() => { const jobId = $('Receive Status Check Request').item.json.query.jobId; const j = 'output/' + jobId; return 'if [ -n \"$(find ' + j + '/.failed -newer ' + j + '/.started 2>/dev/null)\" ]; then echo failed; head -c 100000 ' + j + '/.failed; elif [ -n \"$(find ' + j + '/final_video.srt -newer ' + j + '/.started 2>/dev/null)\" ] && [ -n \"$(find ' + j + '/final_video.mp4 -newer ' + j + '/.started 2>/dev/null)\" ]; then echo done; elif [ -f ' + j + '/.started ]; then echo processing; else echo not_found; fi'; })() }}"
             }
           ]
         },
@@ -6007,6 +6010,704 @@
               "value": "={{ $('Derive Document Folder').item.json.originalFilename }}"
             }
           ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "5b9924e9-0b84-4269-a5b8-ada28d69fa2a",
+      "name": "Is Headless (Mode Required)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "imr-0001",
+              "leftValue": "={{ $('Receive Headless API Request').isExecuted && !$('Select Mode').item.json['Select Mode'] }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "aa8a83bd-bd6e-4035-8b39-17f25a3bc07f",
+      "name": "Set Failed Marker (Mode Required)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "m1",
+              "name": "failedMarkerPath",
+              "type": "string",
+              "value": "={{ '/home/node/project/output/' + $('Compute Job Info').item.json.jobId + '/.failed' }}"
+            },
+            {
+              "id": "m2",
+              "name": "failedMarkerContent",
+              "type": "string",
+              "value": "A mode is required, and must be one of \"new\", \"continue\", \"knit\", \"changeVoice\", or \"sample\"."
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "stripBinary": false
+        }
+      }
+    },
+    {
+      "id": "cde64079-9ab9-4c0e-9ed2-27dd8190e071",
+      "name": "Convert Failed Marker to File (Mode Required)",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      }
+    },
+    {
+      "id": "f2655e22-7803-4973-957b-070df15176e3",
+      "name": "Write Failed Marker (Mode Required)",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (Mode Required)').item.json.failedMarkerPath }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "00d924e7-5ff8-44e1-b0fb-a891910aff48",
+      "name": "Fail: Mode Required",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "errorType": "errorMessage",
+        "errorMessage": "A mode is required, and must be one of \"new\", \"continue\", \"knit\", \"changeVoice\", or \"sample\"."
+      }
+    },
+    {
+      "id": "9b85a095-f30b-47f6-9e01-17d7bd100626",
+      "name": "Is Headless (Knit Pages Required)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ikpr-0001",
+              "leftValue": "={{ $('Receive Headless API Request').isExecuted && (!$('Page Knitting Configuration').item.json['⬅️ Left Page Number'] || !$('Page Knitting Configuration').item.json['Right Page Number ➡️']) }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "609d75d2-d60d-468c-bab4-8108ba0ac8bc",
+      "name": "Set Failed Marker (Knit Pages Required)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "m1",
+              "name": "failedMarkerPath",
+              "type": "string",
+              "value": "={{ '/home/node/project/output/' + $('Compute Job Info').item.json.jobId + '/.failed' }}"
+            },
+            {
+              "id": "m2",
+              "name": "failedMarkerContent",
+              "type": "string",
+              "value": "Knit mode requires both leftPage and rightPage."
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "stripBinary": false
+        }
+      }
+    },
+    {
+      "id": "62830ef9-9a71-4b64-8a07-f07684629e73",
+      "name": "Convert Failed Marker to File (Knit Pages Required)",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      }
+    },
+    {
+      "id": "aa90a19e-daee-47ab-8dda-e31365dc69cb",
+      "name": "Write Failed Marker (Knit Pages Required)",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (Knit Pages Required)').item.json.failedMarkerPath }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "907c3664-8c49-4af5-b428-86cb9ad3168b",
+      "name": "Fail: Knit Pages Required",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "errorType": "errorMessage",
+        "errorMessage": "Knit mode requires both leftPage and rightPage."
+      }
+    },
+    {
+      "id": "98139fa5-62e8-4ca2-9e00-bb972e5f79e2",
+      "name": "Is Headless (Page Selection Required)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ipsr-0001",
+              "leftValue": "={{ $('Receive Headless API Request').isExecuted && (!$('Change Voice Configuration').item.json.pageSelection || !$('Change Voice Configuration').item.json.target) }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "36a87f87-5f0f-4822-b99b-c32f1bcc6a8a",
+      "name": "Set Failed Marker (Page Selection Required)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "m1",
+              "name": "failedMarkerPath",
+              "type": "string",
+              "value": "={{ '/home/node/project/output/' + $('Compute Job Info').item.json.jobId + '/.failed' }}"
+            },
+            {
+              "id": "m2",
+              "name": "failedMarkerContent",
+              "type": "string",
+              "value": "Convert single page requires both pageSelection and a valid target (\"wholePage\" or \"selectedText\")."
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "stripBinary": false
+        }
+      }
+    },
+    {
+      "id": "105685ea-b933-4980-8fb1-e40a356f0572",
+      "name": "Convert Failed Marker to File (Page Selection Required)",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      }
+    },
+    {
+      "id": "24ad26e3-fd9b-4cb5-bb9d-18a5a64f4af5",
+      "name": "Write Failed Marker (Page Selection Required)",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (Page Selection Required)').item.json.failedMarkerPath }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "8b201a4c-b34e-46d1-abfb-5101a318dd65",
+      "name": "Fail: Page Selection Required",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "errorType": "errorMessage",
+        "errorMessage": "Convert single page requires both pageSelection and a valid target (\"wholePage\" or \"selectedText\")."
+      }
+    },
+    {
+      "id": "8bbab34b-4585-4ccf-a10c-4ebe4bbe8a79",
+      "name": "Is Headless (Text To Change Required)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "itcr-0001",
+              "leftValue": "={{ $('Receive Headless API Request').isExecuted && !$('Change Voice Text Selection').item.json.textToChange }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "2f99e310-8a05-4c1a-95bd-e8065d3dcec1",
+      "name": "Set Failed Marker (Text To Change Required)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "m1",
+              "name": "failedMarkerPath",
+              "type": "string",
+              "value": "={{ '/home/node/project/output/' + $('Compute Job Info').item.json.jobId + '/.failed' }}"
+            },
+            {
+              "id": "m2",
+              "name": "failedMarkerContent",
+              "type": "string",
+              "value": "Selected text requires a textToChange phrase."
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "stripBinary": false
+        }
+      }
+    },
+    {
+      "id": "8ff65b82-2bd6-4442-987b-a665fce0723a",
+      "name": "Convert Failed Marker to File (Text To Change Required)",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      }
+    },
+    {
+      "id": "d6d25a7e-b3d2-44c7-9d00-99e108ef72e2",
+      "name": "Write Failed Marker (Text To Change Required)",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (Text To Change Required)').item.json.failedMarkerPath }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "8bcc757e-33a1-46d5-891c-7b81d0e6131a",
+      "name": "Fail: Text To Change Required",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "errorType": "errorMessage",
+        "errorMessage": "Selected text requires a textToChange phrase."
+      }
+    },
+    {
+      "id": "2f4e4a60-732c-4d13-bb18-01f83a865ef4",
+      "name": "Is Headless (Voice Required)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ihvr-0001",
+              "leftValue": "={{ $('Receive Headless API Request').isExecuted && [$('Populate Variables').item.json.modeNewConversion, $('Populate Variables').item.json.modeContinue, $('Populate Variables').item.json.modeKnit, $('Populate Variables').item.json.modeChangeVoice].includes($('Select Mode').item.json['Select Mode']) && !$('Receive Headless API Request').item.json.body.voice }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "0ce9708e-4bec-4ccb-9375-24e7043462d9",
+      "name": "Set Failed Marker (Voice Required)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "m1",
+              "name": "failedMarkerPath",
+              "type": "string",
+              "value": "={{ '/home/node/project/output/' + $('Compute Job Info').item.json.jobId + '/.failed' }}"
+            },
+            {
+              "id": "m2",
+              "name": "failedMarkerContent",
+              "type": "string",
+              "value": "This mode requires a voice."
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "stripBinary": false
+        }
+      }
+    },
+    {
+      "id": "070a8f97-bc1a-4e77-852d-d8342d76e63b",
+      "name": "Convert Failed Marker to File (Voice Required)",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      }
+    },
+    {
+      "id": "d5e0c7c3-0feb-4346-b890-4d5b50a71c22",
+      "name": "Write Failed Marker (Voice Required)",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (Voice Required)').item.json.failedMarkerPath }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "e57c2691-90c8-44c0-94a8-0c4b296bf4b7",
+      "name": "Fail: Voice Required",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "errorType": "errorMessage",
+        "errorMessage": "This mode requires a voice."
+      }
+    },
+    {
+      "id": "37cfb7c5-07a0-41cc-8e7b-8a3fb0c7df60",
+      "name": "Is Headless (Engine Required)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "iher-0001",
+              "leftValue": "={{ $('Receive Headless API Request').isExecuted && [$('Populate Variables').item.json.modeNewConversion, $('Populate Variables').item.json.modeContinue, $('Populate Variables').item.json.modeKnit].includes($('Select Mode').item.json['Select Mode']) && !$('Receive Headless API Request').item.json.body.engineModel }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "22d67ca7-fe94-43c4-a147-245d567215db",
+      "name": "Set Failed Marker (Engine Required)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "m1",
+              "name": "failedMarkerPath",
+              "type": "string",
+              "value": "={{ '/home/node/project/output/' + $('Compute Job Info').item.json.jobId + '/.failed' }}"
+            },
+            {
+              "id": "m2",
+              "name": "failedMarkerContent",
+              "type": "string",
+              "value": "This mode requires an engineModel."
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "stripBinary": false
+        }
+      }
+    },
+    {
+      "id": "863eedca-0c60-4b8c-b868-a7927c23b85f",
+      "name": "Convert Failed Marker to File (Engine Required)",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      }
+    },
+    {
+      "id": "ffd14780-d177-4e63-9e6f-ad6b49d7d6e5",
+      "name": "Write Failed Marker (Engine Required)",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (Engine Required)').item.json.failedMarkerPath }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "1749e5b3-6461-4d90-90cd-f805c5258d87",
+      "name": "Fail: Engine Required",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "errorType": "errorMessage",
+        "errorMessage": "This mode requires an engineModel."
+      }
+    },
+    {
+      "id": "50fa1d70-2115-4015-b8ae-c813ad2fa0a6",
+      "name": "Is Headless (New Conversion File Required)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "incfr-0001",
+              "leftValue": "={{ $('Receive Headless API Request').isExecuted && $('Select Mode').item.json['Select Mode'] === $('Populate Variables').item.json.modeNewConversion && Object.keys($('Receive Headless API Request').item.binary || {}).length === 0 }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
         },
         "options": {}
       }
@@ -7662,17 +8363,6 @@
         ]
       ]
     },
-    "Set Transcription Model": {
-      "main": [
-        [
-          {
-            "node": "Document Required For This Mode?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Document Required For This Mode?": {
       "main": [
         [
@@ -7812,17 +8502,6 @@
         ]
       ]
     },
-    "Select Mode": {
-      "main": [
-        [
-          {
-            "node": "Read Default Voice",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Select Default Voice Page": {
       "main": [
         [
@@ -7861,17 +8540,6 @@
         ]
       ]
     },
-    "Page Knitting Configuration": {
-      "main": [
-        [
-          {
-            "node": "Knit Images",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Change Voice Configuration Page": {
       "main": [
         [
@@ -7883,33 +8551,11 @@
         ]
       ]
     },
-    "Change Voice Configuration": {
-      "main": [
-        [
-          {
-            "node": "Needs Text Selection?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Change Voice Text Selection Page": {
       "main": [
         [
           {
             "node": "Change Voice Text Selection",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Change Voice Text Selection": {
-      "main": [
-        [
-          {
-            "node": "Set Change-Voice Page Number",
             "type": "main",
             "index": 0
           }
@@ -8706,6 +9352,385 @@
           }
         ]
       ]
+    },
+    "Select Mode": {
+      "main": [
+        [
+          {
+            "node": "Is Headless (Mode Required)?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Headless (Mode Required)?": {
+      "main": [
+        [
+          {
+            "node": "Set Failed Marker (Mode Required)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read Default Voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Failed Marker (Mode Required)": {
+      "main": [
+        [
+          {
+            "node": "Convert Failed Marker to File (Mode Required)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Failed Marker to File (Mode Required)": {
+      "main": [
+        [
+          {
+            "node": "Write Failed Marker (Mode Required)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Failed Marker (Mode Required)": {
+      "main": [
+        [
+          {
+            "node": "Fail: Mode Required",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Page Knitting Configuration": {
+      "main": [
+        [
+          {
+            "node": "Is Headless (Knit Pages Required)?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Headless (Knit Pages Required)?": {
+      "main": [
+        [
+          {
+            "node": "Set Failed Marker (Knit Pages Required)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Knit Images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Failed Marker (Knit Pages Required)": {
+      "main": [
+        [
+          {
+            "node": "Convert Failed Marker to File (Knit Pages Required)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Failed Marker to File (Knit Pages Required)": {
+      "main": [
+        [
+          {
+            "node": "Write Failed Marker (Knit Pages Required)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Failed Marker (Knit Pages Required)": {
+      "main": [
+        [
+          {
+            "node": "Fail: Knit Pages Required",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Change Voice Configuration": {
+      "main": [
+        [
+          {
+            "node": "Is Headless (Page Selection Required)?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Headless (Page Selection Required)?": {
+      "main": [
+        [
+          {
+            "node": "Set Failed Marker (Page Selection Required)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Needs Text Selection?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Failed Marker (Page Selection Required)": {
+      "main": [
+        [
+          {
+            "node": "Convert Failed Marker to File (Page Selection Required)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Failed Marker to File (Page Selection Required)": {
+      "main": [
+        [
+          {
+            "node": "Write Failed Marker (Page Selection Required)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Failed Marker (Page Selection Required)": {
+      "main": [
+        [
+          {
+            "node": "Fail: Page Selection Required",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Change Voice Text Selection": {
+      "main": [
+        [
+          {
+            "node": "Is Headless (Text To Change Required)?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Headless (Text To Change Required)?": {
+      "main": [
+        [
+          {
+            "node": "Set Failed Marker (Text To Change Required)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set Change-Voice Page Number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Failed Marker (Text To Change Required)": {
+      "main": [
+        [
+          {
+            "node": "Convert Failed Marker to File (Text To Change Required)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Failed Marker to File (Text To Change Required)": {
+      "main": [
+        [
+          {
+            "node": "Write Failed Marker (Text To Change Required)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Failed Marker (Text To Change Required)": {
+      "main": [
+        [
+          {
+            "node": "Fail: Text To Change Required",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Transcription Model": {
+      "main": [
+        [
+          {
+            "node": "Is Headless (Voice Required)?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Headless (Voice Required)?": {
+      "main": [
+        [
+          {
+            "node": "Set Failed Marker (Voice Required)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Is Headless (Engine Required)?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Failed Marker (Voice Required)": {
+      "main": [
+        [
+          {
+            "node": "Convert Failed Marker to File (Voice Required)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Failed Marker to File (Voice Required)": {
+      "main": [
+        [
+          {
+            "node": "Write Failed Marker (Voice Required)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Failed Marker (Voice Required)": {
+      "main": [
+        [
+          {
+            "node": "Fail: Voice Required",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Headless (Engine Required)?": {
+      "main": [
+        [
+          {
+            "node": "Set Failed Marker (Engine Required)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Is Headless (New Conversion File Required)?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Failed Marker (Engine Required)": {
+      "main": [
+        [
+          {
+            "node": "Convert Failed Marker to File (Engine Required)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Failed Marker to File (Engine Required)": {
+      "main": [
+        [
+          {
+            "node": "Write Failed Marker (Engine Required)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Failed Marker (Engine Required)": {
+      "main": [
+        [
+          {
+            "node": "Fail: Engine Required",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Headless (New Conversion File Required)?": {
+      "main": [
+        [
+          {
+            "node": "Set Failed Marker (No PDF File)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Document Required For This Mode?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -8718,7 +9743,7 @@
     "availableInMCP": true,
     "saveExecutionProgress": true
   },
-  "versionId": "f29fb249-ce7e-4a98-846a-6fde2d48b826",
+  "versionId": "1ca8666c-dcc6-46fb-b737-01afb2340e7f",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "0d58a7a3f156139856be42466a14e05f00173514ac9794a8494b09c53ea173a0",
@@ -8729,77 +9754,77 @@
     {
       "id": "7f1af08c-ed64-4b89-97b0-e5b89d398384",
       "name": "Document Picker",
-      "nodeIds": [
-        "4111729b-35c2-44dd-9859-0deaa165ef1d",
-        "734c2b6d-f299-408a-be07-8bae061bcdb8",
-        "525340d7-fcd6-45e5-bf7e-5504e89b4d1c"
+      "nodeNames": [
+        "Extract Document Meta List",
+        "Parse Document Meta Item",
+        "Aggregate Document List"
       ]
     },
     {
       "id": "a0a16b29-a03f-463e-b853-a4fc11a41a55",
       "name": "Document Folder Setup",
-      "nodeIds": [
-        "b4bdb253-3ff9-4172-a060-a8406a61500d",
-        "fef73ddb-2548-4a3b-a9b6-06a59065a841",
-        "110186cf-3ed6-4512-b27e-b79f403cf7d3"
+      "nodeNames": [
+        "Build Document Meta JSON",
+        "Convert Document Meta to File",
+        "Save Document Meta to Disk"
       ]
     },
     {
       "id": "35799d9f-5588-44b8-8556-0bf238dd9a4e",
       "name": "New Conversion - PDF Upload & Page Extraction",
-      "nodeIds": [
-        "a6c61e91-f96d-42ae-9ee8-145f77258e41",
-        "c0aba882-7fa6-46e7-a7e2-e3cb421f4c95",
-        "5dd1bf69-114c-48c6-8c86-3e53422b476c"
+      "nodeNames": [
+        "Extract Images from PDF",
+        "Unzip Images",
+        "Send Images One by One"
       ]
     },
     {
       "id": "3aff9f6c-a739-4079-a257-dd74f2abde95",
       "name": "Transcript Normalization & Word Map",
-      "nodeIds": [
-        "0e5f6212-20e6-4acb-961e-ed28a51afdd6",
-        "5f6fa4e9-18da-4512-b1f2-93376fdab3a0",
-        "837a24a3-e583-4fbe-8e1a-5b17ae35e099",
-        "96280d0d-3829-42a5-8322-a6ad126e24eb",
-        "d8a9e5a9-de94-46a6-8eec-0ade0f39b774",
-        "5ff896cf-3123-4e77-8278-b2755807fa97",
-        "9ac766e8-fef2-462f-9834-d27e5d4dc1a2"
+      "nodeNames": [
+        "Request Transcript Normalization",
+        "Assemble Normalized Text and Configure Word Map",
+        "Convert Normalized Transcription to Text File",
+        "Convert Word Map to File",
+        "Save Word Map to Disk",
+        "Set Doc Prefix",
+        "Create Normalized Temporary Text File on Disk"
       ]
     },
     {
       "id": "698472ee-8313-41a8-9fb5-42bff875238c",
       "name": "TTS & Clip Assembly",
-      "nodeIds": [
-        "0e416aa8-3241-4e14-8bce-4d9dc133d91d",
-        "e88f9b03-a71a-4b8e-9b24-bf1612abcdcf",
-        "d5a067ce-d69a-40a0-a872-b631a2f5fbf7",
-        "2d844c92-584d-498e-b943-70c9ce934f51",
-        "8f0d9b8e-22a5-4498-ab7c-653655b23891",
-        "6af65ae0-d648-4f2a-9536-e6ad53759884",
-        "7fb9918c-40ba-4776-b5f4-ba7ebb09277d",
-        "0a861c0e-859b-4849-a6e6-efc437699497",
-        "0a85c2c1-4ed6-4fd9-9e1f-a2b9ea0b8eae"
+      "nodeNames": [
+        "Request TTS with Timestamps",
+        "Convert Base64 to Audio File",
+        "Read Word Map from Disk",
+        "Create Temporary Audio File on Disk",
+        "Extract Word Map from File",
+        "Add Page Index to Audio Timestamps",
+        "Convert Timestamps to File",
+        "Save Timestamps to Disk",
+        "Merge Audio File & Timestamps"
       ]
     },
     {
       "id": "81e2464d-7509-42ce-aa19-173e35d0816b",
       "name": "Voice Fetching & Sample Setup",
-      "nodeIds": [
-        "996a93e7-6dd0-469c-8ecb-d0cd23bf7ddf"
+      "nodeNames": [
+        "Ensure Sample Folder Exists"
       ]
     },
     {
       "id": "72a96016-e7c7-4fb4-b07e-2f056a08d175",
       "name": "Finalization & Video Assembly",
-      "nodeIds": [
-        "511103b3-8179-475c-a0a7-8a856f1c8dd7",
-        "ec91e12f-1e66-46df-8ed2-f77195e93742",
-        "a5b82290-809d-415f-83b7-cdbb34575e7a",
-        "8de182f8-3454-4498-a737-47ab2ecabf38",
-        "5932d857-856b-4307-a922-eae4f4a9b499",
-        "43a9add9-c4e6-41f8-8a1e-41ae735171a2",
-        "46c88e05-2bfd-4c0b-9ec8-dc9c841fc635",
-        "a1aa3900-7c65-4216-9b0b-e6965f3dc6e5"
+      "nodeNames": [
+        "Generate Subtitle File and Video Chapters",
+        "Generate Final Subtitles",
+        "Convert Chapters to File",
+        "Convert Subtitles to File",
+        "Save Chapters to Disk",
+        "Save Subtitles to Disk",
+        "Merge Subtitles & Chapters",
+        "Request Final Video Assembly"
       ]
     }
   ],

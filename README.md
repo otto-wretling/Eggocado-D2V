@@ -27,9 +27,112 @@ Every mode is also reachable over HTTP, for scripting or automation, without the
 | Endpoint | Method | What it does |
 |---|---|---|
 | `/webhook/d2v-headless` | POST | Starts a job and returns `{jobId, mode}` immediately; the job keeps running in the background |
-| `/webhook/d2v-headless-status?jobId=...` | GET | Polls a job, returning `{jobId, status}`, where `status` is `processing_or_not_found`, `done`, or `failed` (with a `message` field) |
+| `/webhook/d2v-headless-status?jobId=...` | GET | Polls a job, returning `{jobId, status}`, where `status` is `not_found`, `processing`, `done`, or `failed` (with a `message` field) |
 
-Both endpoints require the same `x-webhook-secret` header value as the one set up in [INSTALL.md](INSTALL.md#securing-the-bare-metal-webhook) (the main n8n instance's own Header Auth credential, reused here). A new conversion's request is `multipart/form-data` with a `data` file field for the PDF; `mode` is one of `new`, `continue`, `knit`, `changeVoice`, or `sample`, and the remaining fields match that mode's form inputs (`document`, `voice`, `engineModel`, `overwrite`, `leftPage`/`rightPage`, `pageSelection`/`target`/`textToChange`, `samplePhrase`). The returned `jobId` is the document name, slugified, except Sample Video mode, which always uses `sample`.
+Both endpoints require the same `x-webhook-secret` header value as the one set up in [INSTALL.md](INSTALL.md#securing-the-bare-metal-webhook) (the main n8n instance's own Header Auth credential, reused here). A start request is `multipart/form-data`. The returned `jobId` is the document name, slugified, except Sample Video mode, which always uses `sample`.
+
+| Parameter | Used by | Required | If omitted | What it does |
+|---|---|---|---|---|
+| `mode` | every request | Yes | Request fails | Which operation to run: `new`, `continue`, `knit`, `changeVoice`, or `sample` |
+| `document` | `new`, `continue`, `knit`, `changeVoice` | `new`: No. Others: Yes | `new`: falls back to the literal job ID `document`. Others: request fails | The document's name; also determines the job ID |
+| `data` | `new` | Yes | Request fails | The PDF file to convert. Other modes use the document's already-saved PDF |
+| `engineModel` | `new`, `continue`, `knit` | Yes | Request fails | Transcription engine and model, as `<engine>:<model>`. `changeVoice` only re-synthesizes narration, so it has no use for this field |
+| `voice` | `new`, `continue`, `knit`, `changeVoice` | Yes | Request fails | Kokoro voice ID used for narration |
+| `overwrite` | `new` | No | Treated as refused; request fails if `document` already has a conversion | Confirms replacing an existing document's conversion |
+| `leftPage`, `rightPage` | `knit` | Yes | Request fails | The two page numbers to knit together |
+| `pageSelection` | `changeVoice` | Yes | Request fails | Which page to target, as `Page N` |
+| `target` | `changeVoice` | Yes | Request fails | `wholePage` or `selectedText` |
+| `textToChange` | `changeVoice` | Yes, when `target` is `selectedText` | Request fails | The exact phrase to re-narrate |
+| `samplePhrase` | `sample` | Yes | Request fails | The phrase every voice sample speaks |
+
+<details>
+<summary>Example requests for every mode</summary>
+
+Each example sends `D2V_BASE_URL=http://localhost:5678` and `SECRET` set to the shared webhook secret. `engineModel` takes the form `<engine>:<model>`, matching whichever engine and model you have available (see [Transcription engines](INSTALL.md#transcription-engines)).
+
+Convert entire document:
+
+```bash
+curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
+  -H "x-webhook-secret: $SECRET" \
+  -F "mode=new" \
+  -F "document=my-document.pdf" \
+  -F "engineModel=codex:gpt-5.6-sol" \
+  -F "voice=af_heart" \
+  -F "overwrite=true" \
+  -F "data=@/path/to/my-document.pdf;type=application/pdf"
+```
+
+`overwrite=true` is only needed when `document` names a document that was already converted.
+
+Continue converting entire document:
+
+```bash
+curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
+  -H "x-webhook-secret: $SECRET" \
+  -F "mode=continue" \
+  -F "document=my-document.pdf" \
+  -F "engineModel=codex:gpt-5.6-sol" \
+  -F "voice=af_heart"
+```
+
+Knit pages together:
+
+```bash
+curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
+  -H "x-webhook-secret: $SECRET" \
+  -F "mode=knit" \
+  -F "document=my-document.pdf" \
+  -F "engineModel=codex:gpt-5.6-sol" \
+  -F "leftPage=1" \
+  -F "rightPage=2" \
+  -F "voice=af_heart"
+```
+
+Convert single page, whole page:
+
+```bash
+curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
+  -H "x-webhook-secret: $SECRET" \
+  -F "mode=changeVoice" \
+  -F "document=my-document.pdf" \
+  -F "engineModel=codex:gpt-5.6-sol" \
+  -F "pageSelection=Page 1" \
+  -F "target=wholePage" \
+  -F "voice=af_bella"
+```
+
+Convert single page, selected phrase:
+
+```bash
+curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
+  -H "x-webhook-secret: $SECRET" \
+  -F "mode=changeVoice" \
+  -F "document=my-document.pdf" \
+  -F "engineModel=codex:gpt-5.6-sol" \
+  -F "pageSelection=Page 2" \
+  -F "target=selectedText" \
+  -F "textToChange=Product" \
+  -F "voice=af_bella"
+```
+
+Create sample video:
+
+```bash
+curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
+  -H "x-webhook-secret: $SECRET" \
+  -F "mode=sample" \
+  -F "samplePhrase=Hello, this is a sample of my voice."
+```
+
+Checking status, for any of the above:
+
+```bash
+curl "$D2V_BASE_URL/webhook/d2v-headless-status?jobId=my-document" \
+  -H "x-webhook-secret: $SECRET"
+```
+
+</details>
 
 ## Architecture
 
@@ -96,15 +199,18 @@ See [INSTALL.md](INSTALL.md) for all installation requirements, including the on
 
 `d2v-headless-api-tests/` is a Rust integration test suite that exercises the headless API above end to end against a running instance: every mode's happy path, Continue mode, and every one of the API's documented failure cases. There's no mocking: each test starts a job and polls the live status endpoint until it finishes.
 
-Set the three required environment variables, then run `cargo test` from that directory:
+Set the four required environment variables, then run `cargo test` from that directory:
 
 ```bash
 cd d2v-headless-api-tests
 D2V_BASE_URL=http://localhost:5678 \
 D2V_WEBHOOK_SECRET=<your webhook secret> \
 D2V_PROJECT_ROOT=/path/to/Eggocado-D2V \
+D2V_ENGINE_MODEL=<engine>:<model> \
 cargo test
 ```
+
+`D2V_ENGINE_MODEL` is whichever transcription engine and model you have available (see [Transcription engines](INSTALL.md#transcription-engines)), for example `codex:gpt-5.6-sol`, `claude:claude-sonnet-5`, or `ollama:gemma3:27b`. The suite never hardcodes one, so it runs the same way regardless of which engine you use.
 
 Tests run one at a time, enforced via that directory's own `.cargo/config.toml`, since they share the same `temp/`/`output/` folders and the single-worker Kokoro TTS service a real conversion would use. A full run takes a while: several tests wait for a multi-minute video conversion to complete.
 
