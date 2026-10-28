@@ -20,6 +20,17 @@ Everything is driven through one n8n form:
 
 Any mode can be combined with any other: knit two pages, then change voice on that pair, then resume and re-finalize, and it all stays consistent.
 
+## Headless API
+
+Every mode is also reachable over HTTP, for scripting or automation, without the n8n form:
+
+| Endpoint | Method | What it does |
+|---|---|---|
+| `/webhook/d2v-headless` | POST | Starts a job and returns `{jobId, mode}` immediately; the job keeps running in the background |
+| `/webhook/d2v-headless-status?jobId=...` | GET | Polls a job, returning `{jobId, status}`, where `status` is `processing_or_not_found`, `done`, or `failed` (with a `message` field) |
+
+Both endpoints require the same `x-webhook-secret` header value as the one set up in [INSTALL.md](INSTALL.md#securing-the-bare-metal-webhook) (the main n8n instance's own Header Auth credential, reused here). A new conversion's request is `multipart/form-data` with a `data` file field for the PDF; `mode` is one of `new`, `continue`, `knit`, `changeVoice`, or `sample`, and the remaining fields match that mode's form inputs (`document`, `voice`, `engineModel`, `overwrite`, `leftPage`/`rightPage`, `pageSelection`/`target`/`textToChange`, `samplePhrase`). The returned `jobId` is the document name, slugified, except Sample Video mode, which always uses `sample`.
+
 ## Architecture
 
 | Component | Port | Where | Role |
@@ -80,6 +91,22 @@ The workflow skips a page's stages when their output files already exist in `tem
 ## Setup
 
 See [INSTALL.md](INSTALL.md) for all installation requirements, including the one-time webhook security setup.
+
+## Testing
+
+`d2v-headless-api-tests/` is a Rust integration test suite that exercises the headless API above end to end against a running instance: every mode's happy path, Continue mode, and every one of the API's documented failure cases. There's no mocking: each test starts a job and polls the live status endpoint until it finishes.
+
+Set the three required environment variables, then run `cargo test` from that directory:
+
+```bash
+cd d2v-headless-api-tests
+D2V_BASE_URL=http://localhost:5678 \
+D2V_WEBHOOK_SECRET=<your webhook secret> \
+D2V_PROJECT_ROOT=/path/to/Eggocado-D2V \
+cargo test
+```
+
+Tests run one at a time, enforced via that directory's own `.cargo/config.toml`, since they share the same `temp/`/`output/` folders and the single-worker Kokoro TTS service a real conversion would use. A full run takes a while: several tests wait for a multi-minute video conversion to complete.
 
 ## Credits
 
