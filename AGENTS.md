@@ -1,5 +1,10 @@
 # D2V Agent Guidelines
 
+## Code style
+
+- No code comments. Name functions, variables, and types so the code explains itself; a reader should never need a comment to understand what something does or why.
+- A self-documenting name states what it actually checks or does, not a generic verb. `verify_srt` tells a reader unfamiliar with the project nothing; `assert_srt_has_well_formed_cues` does. Prefer the specific claim over the generic action every time.
+
 ## n8n Workflow Preferences
 
 - Do not suggest Execute Command nodes or Code nodes in n8n workflows. Use built-in nodes only. Expressions inside node fields (e.g. Edit Fields) are fine.

@@ -4908,7 +4908,7 @@
           "conditions": [
             {
               "id": "huf-0001",
-              "leftValue": "={{ Object.keys($binary || {}).length }}",
+              "leftValue": "={{ Object.keys($('Receive Headless API Request').item.binary || {}).length }}",
               "rightValue": 0,
               "operator": {
                 "type": "number",
@@ -4933,7 +4933,7 @@
       "parameters": {
         "operation": "write",
         "fileName": "={{ '/home/node/project/temp/' + $('Receive Headless API Request').item.binary[Object.keys($('Receive Headless API Request').item.binary)[0]].fileName }}",
-        "dataPropertyName": "={{ Object.keys($binary)[0] }}",
+        "dataPropertyName": "={{ Object.keys($('Receive Headless API Request').item.binary)[0] }}",
         "options": {}
       }
     },
@@ -4974,21 +4974,6 @@
           "name": "D2V Webhook Shared Secret"
         }
       }
-    },
-    {
-      "id": "48082077-2a7e-4efe-a670-4378f5b6c10d",
-      "name": "Check Job Output Exists",
-      "type": "n8n-nodes-base.readWriteFile",
-      "typeVersion": 1.1,
-      "position": [
-        -12000,
-        -800
-      ],
-      "parameters": {
-        "fileSelector": "={{ '/home/node/project/output/' + $json.query.jobId + '/final_video.srt' }}",
-        "options": {}
-      },
-      "onError": "continueErrorOutput"
     },
     {
       "id": "f73600c1-84fc-441e-a2f6-4efa24d92a50",
@@ -5111,6 +5096,919 @@
       "parameters": {
         "errorType": "errorMessage",
         "errorMessage": "This mode requires a samplePhrase, but the \"samplePhrase\" field was empty."
+      }
+    },
+    {
+      "id": "035a9400-a6e7-4f15-84e4-f2ae4ddb6cc7",
+      "name": "Set Started Marker",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ssm-1",
+              "name": "startedMarkerPath",
+              "type": "string",
+              "value": "={{ '/home/node/project/output/' + $('Compute Job Info').item.json.jobId + '/.started' }}"
+            },
+            {
+              "id": "ssm-2",
+              "name": "startedMarkerContent",
+              "type": "string",
+              "value": "={{ new Date().toISOString() }}"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "stripBinary": false
+        }
+      }
+    },
+    {
+      "id": "f7285acb-6fd0-4593-b63d-04ce5b23485b",
+      "name": "Convert Started Marker to File",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "startedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      }
+    },
+    {
+      "id": "3e809556-95ee-46df-8980-8d64f8c69860",
+      "name": "Write Started Marker",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Started Marker').item.json.startedMarkerPath }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "30057eca-05cf-49a9-9729-de814e6f102c",
+      "name": "Set Failed Marker (No PDF File)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "m1",
+              "name": "failedMarkerPath",
+              "type": "string",
+              "value": "={{ '/home/node/project/output/' + $('Compute Job Info').item.json.jobId + '/.failed' }}"
+            },
+            {
+              "id": "m2",
+              "name": "failedMarkerContent",
+              "type": "string",
+              "value": "No PDF file was found for this document."
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "stripBinary": false
+        }
+      }
+    },
+    {
+      "id": "a6839b92-1dbd-43f9-9c8c-bd6521db5ae7",
+      "name": "Convert Failed Marker to File (No PDF File)",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      }
+    },
+    {
+      "id": "c658bb88-b36f-470a-9c34-5451872644a4",
+      "name": "Write Failed Marker (No PDF File)",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (No PDF File)').item.json.failedMarkerPath }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "909cc447-a51c-4af2-85e7-7482a6b959cc",
+      "name": "Set Failed Marker (No Documents)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "m1",
+              "name": "failedMarkerPath",
+              "type": "string",
+              "value": "={{ '/home/node/project/output/' + $('Compute Job Info').item.json.jobId + '/.failed' }}"
+            },
+            {
+              "id": "m2",
+              "name": "failedMarkerContent",
+              "type": "string",
+              "value": "No documents have been uploaded yet."
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "stripBinary": false
+        }
+      }
+    },
+    {
+      "id": "c9e5dc28-ad24-4fdd-bc53-f312bca59325",
+      "name": "Convert Failed Marker to File (No Documents)",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      }
+    },
+    {
+      "id": "dd51fb1d-10a4-4910-94ee-aad4d693264c",
+      "name": "Write Failed Marker (No Documents)",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (No Documents)').item.json.failedMarkerPath }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "d66a5970-05b9-4f3b-be75-397e300475a6",
+      "name": "Set Failed Marker (Document Required)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "m1",
+              "name": "failedMarkerPath",
+              "type": "string",
+              "value": "={{ '/home/node/project/output/' + $('Compute Job Info').item.json.jobId + '/.failed' }}"
+            },
+            {
+              "id": "m2",
+              "name": "failedMarkerContent",
+              "type": "string",
+              "value": "This mode requires selecting a document, but the \"document\" field was empty or did not match an existing document."
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "stripBinary": false
+        }
+      }
+    },
+    {
+      "id": "6e2bdb15-0f97-49c1-a80b-b92e73715e99",
+      "name": "Convert Failed Marker to File (Document Required)",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      }
+    },
+    {
+      "id": "625011cc-457a-4348-90b1-847e7392d0bb",
+      "name": "Write Failed Marker (Document Required)",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (Document Required)').item.json.failedMarkerPath }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "2756f8d9-b733-4532-8ab9-96dabc61761d",
+      "name": "Set Failed Marker (No Pages Processed)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "m1",
+              "name": "failedMarkerPath",
+              "type": "string",
+              "value": "={{ '/home/node/project/output/' + $('Compute Job Info').item.json.jobId + '/.failed' }}"
+            },
+            {
+              "id": "m2",
+              "name": "failedMarkerContent",
+              "type": "string",
+              "value": "This document has no processed pages yet, so this mode cannot run."
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "stripBinary": false
+        }
+      }
+    },
+    {
+      "id": "3250ed90-e822-4e4b-af1e-e93d1444ab87",
+      "name": "Convert Failed Marker to File (No Pages Processed)",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      }
+    },
+    {
+      "id": "c46ea802-80fe-45e7-935f-703b9c61f353",
+      "name": "Write Failed Marker (No Pages Processed)",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (No Pages Processed)').item.json.failedMarkerPath }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "7f3c3d2f-0cc6-48c1-9f44-f7d19c2854aa",
+      "name": "Set Failed Marker (Not Enough Pages)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "m1",
+              "name": "failedMarkerPath",
+              "type": "string",
+              "value": "={{ '/home/node/project/output/' + $('Compute Job Info').item.json.jobId + '/.failed' }}"
+            },
+            {
+              "id": "m2",
+              "name": "failedMarkerContent",
+              "type": "string",
+              "value": "Not enough single pages are available to knit together."
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "stripBinary": false
+        }
+      }
+    },
+    {
+      "id": "7e32109a-e132-4411-8acc-d8e8ebdedc99",
+      "name": "Convert Failed Marker to File (Not Enough Pages)",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      }
+    },
+    {
+      "id": "70ceeb0c-7b2a-453b-86cd-2b150ab23d6a",
+      "name": "Write Failed Marker (Not Enough Pages)",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (Not Enough Pages)').item.json.failedMarkerPath }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "094e7e3e-41fb-4562-85c9-8815d7adab75",
+      "name": "Set Failed Marker (Text Not Found)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "m1",
+              "name": "failedMarkerPath",
+              "type": "string",
+              "value": "={{ '/home/node/project/output/' + $('Compute Job Info').item.json.jobId + '/.failed' }}"
+            },
+            {
+              "id": "m2",
+              "name": "failedMarkerContent",
+              "type": "string",
+              "value": "The requested text was not found in this page's transcript."
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "stripBinary": false
+        }
+      }
+    },
+    {
+      "id": "65e50306-aacd-4c69-9419-5a2fdd056168",
+      "name": "Convert Failed Marker to File (Text Not Found)",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      }
+    },
+    {
+      "id": "4fbdeb81-43aa-4840-b2ab-c8d02074adf2",
+      "name": "Write Failed Marker (Text Not Found)",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (Text Not Found)').item.json.failedMarkerPath }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "2f015f66-e701-42fc-8fc6-63b4f072057f",
+      "name": "Set Failed Marker (Page Not Found)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "m1",
+              "name": "failedMarkerPath",
+              "type": "string",
+              "value": "={{ '/home/node/project/output/' + $('Compute Job Info').item.json.jobId + '/.failed' }}"
+            },
+            {
+              "id": "m2",
+              "name": "failedMarkerContent",
+              "type": "string",
+              "value": "The requested page selection does not match an existing processed page."
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "stripBinary": false
+        }
+      }
+    },
+    {
+      "id": "1176adcb-9260-4d05-ba4d-0d4da8ee4425",
+      "name": "Convert Failed Marker to File (Page Not Found)",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      }
+    },
+    {
+      "id": "dddaaee6-5e92-4f55-a8e1-8119ea8eaf1c",
+      "name": "Write Failed Marker (Page Not Found)",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (Page Not Found)').item.json.failedMarkerPath }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "e4697843-53ab-4e8a-af75-fb642f17aab0",
+      "name": "Set Failed Marker (Sample Phrase Required)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "m1",
+              "name": "failedMarkerPath",
+              "type": "string",
+              "value": "={{ '/home/node/project/output/' + $('Compute Job Info').item.json.jobId + '/.failed' }}"
+            },
+            {
+              "id": "m2",
+              "name": "failedMarkerContent",
+              "type": "string",
+              "value": "This mode requires a samplePhrase, but the \"samplePhrase\" field was empty."
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "stripBinary": false
+        }
+      }
+    },
+    {
+      "id": "32c8b46a-8502-419a-801b-80552d18c1a2",
+      "name": "Convert Failed Marker to File (Sample Phrase Required)",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      }
+    },
+    {
+      "id": "659c4076-ef22-470f-ae50-bdd7e6f9728e",
+      "name": "Write Failed Marker (Sample Phrase Required)",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (Sample Phrase Required)').item.json.failedMarkerPath }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "07bae81d-64ac-4e97-a29b-fce0f345d305",
+      "name": "Check Existing Document?",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "read",
+        "fileSelector": "={{ $('Populate Variables').item.json.tempDir + '/' + $json.docFolder + '/' + $('Populate Variables').item.json.documentMetaFileName }}",
+        "options": {}
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "e3ebf4fe-1f93-473f-b7c5-53a3dbb22a46",
+      "name": "Is Overwrite Confirmed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ioc-1",
+              "leftValue": "={{ $('Receive Headless API Request').isExecuted && $('Receive Headless API Request').item.json.body.overwrite !== 'true' }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "15938729-7501-495d-9f42-c69069abd79a",
+      "name": "Fail: Document Already Exists",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "errorType": "errorMessage",
+        "errorMessage": "This document already has existing content. Set overwrite to true in the request to replace it."
+      }
+    },
+    {
+      "id": "fe7e93de-fd73-4d77-b1e1-eb51fb10b7ec",
+      "name": "Set Failed Marker (Document Already Exists)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "m1",
+              "name": "failedMarkerPath",
+              "type": "string",
+              "value": "={{ '/home/node/project/output/' + $('Compute Job Info').item.json.jobId + '/.failed' }}"
+            },
+            {
+              "id": "m2",
+              "name": "failedMarkerContent",
+              "type": "string",
+              "value": "This document already has existing content. Set overwrite to true in the request to replace it."
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "stripBinary": false
+        }
+      }
+    },
+    {
+      "id": "878cdf3c-7ed0-4176-ac5e-21c9f71fffa5",
+      "name": "Convert Failed Marker to File (Document Already Exists)",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      }
+    },
+    {
+      "id": "30f1962a-a443-4a89-a131-2c51497a4280",
+      "name": "Write Failed Marker (Document Already Exists)",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (Document Already Exists)').item.json.failedMarkerPath }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "4e45e952-37b3-4200-ab87-3f0ae7f1afc3",
+      "name": "Check Job State",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "url": "=http://host.docker.internal:5679/webhook/clip",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "command",
+              "value": "={{ (() => { const jobId = $('Receive Status Check Request').item.json.query.jobId; const j = 'output/' + jobId; return 'if [ -n \"$(find ' + j + '/.failed -newer ' + j + '/.started 2>/dev/null)\" ]; then echo failed; head -c 100000 ' + j + '/.failed; elif [ -n \"$(find ' + j + '/final_video.srt -newer ' + j + '/.started 2>/dev/null)\" ] && [ -n \"$(find ' + j + '/final_video.mp4 -newer ' + j + '/.started 2>/dev/null)\" ]; then echo done; else echo processing; fi'; })() }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 3600000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dT2rDdHX1TfPrVi1",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
+    },
+    {
+      "id": "b9c8eb6c-44ca-4731-85eb-00d209e496bf",
+      "name": "Parse Job State",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "pjs-1",
+              "name": "status",
+              "type": "string",
+              "value": "={{ ($json.stdout || '').split('\\n')[0] }}"
+            },
+            {
+              "id": "pjs-2",
+              "name": "message",
+              "type": "string",
+              "value": "={{ ($json.stdout || '').split('\\n')[0] === 'failed' ? ($json.stdout || '').split('\\n').slice(1).join('\\n').trim() : null }}"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "f72228ce-4b1c-42ad-a3a2-24bad2d09568",
+      "name": "Job State Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.5,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "mode": "rules",
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "failed",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.status }}",
+                    "rightValue": "done",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      }
+    },
+    {
+      "id": "72bcda0b-fd4c-42e9-8327-0e759c9058e8",
+      "name": "Respond Job Failed",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { jobId: $('Receive Status Check Request').item.json.query.jobId, status: 'failed', message: $json.message } }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "d66e5bd5-2f7c-4070-9c65-5d3f1b9812df",
+      "name": "Ensure Job Output Folder Exists",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "url": "=http://host.docker.internal:5679/webhook/clip",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "command",
+              "value": "={{ 'mkdir -p output/' + $('Compute Job Info').item.json.jobId }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 3600000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dT2rDdHX1TfPrVi1",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
+    },
+    {
+      "id": "e53a12cc-6414-4ba6-b15f-cfa2df76ac52",
+      "name": "Restore Document Folder Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "rdf-1",
+              "name": "docFolder",
+              "type": "string",
+              "value": "={{ $('Derive Document Folder').item.json.docFolder }}"
+            },
+            {
+              "id": "rdf-2",
+              "name": "originalFilename",
+              "type": "string",
+              "value": "={{ $('Derive Document Folder').item.json.originalFilename }}"
+            }
+          ]
+        },
+        "options": {}
       }
     }
   ],
@@ -6123,22 +7021,6 @@
         ]
       ]
     },
-    "Derive Document Folder": {
-      "main": [
-        [
-          {
-            "node": "Ensure Document Folder Exists",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Merge After Ensuring Document Folder",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Build Document Meta JSON": {
       "main": [
         [
@@ -7139,7 +8021,7 @@
       "main": [
         [
           {
-            "node": "Fail: No PDF File Found",
+            "node": "Set Failed Marker (No PDF File)",
             "type": "main",
             "index": 0
           }
@@ -7157,7 +8039,7 @@
       "main": [
         [
           {
-            "node": "Fail: No Documents Found",
+            "node": "Set Failed Marker (No Documents)",
             "type": "main",
             "index": 0
           }
@@ -7175,7 +8057,7 @@
       "main": [
         [
           {
-            "node": "Fail: Document Required",
+            "node": "Set Failed Marker (Document Required)",
             "type": "main",
             "index": 0
           }
@@ -7193,7 +8075,7 @@
       "main": [
         [
           {
-            "node": "Fail: No Pages Processed Yet",
+            "node": "Set Failed Marker (No Pages Processed)",
             "type": "main",
             "index": 0
           }
@@ -7211,7 +8093,7 @@
       "main": [
         [
           {
-            "node": "Fail: Not Enough Pages To Knit",
+            "node": "Set Failed Marker (Not Enough Pages)",
             "type": "main",
             "index": 0
           }
@@ -7229,7 +8111,7 @@
       "main": [
         [
           {
-            "node": "Fail: Text Not Found",
+            "node": "Set Failed Marker (Text Not Found)",
             "type": "main",
             "index": 0
           }
@@ -7247,7 +8129,7 @@
       "main": [
         [
           {
-            "node": "Fail: Page Not Found",
+            "node": "Set Failed Marker (Page Not Found)",
             "type": "main",
             "index": 0
           }
@@ -7269,6 +8151,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Ensure Job Output Folder Exists",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -7277,35 +8166,6 @@
         [
           {
             "node": "Select Default Voice",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Receive Status Check Request": {
-      "main": [
-        [
-          {
-            "node": "Check Job Output Exists",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Check Job Output Exists": {
-      "main": [
-        [
-          {
-            "node": "Respond Job Done",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Respond Job Not Done",
             "type": "main",
             "index": 0
           }
@@ -7334,22 +8194,6 @@
         ]
       ]
     },
-    "Respond with Job Info": {
-      "main": [
-        [
-          {
-            "node": "Populate Variables",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Has Uploaded File?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Split Out Sample Voices": {
       "main": [
         [
@@ -7365,7 +8209,7 @@
       "main": [
         [
           {
-            "node": "Fail: Sample Phrase Required",
+            "node": "Set Failed Marker (Sample Phrase Required)",
             "type": "main",
             "index": 0
           }
@@ -7373,6 +8217,490 @@
         [
           {
             "node": "Process Voices One by One",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Started Marker": {
+      "main": [
+        [
+          {
+            "node": "Convert Started Marker to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Started Marker to File": {
+      "main": [
+        [
+          {
+            "node": "Write Started Marker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Failed Marker (No PDF File)": {
+      "main": [
+        [
+          {
+            "node": "Convert Failed Marker to File (No PDF File)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Failed Marker to File (No PDF File)": {
+      "main": [
+        [
+          {
+            "node": "Write Failed Marker (No PDF File)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Failed Marker (No PDF File)": {
+      "main": [
+        [
+          {
+            "node": "Fail: No PDF File Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Failed Marker (No Documents)": {
+      "main": [
+        [
+          {
+            "node": "Convert Failed Marker to File (No Documents)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Failed Marker to File (No Documents)": {
+      "main": [
+        [
+          {
+            "node": "Write Failed Marker (No Documents)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Failed Marker (No Documents)": {
+      "main": [
+        [
+          {
+            "node": "Fail: No Documents Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Failed Marker (Document Required)": {
+      "main": [
+        [
+          {
+            "node": "Convert Failed Marker to File (Document Required)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Failed Marker to File (Document Required)": {
+      "main": [
+        [
+          {
+            "node": "Write Failed Marker (Document Required)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Failed Marker (Document Required)": {
+      "main": [
+        [
+          {
+            "node": "Fail: Document Required",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Failed Marker (No Pages Processed)": {
+      "main": [
+        [
+          {
+            "node": "Convert Failed Marker to File (No Pages Processed)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Failed Marker to File (No Pages Processed)": {
+      "main": [
+        [
+          {
+            "node": "Write Failed Marker (No Pages Processed)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Failed Marker (No Pages Processed)": {
+      "main": [
+        [
+          {
+            "node": "Fail: No Pages Processed Yet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Failed Marker (Not Enough Pages)": {
+      "main": [
+        [
+          {
+            "node": "Convert Failed Marker to File (Not Enough Pages)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Failed Marker to File (Not Enough Pages)": {
+      "main": [
+        [
+          {
+            "node": "Write Failed Marker (Not Enough Pages)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Failed Marker (Not Enough Pages)": {
+      "main": [
+        [
+          {
+            "node": "Fail: Not Enough Pages To Knit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Failed Marker (Text Not Found)": {
+      "main": [
+        [
+          {
+            "node": "Convert Failed Marker to File (Text Not Found)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Failed Marker to File (Text Not Found)": {
+      "main": [
+        [
+          {
+            "node": "Write Failed Marker (Text Not Found)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Failed Marker (Text Not Found)": {
+      "main": [
+        [
+          {
+            "node": "Fail: Text Not Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Failed Marker (Page Not Found)": {
+      "main": [
+        [
+          {
+            "node": "Convert Failed Marker to File (Page Not Found)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Failed Marker to File (Page Not Found)": {
+      "main": [
+        [
+          {
+            "node": "Write Failed Marker (Page Not Found)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Failed Marker (Page Not Found)": {
+      "main": [
+        [
+          {
+            "node": "Fail: Page Not Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Failed Marker (Sample Phrase Required)": {
+      "main": [
+        [
+          {
+            "node": "Convert Failed Marker to File (Sample Phrase Required)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Failed Marker to File (Sample Phrase Required)": {
+      "main": [
+        [
+          {
+            "node": "Write Failed Marker (Sample Phrase Required)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Failed Marker (Sample Phrase Required)": {
+      "main": [
+        [
+          {
+            "node": "Fail: Sample Phrase Required",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Derive Document Folder": {
+      "main": [
+        [
+          {
+            "node": "Check Existing Document?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Existing Document?": {
+      "main": [
+        [
+          {
+            "node": "Is Overwrite Confirmed?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Restore Document Folder Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Overwrite Confirmed?": {
+      "main": [
+        [
+          {
+            "node": "Set Failed Marker (Document Already Exists)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Restore Document Folder Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Failed Marker (Document Already Exists)": {
+      "main": [
+        [
+          {
+            "node": "Convert Failed Marker to File (Document Already Exists)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Failed Marker to File (Document Already Exists)": {
+      "main": [
+        [
+          {
+            "node": "Write Failed Marker (Document Already Exists)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Failed Marker (Document Already Exists)": {
+      "main": [
+        [
+          {
+            "node": "Fail: Document Already Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receive Status Check Request": {
+      "main": [
+        [
+          {
+            "node": "Check Job State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Job State": {
+      "main": [
+        [
+          {
+            "node": "Parse Job State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Job State": {
+      "main": [
+        [
+          {
+            "node": "Job State Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Job State Router": {
+      "main": [
+        [
+          {
+            "node": "Respond Job Failed",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Job Done",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Job Not Done",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ensure Job Output Folder Exists": {
+      "main": [
+        [
+          {
+            "node": "Set Started Marker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore Document Folder Fields": {
+      "main": [
+        [
+          {
+            "node": "Ensure Document Folder Exists",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge After Ensuring Document Folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond with Job Info": {
+      "main": [
+        [
+          {
+            "node": "Has Uploaded File?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Headless Upload to Disk": {
+      "main": [
+        [
+          {
+            "node": "Ensure Job Output Folder Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Started Marker": {
+      "main": [
+        [
+          {
+            "node": "Populate Variables",
             "type": "main",
             "index": 0
           }
@@ -7390,7 +8718,7 @@
     "availableInMCP": true,
     "saveExecutionProgress": true
   },
-  "versionId": "93cb1854-ce06-4353-8f00-498f784bc369",
+  "versionId": "f29fb249-ce7e-4a98-846a-6fde2d48b826",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "0d58a7a3f156139856be42466a14e05f00173514ac9794a8494b09c53ea173a0",
