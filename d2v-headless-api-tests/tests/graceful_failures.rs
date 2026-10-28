@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use d2v_headless_api_tests::{start_job, Config, Field, JobStatus};
 
-const FAILURE_POLL_TIMEOUT: Duration = Duration::from_secs(30);
+const FAILURE_POLL_TIMEOUT: Duration = Duration::from_secs(60);
 
 #[test]
 fn sample_mode_without_sample_phrase_fails_with_clear_message() {

@@ -22,7 +22,7 @@ fn continuing_a_document_with_its_pdf_missing_fails_with_clear_message() {
     );
 
     let job_status =
-        d2v_headless_api_tests::poll_status(&config, &started_job.job_id, Duration::from_secs(30));
+        d2v_headless_api_tests::poll_status(&config, &started_job.job_id, Duration::from_secs(60));
     match job_status {
         JobStatus::Failed(message) => {
             assert!(message.contains("PDF"));

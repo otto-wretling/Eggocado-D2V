@@ -230,82 +230,96 @@ pub fn poll_status(config: &Config, job_id: &str, timeout: Duration) -> JobStatu
     }
 }
 
-pub struct FixtureSection {
-    pub name: &'static str,
-    pub lines: Vec<&'static str>,
-}
+const FIXTURE_HTML: &str = r#"<!DOCTYPE html>
+<html>
+<head>
+<style>
+body { font-family: Helvetica, sans-serif; font-size: 14px; }
+.page + .page { page-break-before: always; }
+table { border-collapse: collapse; margin-top: 10px; }
+th, td { border: 1px solid #000000; padding: 4px 10px; text-align: left; }
+img { width: 80mm; height: auto; }
+</style>
+</head>
+<body>
+<div class="page">
+<p>The quick brown fox jumps over the lazy dog.</p>
+<p>This page contains a single plain paragraph with no special formatting.</p>
+</div>
+<div class="page">
+<p>Product Catalog</p>
+<table>
+<tr><th>Name</th><th>Price</th><th>Quantity</th></tr>
+<tr><td>Widget A</td><td>10 dollars</td><td>5 units</td></tr>
+<tr><td>Widget B</td><td>20 dollars</td><td>3 units</td></tr>
+<tr><td>Widget C</td><td>15 dollars</td><td>8 units</td></tr>
+</table>
+</div>
+<div class="page">
+<p>Special characters test page.</p>
+<p>Accented letters: café, résumé, naïve, señor.</p>
+<p>Currency and punctuation: $99.99, £50, €20 — a dash and an ellipsis…</p>
+<p>Non-Latin scripts: Ελληνικά (Greek), Русский (Russian).</p>
+</div>
+<div class="page">
+<p>Slashes, dates, and URLs test page.</p>
+<p>File path: /usr/local/share/d2v/output</p>
+<p>Date: 10/28/2026</p>
+<p>Measurement: 1/2 cup</p>
+<p>Link: https://example.com/docs?query=value&amp;page=2</p>
+</div>
+<div class="page">
+<p>Embedded image test page.</p>
+<img src="fixture.png" />
+<p>A synthesized three-band color image, embedded above.</p>
+</div>
+</body>
+</html>"#;
 
-pub fn fixture_sections() -> Vec<FixtureSection> {
-    vec![
-        FixtureSection {
-            name: "plain_paragraph",
-            lines: vec![
-                "The quick brown fox jumps over the lazy dog.",
-                "This page contains a single plain paragraph with no special formatting.",
-            ],
-        },
-        FixtureSection {
-            name: "table_like_content",
-            lines: vec![
-                "Product Catalog",
-                "Name: Widget A. Price: 10 dollars. Quantity: 5 units.",
-                "Name: Widget B. Price: 20 dollars. Quantity: 3 units.",
-                "Name: Widget C. Price: 15 dollars. Quantity: 8 units.",
-            ],
-        },
-        FixtureSection {
-            name: "special_characters",
-            lines: vec![
-                "Special characters test page.",
-                "Accented letters: cafe, resume, naive, senor.",
-                "Currency and punctuation: 99.99 dollars, 50 pounds, 20 euros - a dash and an ellipsis...",
-            ],
-        },
-    ]
+fn generate_test_image_png_bytes() -> Vec<u8> {
+    let image_width = 240u32;
+    let image_height = 160u32;
+    let three_band_image = ::image::RgbImage::from_fn(image_width, image_height, |x, _y| {
+        if x < image_width / 3 {
+            ::image::Rgb([200, 60, 60])
+        } else if x < 2 * image_width / 3 {
+            ::image::Rgb([60, 160, 80])
+        } else {
+            ::image::Rgb([60, 90, 200])
+        }
+    });
+
+    let mut png_bytes = Vec::new();
+    three_band_image
+        .write_to(&mut std::io::Cursor::new(&mut png_bytes), ::image::ImageFormat::Png)
+        .expect("failed to encode synthesized test image as PNG");
+    png_bytes
 }
 
 pub fn generate_test_pdf() -> Vec<u8> {
-    let mut pdf_document = PdfDocument::new("D2V Headless API Test Fixture");
-    let mut pdf_pages = Vec::new();
+    let mut embedded_images = std::collections::BTreeMap::new();
+    embedded_images.insert(
+        "fixture.png".to_string(),
+        Base64OrRaw::Raw(generate_test_image_png_bytes()),
+    );
+    let embedded_fonts = std::collections::BTreeMap::new();
 
-    for fixture_section in fixture_sections() {
-        let mut page_operations = vec![
-            Op::StartTextSection,
-            Op::SetTextCursor {
-                pos: Point::new(Mm(20.0), Mm(270.0)),
-            },
-            Op::SetFont {
-                font: PdfFontHandle::Builtin(BuiltinFont::Helvetica),
-                size: Pt(14.0),
-            },
-            Op::SetLineHeight { lh: Pt(18.0) },
-            Op::SetFillColor {
-                col: Color::Rgb(Rgb {
-                    r: 0.0,
-                    g: 0.0,
-                    b: 0.0,
-                    icc_profile: None,
-                }),
-            },
-        ];
+    let options = GeneratePdfOptions {
+        page_width: Some(210.0),
+        page_height: Some(297.0),
+        margin_top: Some(20.0),
+        margin_right: Some(20.0),
+        margin_bottom: Some(20.0),
+        margin_left: Some(20.0),
+        ..Default::default()
+    };
 
-        let line_count = fixture_section.lines.len();
-        for (line_index, line_text) in fixture_section.lines.into_iter().enumerate() {
-            page_operations.push(Op::ShowText {
-                items: vec![TextItem::Text(line_text.to_string())],
-            });
-            if line_index + 1 < line_count {
-                page_operations.push(Op::AddLineBreak);
-            }
-        }
-        page_operations.push(Op::EndTextSection);
+    let mut warnings = Vec::new();
+    let pdf_document =
+        PdfDocument::from_html(FIXTURE_HTML, &embedded_images, &embedded_fonts, &options, &mut warnings)
+            .unwrap_or_else(|e| panic!("failed to generate fixture PDF from HTML: {e}"));
 
-        pdf_pages.push(PdfPage::new(Mm(210.0), Mm(297.0), page_operations));
-    }
-
-    pdf_document
-        .with_pages(pdf_pages)
-        .save(&PdfSaveOptions::default(), &mut Vec::new())
+    pdf_document.save(&PdfSaveOptions::default(), &mut Vec::new())
 }
 
 pub fn wait_for_path_to_exist(path: &str, timeout: Duration) {

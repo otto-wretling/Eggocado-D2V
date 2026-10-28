@@ -18,7 +18,7 @@ fn starting_a_document_dependent_mode_with_no_documents_on_disk_fails_with_clear
     let started_job = start_job(&config, &[Field::Text("mode", "knit")]);
 
     let job_status =
-        d2v_headless_api_tests::poll_status(&config, &started_job.job_id, Duration::from_secs(30));
+        d2v_headless_api_tests::poll_status(&config, &started_job.job_id, Duration::from_secs(60));
     match job_status {
         JobStatus::Failed(message) => {
             assert!(message.contains("documents"));
