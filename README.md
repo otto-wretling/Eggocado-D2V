@@ -31,6 +31,95 @@ Every mode is also reachable over HTTP, for scripting or automation, without the
 
 Both endpoints require the same `x-webhook-secret` header value as the one set up in [INSTALL.md](INSTALL.md#securing-the-bare-metal-webhook) (the main n8n instance's own Header Auth credential, reused here). A new conversion's request is `multipart/form-data` with a `data` file field for the PDF; `mode` is one of `new`, `continue`, `knit`, `changeVoice`, or `sample`, and the remaining fields match that mode's form inputs (`document`, `voice`, `engineModel`, `overwrite`, `leftPage`/`rightPage`, `pageSelection`/`target`/`textToChange`, `samplePhrase`). The returned `jobId` is the document name, slugified, except Sample Video mode, which always uses `sample`.
 
+<details>
+<summary>Example requests for every mode</summary>
+
+Each example sends `D2V_BASE_URL=http://localhost:5678` and `SECRET` set to the shared webhook secret. `engineModel` takes the form `<engine>:<model>`, matching whichever engine and model you have available (see [Transcription engines](INSTALL.md#transcription-engines)).
+
+Convert entire document:
+
+```bash
+curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
+  -H "x-webhook-secret: $SECRET" \
+  -F "mode=new" \
+  -F "document=my-document.pdf" \
+  -F "engineModel=codex:gpt-5.6-sol" \
+  -F "voice=af_heart" \
+  -F "overwrite=true" \
+  -F "data=@/path/to/my-document.pdf;type=application/pdf"
+```
+
+`overwrite=true` is only needed when `document` names a document that was already converted.
+
+Continue converting entire document:
+
+```bash
+curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
+  -H "x-webhook-secret: $SECRET" \
+  -F "mode=continue" \
+  -F "document=my-document.pdf" \
+  -F "engineModel=codex:gpt-5.6-sol" \
+  -F "voice=af_heart"
+```
+
+Knit pages together:
+
+```bash
+curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
+  -H "x-webhook-secret: $SECRET" \
+  -F "mode=knit" \
+  -F "document=my-document.pdf" \
+  -F "engineModel=codex:gpt-5.6-sol" \
+  -F "leftPage=1" \
+  -F "rightPage=2" \
+  -F "voice=af_heart"
+```
+
+Convert single page, whole page:
+
+```bash
+curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
+  -H "x-webhook-secret: $SECRET" \
+  -F "mode=changeVoice" \
+  -F "document=my-document.pdf" \
+  -F "engineModel=codex:gpt-5.6-sol" \
+  -F "pageSelection=Page 1" \
+  -F "target=wholePage" \
+  -F "voice=af_bella"
+```
+
+Convert single page, selected phrase:
+
+```bash
+curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
+  -H "x-webhook-secret: $SECRET" \
+  -F "mode=changeVoice" \
+  -F "document=my-document.pdf" \
+  -F "engineModel=codex:gpt-5.6-sol" \
+  -F "pageSelection=Page 2" \
+  -F "target=selectedText" \
+  -F "textToChange=Product" \
+  -F "voice=af_bella"
+```
+
+Create sample video:
+
+```bash
+curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
+  -H "x-webhook-secret: $SECRET" \
+  -F "mode=sample" \
+  -F "samplePhrase=Hello, this is a sample of my voice."
+```
+
+Checking status, for any of the above:
+
+```bash
+curl "$D2V_BASE_URL/webhook/d2v-headless-status?jobId=my-document" \
+  -H "x-webhook-secret: $SECRET"
+```
+
+</details>
+
 ## Architecture
 
 | Component | Port | Where | Role |
