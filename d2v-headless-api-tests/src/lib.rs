@@ -135,9 +135,20 @@ pub struct StartJobResponse {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum JobStatus {
-    ProcessingOrNotFound,
+    NotFound,
+    Processing,
     Done,
     Failed(String),
+}
+
+fn parse_job_status(status_response: StatusResponse) -> JobStatus {
+    match status_response.status.as_str() {
+        "not_found" => JobStatus::NotFound,
+        "processing" => JobStatus::Processing,
+        "done" => JobStatus::Done,
+        "failed" => JobStatus::Failed(status_response.message.unwrap_or_default()),
+        other => panic!("status endpoint returned unknown status {other:?}"),
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -199,32 +210,37 @@ pub fn start_job(config: &Config, fields: &[Field]) -> StartJobResponse {
     })
 }
 
-pub fn poll_status(config: &Config, job_id: &str, timeout: Duration) -> JobStatus {
+pub fn check_status_once(config: &Config, job_id: &str) -> JobStatus {
     let http_client = reqwest::blocking::Client::new();
+
+    let http_response = http_client
+        .get(format!("{}/webhook/d2v-headless-status", config.base_url))
+        .query(&[("jobId", job_id)])
+        .header("x-webhook-secret", &config.secret)
+        .send()
+        .expect("failed to send status request");
+
+    let response_body_text = http_response
+        .text()
+        .expect("failed to read status response body");
+    let status_response: StatusResponse = serde_json::from_str(&response_body_text)
+        .unwrap_or_else(|parse_error| {
+            panic!("failed to parse status response: {parse_error}\nbody: {response_body_text}")
+        });
+
+    parse_job_status(status_response)
+}
+
+pub fn poll_status(config: &Config, job_id: &str, timeout: Duration) -> JobStatus {
     let poll_started_at = Instant::now();
 
     sleep(Duration::from_secs(5));
 
     loop {
-        let http_response = http_client
-            .get(format!("{}/webhook/d2v-headless-status", config.base_url))
-            .query(&[("jobId", job_id)])
-            .header("x-webhook-secret", &config.secret)
-            .send()
-            .expect("failed to send status request");
-
-        let response_body_text = http_response
-            .text()
-            .expect("failed to read status response body");
-        let status_response: StatusResponse = serde_json::from_str(&response_body_text)
-            .unwrap_or_else(|parse_error| {
-                panic!("failed to parse status response: {parse_error}\nbody: {response_body_text}")
-            });
-
-        match status_response.status.as_str() {
-            "done" => return JobStatus::Done,
-            "failed" => return JobStatus::Failed(status_response.message.unwrap_or_default()),
-            _ => {}
+        match check_status_once(config, job_id) {
+            JobStatus::Done => return JobStatus::Done,
+            JobStatus::Failed(message) => return JobStatus::Failed(message),
+            JobStatus::NotFound | JobStatus::Processing => {}
         }
 
         if poll_started_at.elapsed() > timeout {

@@ -27,16 +27,16 @@ Every mode is also reachable over HTTP, for scripting or automation, without the
 | Endpoint | Method | What it does |
 |---|---|---|
 | `/webhook/d2v-headless` | POST | Starts a job and returns `{jobId, mode}` immediately; the job keeps running in the background |
-| `/webhook/d2v-headless-status?jobId=...` | GET | Polls a job, returning `{jobId, status}`, where `status` is `processing_or_not_found`, `done`, or `failed` (with a `message` field) |
+| `/webhook/d2v-headless-status?jobId=...` | GET | Polls a job, returning `{jobId, status}`, where `status` is `not_found`, `processing`, `done`, or `failed` (with a `message` field) |
 
 Both endpoints require the same `x-webhook-secret` header value as the one set up in [INSTALL.md](INSTALL.md#securing-the-bare-metal-webhook) (the main n8n instance's own Header Auth credential, reused here). A start request is `multipart/form-data`. The returned `jobId` is the document name, slugified, except Sample Video mode, which always uses `sample`.
 
 | Parameter | Used by | Required | If omitted | What it does |
 |---|---|---|---|---|
 | `mode` | every request | Yes | Request fails | Which operation to run: `new`, `continue`, `knit`, `changeVoice`, or `sample` |
-| `document` | `new`, `continue`, `knit`, `changeVoice` | Yes | Request fails | The document's name; also determines the job ID |
+| `document` | `new`, `continue`, `knit`, `changeVoice` | `new`: No. Others: Yes | `new`: falls back to the literal job ID `document`. Others: request fails | The document's name; also determines the job ID |
 | `data` | `new` | Yes | Request fails | The PDF file to convert. Other modes use the document's already-saved PDF |
-| `engineModel` | `new`, `continue`, `knit`, `changeVoice` | Yes | Request fails | Transcription engine and model, as `<engine>:<model>` |
+| `engineModel` | `new`, `continue`, `knit` | Yes | Request fails | Transcription engine and model, as `<engine>:<model>`. `changeVoice` only re-synthesizes narration, so it has no use for this field |
 | `voice` | `new`, `continue`, `knit`, `changeVoice` | Yes | Request fails | Kokoro voice ID used for narration |
 | `overwrite` | `new` | No | Treated as refused; request fails if `document` already has a conversion | Confirms replacing an existing document's conversion |
 | `leftPage`, `rightPage` | `knit` | Yes | Request fails | The two page numbers to knit together |

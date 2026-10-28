@@ -305,3 +305,168 @@ fn knit_mode_with_too_few_pages_fails_with_clear_message() {
         other => panic!("expected Failed, got {other:?}"),
     }
 }
+
+#[test]
+fn knit_mode_without_left_and_right_page_fails_with_clear_message() {
+    let config = Config::from_env();
+
+    let started_job = start_job(
+        &config,
+        &[
+            Field::Text("mode", "knit"),
+            Field::Text("document", "d2v-rust-suite-new-conversion.pdf"),
+            Field::Text("engineModel", &config.engine_model),
+            Field::Text("voice", "af_heart"),
+        ],
+    );
+
+    let job_status = d2v_headless_api_tests::poll_status(
+        &config,
+        &started_job.job_id,
+        FAILURE_POLL_TIMEOUT,
+    );
+    match job_status {
+        JobStatus::Failed(message) => {
+            assert!(message.contains("leftPage"));
+        }
+        other => panic!("expected Failed, got {other:?}"),
+    }
+}
+
+#[test]
+fn change_voice_without_page_selection_or_target_fails_with_clear_message() {
+    let config = Config::from_env();
+
+    let started_job = start_job(
+        &config,
+        &[
+            Field::Text("mode", "changeVoice"),
+            Field::Text("document", "d2v-rust-suite-new-conversion.pdf"),
+            Field::Text("engineModel", &config.engine_model),
+            Field::Text("voice", "af_heart"),
+        ],
+    );
+
+    let job_status = d2v_headless_api_tests::poll_status(
+        &config,
+        &started_job.job_id,
+        FAILURE_POLL_TIMEOUT,
+    );
+    match job_status {
+        JobStatus::Failed(message) => {
+            assert!(message.contains("pageSelection"));
+        }
+        other => panic!("expected Failed, got {other:?}"),
+    }
+}
+
+#[test]
+fn change_voice_selected_text_without_text_to_change_fails_with_clear_message() {
+    let config = Config::from_env();
+
+    let started_job = start_job(
+        &config,
+        &[
+            Field::Text("mode", "changeVoice"),
+            Field::Text("document", "d2v-rust-suite-new-conversion.pdf"),
+            Field::Text("engineModel", &config.engine_model),
+            Field::Text("voice", "af_heart"),
+            Field::Text("pageSelection", "Page 1"),
+            Field::Text("target", "selectedText"),
+        ],
+    );
+
+    let job_status = d2v_headless_api_tests::poll_status(
+        &config,
+        &started_job.job_id,
+        FAILURE_POLL_TIMEOUT,
+    );
+    match job_status {
+        JobStatus::Failed(message) => {
+            assert!(message.contains("textToChange"));
+        }
+        other => panic!("expected Failed, got {other:?}"),
+    }
+}
+
+#[test]
+fn missing_voice_fails_with_clear_message() {
+    let config = Config::from_env();
+
+    let started_job = start_job(
+        &config,
+        &[
+            Field::Text("mode", "new"),
+            Field::Text("document", "d2v-rust-suite-missing-voice-precondition.pdf"),
+            Field::Text("engineModel", &config.engine_model),
+        ],
+    );
+
+    let job_status = d2v_headless_api_tests::poll_status(
+        &config,
+        &started_job.job_id,
+        FAILURE_POLL_TIMEOUT,
+    );
+    match job_status {
+        JobStatus::Failed(message) => {
+            assert!(message.contains("voice"));
+        }
+        other => panic!("expected Failed, got {other:?}"),
+    }
+}
+
+#[test]
+fn missing_engine_model_fails_with_clear_message() {
+    let config = Config::from_env();
+
+    let started_job = start_job(
+        &config,
+        &[
+            Field::Text("mode", "new"),
+            Field::Text(
+                "document",
+                "d2v-rust-suite-missing-engine-model-precondition.pdf",
+            ),
+            Field::Text("voice", "af_heart"),
+        ],
+    );
+
+    let job_status = d2v_headless_api_tests::poll_status(
+        &config,
+        &started_job.job_id,
+        FAILURE_POLL_TIMEOUT,
+    );
+    match job_status {
+        JobStatus::Failed(message) => {
+            assert!(message.contains("engineModel"));
+        }
+        other => panic!("expected Failed, got {other:?}"),
+    }
+}
+
+#[test]
+fn new_conversion_without_file_fails_with_clear_message() {
+    let config = Config::from_env();
+
+    let started_job = start_job(
+        &config,
+        &[
+            Field::Text("mode", "new"),
+            Field::Text("document", "d2v-rust-suite-missing-file-precondition.pdf"),
+            Field::Text("engineModel", &config.engine_model),
+            Field::Text("voice", "af_heart"),
+        ],
+    );
+
+    let job_status = d2v_headless_api_tests::poll_status(
+        &config,
+        &started_job.job_id,
+        FAILURE_POLL_TIMEOUT,
+    );
+    match job_status {
+        JobStatus::Failed(message) => {
+            assert!(message.contains("PDF"));
+        }
+        other => panic!("expected Failed, got {other:?}"),
+    }
+}
