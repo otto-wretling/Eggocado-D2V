@@ -29,7 +29,21 @@ Every mode is also reachable over HTTP, for scripting or automation, without the
 | `/webhook/d2v-headless` | POST | Starts a job and returns `{jobId, mode}` immediately; the job keeps running in the background |
 | `/webhook/d2v-headless-status?jobId=...` | GET | Polls a job, returning `{jobId, status}`, where `status` is `processing_or_not_found`, `done`, or `failed` (with a `message` field) |
 
-Both endpoints require the same `x-webhook-secret` header value as the one set up in [INSTALL.md](INSTALL.md#securing-the-bare-metal-webhook) (the main n8n instance's own Header Auth credential, reused here). A new conversion's request is `multipart/form-data` with a `data` file field for the PDF; `mode` is one of `new`, `continue`, `knit`, `changeVoice`, or `sample`, and the remaining fields match that mode's form inputs (`document`, `voice`, `engineModel`, `overwrite`, `leftPage`/`rightPage`, `pageSelection`/`target`/`textToChange`, `samplePhrase`). The returned `jobId` is the document name, slugified, except Sample Video mode, which always uses `sample`.
+Both endpoints require the same `x-webhook-secret` header value as the one set up in [INSTALL.md](INSTALL.md#securing-the-bare-metal-webhook) (the main n8n instance's own Header Auth credential, reused here). A start request is `multipart/form-data`. The returned `jobId` is the document name, slugified, except Sample Video mode, which always uses `sample`.
+
+| Parameter | Used by | Required | If omitted | What it does |
+|---|---|---|---|---|
+| `mode` | every request | Yes | — | Which operation to run: `new`, `continue`, `knit`, `changeVoice`, or `sample` |
+| `document` | `new`, `continue`, `knit`, `changeVoice` | Yes | Request fails | The document's name; also determines the job ID |
+| `data` | `new` | Yes | Request fails | The PDF file to convert. Other modes use the document's already-saved PDF |
+| `engineModel` | `new`, `continue`, `knit`, `changeVoice` | Yes | Request fails | Transcription engine and model, as `<engine>:<model>` |
+| `voice` | `new`, `continue`, `knit`, `changeVoice` | Yes | Request fails | Kokoro voice ID used for narration |
+| `overwrite` | `new` | No | Treated as refused; request fails if `document` already has a conversion | Confirms replacing an existing document's conversion |
+| `leftPage`, `rightPage` | `knit` | Yes | Request fails | The two page numbers to knit together |
+| `pageSelection` | `changeVoice` | Yes | Request fails | Which page to target, as `Page N` |
+| `target` | `changeVoice` | Yes | Request fails | `wholePage` or `selectedText` |
+| `textToChange` | `changeVoice` | Yes, when `target` is `selectedText` | Request fails | The exact phrase to re-narrate |
+| `samplePhrase` | `sample` | Yes | Request fails | The phrase every voice sample speaks |
 
 <details>
 <summary>Example requests for every mode</summary>
