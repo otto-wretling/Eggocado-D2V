@@ -3668,13 +3668,13 @@
           }
         }
       },
+      "onError": "continueRegularOutput",
       "credentials": {
         "httpHeaderAuth": {
           "id": "dT2rDdHX1TfPrVi1",
           "name": "D2V Webhook Shared Secret"
         }
-      },
-      "onError": "continueRegularOutput"
+      }
     },
     {
       "id": "e4288a06-9f3d-4fed-b887-d06d523c4029",
@@ -3740,13 +3740,13 @@
           }
         }
       },
+      "onError": "continueRegularOutput",
       "credentials": {
         "httpHeaderAuth": {
           "id": "dT2rDdHX1TfPrVi1",
           "name": "D2V Webhook Shared Secret"
         }
-      },
-      "onError": "continueRegularOutput"
+      }
     },
     {
       "id": "6b205559-ae2e-4afb-8066-f12e5af481ff",
@@ -4386,13 +4386,13 @@
           }
         }
       },
+      "webhookId": "62d563c5-f2ab-4fa3-8529-dd52c60e00a2",
       "credentials": {
         "httpHeaderAuth": {
           "id": "dT2rDdHX1TfPrVi1",
           "name": "D2V Webhook Shared Secret"
         }
-      },
-      "webhookId": "62d563c5-f2ab-4fa3-8529-dd52c60e00a2"
+      }
     },
     {
       "id": "2cf0503b-38da-46ba-b392-ff50dd209dcb",
@@ -6009,6 +6009,117 @@
           ]
         },
         "options": {}
+      }
+    },
+    {
+      "id": "5b9924e9-0b84-4269-a5b8-ada28d69fa2a",
+      "name": "Is Headless (Mode Required)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "imr-0001",
+              "leftValue": "={{ $('Receive Headless API Request').isExecuted && !$('Select Mode').item.json['Select Mode'] }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "aa8a83bd-bd6e-4035-8b39-17f25a3bc07f",
+      "name": "Set Failed Marker (Mode Required)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "m1",
+              "name": "failedMarkerPath",
+              "type": "string",
+              "value": "={{ '/home/node/project/output/' + $('Compute Job Info').item.json.jobId + '/.failed' }}"
+            },
+            {
+              "id": "m2",
+              "name": "failedMarkerContent",
+              "type": "string",
+              "value": "A mode is required, and must be one of \"new\", \"continue\", \"knit\", \"changeVoice\", or \"sample\"."
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "stripBinary": false
+        }
+      }
+    },
+    {
+      "id": "cde64079-9ab9-4c0e-9ed2-27dd8190e071",
+      "name": "Convert Failed Marker to File (Mode Required)",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      }
+    },
+    {
+      "id": "f2655e22-7803-4973-957b-070df15176e3",
+      "name": "Write Failed Marker (Mode Required)",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (Mode Required)').item.json.failedMarkerPath }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "00d924e7-5ff8-44e1-b0fb-a891910aff48",
+      "name": "Fail: Mode Required",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "errorType": "errorMessage",
+        "errorMessage": "A mode is required, and must be one of \"new\", \"continue\", \"knit\", \"changeVoice\", or \"sample\"."
       }
     }
   ],
@@ -7812,17 +7923,6 @@
         ]
       ]
     },
-    "Select Mode": {
-      "main": [
-        [
-          {
-            "node": "Read Default Voice",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Select Default Voice Page": {
       "main": [
         [
@@ -8706,6 +8806,68 @@
           }
         ]
       ]
+    },
+    "Select Mode": {
+      "main": [
+        [
+          {
+            "node": "Is Headless (Mode Required)?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Headless (Mode Required)?": {
+      "main": [
+        [
+          {
+            "node": "Set Failed Marker (Mode Required)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read Default Voice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Failed Marker (Mode Required)": {
+      "main": [
+        [
+          {
+            "node": "Convert Failed Marker to File (Mode Required)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert Failed Marker to File (Mode Required)": {
+      "main": [
+        [
+          {
+            "node": "Write Failed Marker (Mode Required)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Failed Marker (Mode Required)": {
+      "main": [
+        [
+          {
+            "node": "Fail: Mode Required",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -8718,7 +8880,7 @@
     "availableInMCP": true,
     "saveExecutionProgress": true
   },
-  "versionId": "f29fb249-ce7e-4a98-846a-6fde2d48b826",
+  "versionId": "ba0b783d-3ea7-4b87-a9eb-5b66dc5af797",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "0d58a7a3f156139856be42466a14e05f00173514ac9794a8494b09c53ea173a0",
@@ -8729,77 +8891,77 @@
     {
       "id": "7f1af08c-ed64-4b89-97b0-e5b89d398384",
       "name": "Document Picker",
-      "nodeIds": [
-        "4111729b-35c2-44dd-9859-0deaa165ef1d",
-        "734c2b6d-f299-408a-be07-8bae061bcdb8",
-        "525340d7-fcd6-45e5-bf7e-5504e89b4d1c"
+      "nodeNames": [
+        "Extract Document Meta List",
+        "Parse Document Meta Item",
+        "Aggregate Document List"
       ]
     },
     {
       "id": "a0a16b29-a03f-463e-b853-a4fc11a41a55",
       "name": "Document Folder Setup",
-      "nodeIds": [
-        "b4bdb253-3ff9-4172-a060-a8406a61500d",
-        "fef73ddb-2548-4a3b-a9b6-06a59065a841",
-        "110186cf-3ed6-4512-b27e-b79f403cf7d3"
+      "nodeNames": [
+        "Build Document Meta JSON",
+        "Convert Document Meta to File",
+        "Save Document Meta to Disk"
       ]
     },
     {
       "id": "35799d9f-5588-44b8-8556-0bf238dd9a4e",
       "name": "New Conversion - PDF Upload & Page Extraction",
-      "nodeIds": [
-        "a6c61e91-f96d-42ae-9ee8-145f77258e41",
-        "c0aba882-7fa6-46e7-a7e2-e3cb421f4c95",
-        "5dd1bf69-114c-48c6-8c86-3e53422b476c"
+      "nodeNames": [
+        "Extract Images from PDF",
+        "Unzip Images",
+        "Send Images One by One"
       ]
     },
     {
       "id": "3aff9f6c-a739-4079-a257-dd74f2abde95",
       "name": "Transcript Normalization & Word Map",
-      "nodeIds": [
-        "0e5f6212-20e6-4acb-961e-ed28a51afdd6",
-        "5f6fa4e9-18da-4512-b1f2-93376fdab3a0",
-        "837a24a3-e583-4fbe-8e1a-5b17ae35e099",
-        "96280d0d-3829-42a5-8322-a6ad126e24eb",
-        "d8a9e5a9-de94-46a6-8eec-0ade0f39b774",
-        "5ff896cf-3123-4e77-8278-b2755807fa97",
-        "9ac766e8-fef2-462f-9834-d27e5d4dc1a2"
+      "nodeNames": [
+        "Request Transcript Normalization",
+        "Assemble Normalized Text and Configure Word Map",
+        "Convert Normalized Transcription to Text File",
+        "Convert Word Map to File",
+        "Save Word Map to Disk",
+        "Set Doc Prefix",
+        "Create Normalized Temporary Text File on Disk"
       ]
     },
     {
       "id": "698472ee-8313-41a8-9fb5-42bff875238c",
       "name": "TTS & Clip Assembly",
-      "nodeIds": [
-        "0e416aa8-3241-4e14-8bce-4d9dc133d91d",
-        "e88f9b03-a71a-4b8e-9b24-bf1612abcdcf",
-        "d5a067ce-d69a-40a0-a872-b631a2f5fbf7",
-        "2d844c92-584d-498e-b943-70c9ce934f51",
-        "8f0d9b8e-22a5-4498-ab7c-653655b23891",
-        "6af65ae0-d648-4f2a-9536-e6ad53759884",
-        "7fb9918c-40ba-4776-b5f4-ba7ebb09277d",
-        "0a861c0e-859b-4849-a6e6-efc437699497",
-        "0a85c2c1-4ed6-4fd9-9e1f-a2b9ea0b8eae"
+      "nodeNames": [
+        "Request TTS with Timestamps",
+        "Convert Base64 to Audio File",
+        "Read Word Map from Disk",
+        "Create Temporary Audio File on Disk",
+        "Extract Word Map from File",
+        "Add Page Index to Audio Timestamps",
+        "Convert Timestamps to File",
+        "Save Timestamps to Disk",
+        "Merge Audio File & Timestamps"
       ]
     },
     {
       "id": "81e2464d-7509-42ce-aa19-173e35d0816b",
       "name": "Voice Fetching & Sample Setup",
-      "nodeIds": [
-        "996a93e7-6dd0-469c-8ecb-d0cd23bf7ddf"
+      "nodeNames": [
+        "Ensure Sample Folder Exists"
       ]
     },
     {
       "id": "72a96016-e7c7-4fb4-b07e-2f056a08d175",
       "name": "Finalization & Video Assembly",
-      "nodeIds": [
-        "511103b3-8179-475c-a0a7-8a856f1c8dd7",
-        "ec91e12f-1e66-46df-8ed2-f77195e93742",
-        "a5b82290-809d-415f-83b7-cdbb34575e7a",
-        "8de182f8-3454-4498-a737-47ab2ecabf38",
-        "5932d857-856b-4307-a922-eae4f4a9b499",
-        "43a9add9-c4e6-41f8-8a1e-41ae735171a2",
-        "46c88e05-2bfd-4c0b-9ec8-dc9c841fc635",
-        "a1aa3900-7c65-4216-9b0b-e6965f3dc6e5"
+      "nodeNames": [
+        "Generate Subtitle File and Video Chapters",
+        "Generate Final Subtitles",
+        "Convert Chapters to File",
+        "Convert Subtitles to File",
+        "Save Chapters to Disk",
+        "Save Subtitles to Disk",
+        "Merge Subtitles & Chapters",
+        "Request Final Video Assembly"
       ]
     }
   ],

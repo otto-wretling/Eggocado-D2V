@@ -33,7 +33,7 @@ Both endpoints require the same `x-webhook-secret` header value as the one set u
 
 | Parameter | Used by | Required | If omitted | What it does |
 |---|---|---|---|---|
-| `mode` | every request | Yes | — | Which operation to run: `new`, `continue`, `knit`, `changeVoice`, or `sample` |
+| `mode` | every request | Yes | Request fails | Which operation to run: `new`, `continue`, `knit`, `changeVoice`, or `sample` |
 | `document` | `new`, `continue`, `knit`, `changeVoice` | Yes | Request fails | The document's name; also determines the job ID |
 | `data` | `new` | Yes | Request fails | The PDF file to convert. Other modes use the document's already-saved PDF |
 | `engineModel` | `new`, `continue`, `knit`, `changeVoice` | Yes | Request fails | Transcription engine and model, as `<engine>:<model>` |
@@ -199,15 +199,18 @@ See [INSTALL.md](INSTALL.md) for all installation requirements, including the on
 
 `d2v-headless-api-tests/` is a Rust integration test suite that exercises the headless API above end to end against a running instance: every mode's happy path, Continue mode, and every one of the API's documented failure cases. There's no mocking: each test starts a job and polls the live status endpoint until it finishes.
 
-Set the three required environment variables, then run `cargo test` from that directory:
+Set the four required environment variables, then run `cargo test` from that directory:
 
 ```bash
 cd d2v-headless-api-tests
 D2V_BASE_URL=http://localhost:5678 \
 D2V_WEBHOOK_SECRET=<your webhook secret> \
 D2V_PROJECT_ROOT=/path/to/Eggocado-D2V \
+D2V_ENGINE_MODEL=<engine>:<model> \
 cargo test
 ```
+
+`D2V_ENGINE_MODEL` is whichever transcription engine and model you have available (see [Transcription engines](INSTALL.md#transcription-engines)), for example `codex:gpt-5.6-sol`, `claude:claude-sonnet-5`, or `ollama:gemma3:27b`. The suite never hardcodes one, so it runs the same way regardless of which engine you use.
 
 Tests run one at a time, enforced via that directory's own `.cargo/config.toml`, since they share the same `temp/`/`output/` folders and the single-worker Kokoro TTS service a real conversion would use. A full run takes a while: several tests wait for a multi-minute video conversion to complete.
 

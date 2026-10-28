@@ -90,6 +90,7 @@ pub struct Config {
     pub base_url: String,
     pub secret: String,
     pub project_root: String,
+    pub engine_model: String,
 }
 
 impl Config {
@@ -101,10 +102,14 @@ impl Config {
         let project_root = env::var("D2V_PROJECT_ROOT").expect(
             "D2V_PROJECT_ROOT must be set to the Eggocado-D2V checkout containing output/ and temp/",
         );
+        let engine_model = env::var("D2V_ENGINE_MODEL").expect(
+            "D2V_ENGINE_MODEL must be set to a transcription engine:model available on this instance (e.g. codex:gpt-5.6-sol, claude:claude-sonnet-5, or ollama:<model>)",
+        );
         Config {
             base_url,
             secret,
             project_root,
+            engine_model,
         }
     }
 
@@ -125,7 +130,7 @@ impl Config {
 pub struct StartJobResponse {
     #[serde(rename = "jobId")]
     pub job_id: String,
-    pub mode: String,
+    pub mode: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
