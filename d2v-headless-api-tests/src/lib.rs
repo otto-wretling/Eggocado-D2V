@@ -6,6 +6,86 @@ use std::time::{Duration, Instant};
 use printpdf::*;
 use serde::Deserialize;
 
+pub struct TemporarilyMovedPath {
+    original_path: String,
+    backup_path: String,
+}
+
+impl TemporarilyMovedPath {
+    pub fn move_aside_if_present(path: &str) -> Option<Self> {
+        if !std::path::Path::new(path).exists() {
+            return None;
+        }
+        let backup_path = format!("{path}.d2v-test-backup");
+        std::fs::rename(path, &backup_path)
+            .unwrap_or_else(|e| panic!("failed to move {path} aside: {e}"));
+        Some(Self {
+            original_path: path.to_string(),
+            backup_path,
+        })
+    }
+}
+
+impl TemporarilyMovedPath {
+    pub fn discard_backup(self) {
+        let _ = std::fs::remove_file(&self.backup_path);
+        std::mem::forget(self);
+    }
+}
+
+impl Drop for TemporarilyMovedPath {
+    fn drop(&mut self) {
+        let _ = std::fs::rename(&self.backup_path, &self.original_path);
+    }
+}
+
+pub fn move_every_entry_aside(directory_path: &str) -> Vec<TemporarilyMovedPath> {
+    move_entries_aside_except(directory_path, |_| false)
+}
+
+pub fn move_entries_aside_except(
+    directory_path: &str,
+    keep_entry_named: impl Fn(&str) -> bool,
+) -> Vec<TemporarilyMovedPath> {
+    let Ok(directory_entries) = std::fs::read_dir(directory_path) else {
+        return Vec::new();
+    };
+
+    directory_entries
+        .filter_map(|entry| entry.ok())
+        .filter(|entry| !keep_entry_named(&entry.file_name().to_string_lossy()))
+        .filter_map(|entry| {
+            TemporarilyMovedPath::move_aside_if_present(&entry.path().to_string_lossy())
+        })
+        .collect()
+}
+
+pub fn discard_all_backups(guards: Vec<TemporarilyMovedPath>) {
+    for guard in guards {
+        guard.discard_backup();
+    }
+}
+
+pub fn move_named_file_aside_in_every_subdirectory(
+    parent_directory_path: &str,
+    file_name: &str,
+) -> Vec<TemporarilyMovedPath> {
+    let Ok(directory_entries) = std::fs::read_dir(parent_directory_path) else {
+        return Vec::new();
+    };
+
+    directory_entries
+        .filter_map(|entry| entry.ok())
+        .filter(|entry| entry.path().is_dir())
+        .filter_map(|entry| {
+            TemporarilyMovedPath::move_aside_if_present(&format!(
+                "{}/{file_name}",
+                entry.path().to_string_lossy()
+            ))
+        })
+        .collect()
+}
+
 pub struct Config {
     pub base_url: String,
     pub secret: String,
@@ -34,6 +114,10 @@ impl Config {
 
     pub fn job_temp_dir(&self, job_id: &str) -> String {
         format!("{}/temp/{job_id}", self.project_root)
+    }
+
+    pub fn temp_dir(&self) -> String {
+        format!("{}/temp", self.project_root)
     }
 }
 
@@ -222,6 +306,17 @@ pub fn generate_test_pdf() -> Vec<u8> {
     pdf_document
         .with_pages(pdf_pages)
         .save(&PdfSaveOptions::default(), &mut Vec::new())
+}
+
+pub fn wait_for_path_to_exist(path: &str, timeout: Duration) {
+    let wait_started_at = Instant::now();
+
+    while !std::path::Path::new(path).exists() {
+        if wait_started_at.elapsed() > timeout {
+            panic!("{path} did not appear within {timeout:?}");
+        }
+        sleep(Duration::from_secs(2));
+    }
 }
 
 pub fn wait_for_file_size_to_stabilize(file_path: &str, timeout: Duration) {
