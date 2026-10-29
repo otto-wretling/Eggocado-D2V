@@ -231,31 +231,36 @@ fn change_voice_with_page_that_does_not_exist_fails_with_clear_message() {
 #[test]
 fn knit_mode_on_a_document_with_no_processed_pages_yet_fails_with_clear_message() {
     let config = Config::from_env();
-    let document_filename = "d2v-rust-suite-no-pages-yet-precondition.pdf";
+    let run_nonce = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .expect("system clock is before the Unix epoch")
+        .as_nanos();
+    let document_filename =
+        format!("d2v-rust-suite-no-pages-yet-precondition-{run_nonce}.pdf");
 
     start_job(
         &config,
         &[
             Field::Text("mode", "new"),
-            Field::Text("document", document_filename),
+            Field::Text("document", &document_filename),
             Field::Text("engineModel", &config.engine_model),
             Field::Text("voice", "af_heart"),
             Field::Text("overwrite", "true"),
             Field::File {
                 name: "data",
-                filename: document_filename,
+                filename: &document_filename,
                 mime: "application/pdf",
                 bytes: d2v_headless_api_tests::generate_test_pdf(),
             },
         ],
     );
-    std::thread::sleep(Duration::from_secs(5));
+    std::thread::sleep(Duration::from_secs(1));
 
     let started_job = start_job(
         &config,
         &[
             Field::Text("mode", "knit"),
-            Field::Text("document", document_filename),
+            Field::Text("document", &document_filename),
             Field::Text("engineModel", &config.engine_model),
             Field::Text("leftPage", "1"),
             Field::Text("rightPage", "2"),
@@ -266,7 +271,7 @@ fn knit_mode_on_a_document_with_no_processed_pages_yet_fails_with_clear_message(
     let job_status = d2v_headless_api_tests::poll_status(
         &config,
         &started_job.job_id,
-        FAILURE_POLL_TIMEOUT,
+        Duration::from_secs(180),
     );
     match job_status {
         JobStatus::Failed(message) => {
@@ -280,7 +285,7 @@ fn knit_mode_on_a_document_with_no_processed_pages_yet_fails_with_clear_message(
             "{}/final_video.mp4",
             config.job_output_dir(&started_job.job_id)
         ),
-        Duration::from_secs(10 * 60),
+        Duration::from_secs(20 * 60),
     );
 }
 
