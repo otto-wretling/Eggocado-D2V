@@ -17,7 +17,7 @@ fn new_conversion_produces_a_playable_video_and_matching_srt() {
         &[
             Field::Text("mode", "new"),
             Field::Text("document", document_filename),
-            Field::Text("engineModel", "codex:gpt-5.6-sol"),
+            Field::Text("engineModel", &config.engine_model),
             Field::Text("voice", "af_heart"),
             Field::Text("overwrite", "true"),
             Field::File {
@@ -29,7 +29,7 @@ fn new_conversion_produces_a_playable_video_and_matching_srt() {
         ],
     );
 
-    assert_eq!(started_job.mode, "new");
+    assert_eq!(started_job.mode.as_deref(), Some("new"));
     assert_eq!(started_job.job_id, "d2v-rust-suite-new-conversion");
 
     let job_status = d2v_headless_api_tests::poll_status(

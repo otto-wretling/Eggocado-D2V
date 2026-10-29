@@ -90,6 +90,7 @@ pub struct Config {
     pub base_url: String,
     pub secret: String,
     pub project_root: String,
+    pub engine_model: String,
 }
 
 impl Config {
@@ -101,10 +102,14 @@ impl Config {
         let project_root = env::var("D2V_PROJECT_ROOT").expect(
             "D2V_PROJECT_ROOT must be set to the Eggocado-D2V checkout containing output/ and temp/",
         );
+        let engine_model = env::var("D2V_ENGINE_MODEL").expect(
+            "D2V_ENGINE_MODEL must be set to a transcription engine:model available on this instance (e.g. codex:gpt-5.6-sol, claude:claude-sonnet-5, or ollama:<model>)",
+        );
         Config {
             base_url,
             secret,
             project_root,
+            engine_model,
         }
     }
 
@@ -125,14 +130,25 @@ impl Config {
 pub struct StartJobResponse {
     #[serde(rename = "jobId")]
     pub job_id: String,
-    pub mode: String,
+    pub mode: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum JobStatus {
-    ProcessingOrNotFound,
+    NotFound,
+    Processing,
     Done,
     Failed(String),
+}
+
+fn parse_job_status(status_response: StatusResponse) -> JobStatus {
+    match status_response.status.as_str() {
+        "not_found" => JobStatus::NotFound,
+        "processing" => JobStatus::Processing,
+        "done" => JobStatus::Done,
+        "failed" => JobStatus::Failed(status_response.message.unwrap_or_default()),
+        other => panic!("status endpoint returned unknown status {other:?}"),
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -149,6 +165,56 @@ pub enum Field<'a> {
         mime: &'a str,
         bytes: Vec<u8>,
     },
+}
+
+pub fn start_job_expecting_bad_request(config: &Config, fields: &[Field]) -> String {
+    let http_client = reqwest::blocking::Client::new();
+    let mut multipart_form = reqwest::blocking::multipart::Form::new();
+
+    for field in fields {
+        multipart_form = match field {
+            Field::Text(name, value) => multipart_form.text(name.to_string(), value.to_string()),
+            Field::File {
+                name,
+                filename,
+                mime,
+                bytes,
+            } => {
+                let file_part = reqwest::blocking::multipart::Part::bytes(bytes.clone())
+                    .file_name(filename.to_string())
+                    .mime_str(mime)
+                    .expect("invalid mime type");
+                multipart_form.part(name.to_string(), file_part)
+            }
+        };
+    }
+
+    let http_response = http_client
+        .post(format!("{}/webhook/d2v-headless", config.base_url))
+        .header("x-webhook-secret", &config.secret)
+        .multipart(multipart_form)
+        .send()
+        .expect("failed to send start-job request");
+
+    let http_status = http_response.status();
+    let response_body_text = http_response
+        .text()
+        .expect("failed to read start-job response body");
+    assert_eq!(
+        http_status.as_u16(),
+        400,
+        "expected HTTP 400 Bad Request, got {http_status}: {response_body_text}"
+    );
+
+    #[derive(Deserialize)]
+    struct ErrorResponse {
+        error: String,
+    }
+    let error_response: ErrorResponse = serde_json::from_str(&response_body_text)
+        .unwrap_or_else(|parse_error| {
+            panic!("failed to parse bad-request response: {parse_error}\nbody: {response_body_text}")
+        });
+    error_response.error
 }
 
 pub fn start_job(config: &Config, fields: &[Field]) -> StartJobResponse {
@@ -194,32 +260,37 @@ pub fn start_job(config: &Config, fields: &[Field]) -> StartJobResponse {
     })
 }
 
-pub fn poll_status(config: &Config, job_id: &str, timeout: Duration) -> JobStatus {
+pub fn check_status_once(config: &Config, job_id: &str) -> JobStatus {
     let http_client = reqwest::blocking::Client::new();
+
+    let http_response = http_client
+        .get(format!("{}/webhook/d2v-headless-status", config.base_url))
+        .query(&[("jobId", job_id)])
+        .header("x-webhook-secret", &config.secret)
+        .send()
+        .expect("failed to send status request");
+
+    let response_body_text = http_response
+        .text()
+        .expect("failed to read status response body");
+    let status_response: StatusResponse = serde_json::from_str(&response_body_text)
+        .unwrap_or_else(|parse_error| {
+            panic!("failed to parse status response: {parse_error}\nbody: {response_body_text}")
+        });
+
+    parse_job_status(status_response)
+}
+
+pub fn poll_status(config: &Config, job_id: &str, timeout: Duration) -> JobStatus {
     let poll_started_at = Instant::now();
 
     sleep(Duration::from_secs(5));
 
     loop {
-        let http_response = http_client
-            .get(format!("{}/webhook/d2v-headless-status", config.base_url))
-            .query(&[("jobId", job_id)])
-            .header("x-webhook-secret", &config.secret)
-            .send()
-            .expect("failed to send status request");
-
-        let response_body_text = http_response
-            .text()
-            .expect("failed to read status response body");
-        let status_response: StatusResponse = serde_json::from_str(&response_body_text)
-            .unwrap_or_else(|parse_error| {
-                panic!("failed to parse status response: {parse_error}\nbody: {response_body_text}")
-            });
-
-        match status_response.status.as_str() {
-            "done" => return JobStatus::Done,
-            "failed" => return JobStatus::Failed(status_response.message.unwrap_or_default()),
-            _ => {}
+        match check_status_once(config, job_id) {
+            JobStatus::Done => return JobStatus::Done,
+            JobStatus::Failed(message) => return JobStatus::Failed(message),
+            JobStatus::NotFound | JobStatus::Processing => {}
         }
 
         if poll_started_at.elapsed() > timeout {
@@ -230,82 +301,96 @@ pub fn poll_status(config: &Config, job_id: &str, timeout: Duration) -> JobStatu
     }
 }
 
-pub struct FixtureSection {
-    pub name: &'static str,
-    pub lines: Vec<&'static str>,
-}
+const FIXTURE_HTML: &str = r#"<!DOCTYPE html>
+<html>
+<head>
+<style>
+body { font-family: Helvetica, sans-serif; font-size: 14px; }
+.page + .page { page-break-before: always; }
+table { border-collapse: collapse; margin-top: 10px; }
+th, td { border: 1px solid #000000; padding: 4px 10px; text-align: left; }
+img { width: 80mm; height: auto; }
+</style>
+</head>
+<body>
+<div class="page">
+<p>The quick brown fox jumps over the lazy dog.</p>
+<p>This page contains a single plain paragraph with no special formatting.</p>
+</div>
+<div class="page">
+<p>Product Catalog</p>
+<table>
+<tr><th>Name</th><th>Price</th><th>Quantity</th></tr>
+<tr><td>Widget A</td><td>10 dollars</td><td>5 units</td></tr>
+<tr><td>Widget B</td><td>20 dollars</td><td>3 units</td></tr>
+<tr><td>Widget C</td><td>15 dollars</td><td>8 units</td></tr>
+</table>
+</div>
+<div class="page">
+<p>Special characters test page.</p>
+<p>Accented letters: café, résumé, naïve, señor.</p>
+<p>Currency and punctuation: $99.99, £50, €20 — a dash and an ellipsis…</p>
+<p>Non-Latin scripts: Ελληνικά (Greek), Русский (Russian).</p>
+</div>
+<div class="page">
+<p>Slashes, dates, and URLs test page.</p>
+<p>File path: /usr/local/share/d2v/output</p>
+<p>Date: 10/28/2026</p>
+<p>Measurement: 1/2 cup</p>
+<p>Link: https://example.com/docs?query=value&amp;page=2</p>
+</div>
+<div class="page">
+<p>Embedded image test page.</p>
+<img src="fixture.png" />
+<p>A synthesized three-band color image, embedded above.</p>
+</div>
+</body>
+</html>"#;
 
-pub fn fixture_sections() -> Vec<FixtureSection> {
-    vec![
-        FixtureSection {
-            name: "plain_paragraph",
-            lines: vec![
-                "The quick brown fox jumps over the lazy dog.",
-                "This page contains a single plain paragraph with no special formatting.",
-            ],
-        },
-        FixtureSection {
-            name: "table_like_content",
-            lines: vec![
-                "Product Catalog",
-                "Name: Widget A. Price: 10 dollars. Quantity: 5 units.",
-                "Name: Widget B. Price: 20 dollars. Quantity: 3 units.",
-                "Name: Widget C. Price: 15 dollars. Quantity: 8 units.",
-            ],
-        },
-        FixtureSection {
-            name: "special_characters",
-            lines: vec![
-                "Special characters test page.",
-                "Accented letters: cafe, resume, naive, senor.",
-                "Currency and punctuation: 99.99 dollars, 50 pounds, 20 euros - a dash and an ellipsis...",
-            ],
-        },
-    ]
+fn generate_test_image_png_bytes() -> Vec<u8> {
+    let image_width = 240u32;
+    let image_height = 160u32;
+    let three_band_image = ::image::RgbImage::from_fn(image_width, image_height, |x, _y| {
+        if x < image_width / 3 {
+            ::image::Rgb([200, 60, 60])
+        } else if x < 2 * image_width / 3 {
+            ::image::Rgb([60, 160, 80])
+        } else {
+            ::image::Rgb([60, 90, 200])
+        }
+    });
+
+    let mut png_bytes = Vec::new();
+    three_band_image
+        .write_to(&mut std::io::Cursor::new(&mut png_bytes), ::image::ImageFormat::Png)
+        .expect("failed to encode synthesized test image as PNG");
+    png_bytes
 }
 
 pub fn generate_test_pdf() -> Vec<u8> {
-    let mut pdf_document = PdfDocument::new("D2V Headless API Test Fixture");
-    let mut pdf_pages = Vec::new();
+    let mut embedded_images = std::collections::BTreeMap::new();
+    embedded_images.insert(
+        "fixture.png".to_string(),
+        Base64OrRaw::Raw(generate_test_image_png_bytes()),
+    );
+    let embedded_fonts = std::collections::BTreeMap::new();
 
-    for fixture_section in fixture_sections() {
-        let mut page_operations = vec![
-            Op::StartTextSection,
-            Op::SetTextCursor {
-                pos: Point::new(Mm(20.0), Mm(270.0)),
-            },
-            Op::SetFont {
-                font: PdfFontHandle::Builtin(BuiltinFont::Helvetica),
-                size: Pt(14.0),
-            },
-            Op::SetLineHeight { lh: Pt(18.0) },
-            Op::SetFillColor {
-                col: Color::Rgb(Rgb {
-                    r: 0.0,
-                    g: 0.0,
-                    b: 0.0,
-                    icc_profile: None,
-                }),
-            },
-        ];
+    let options = GeneratePdfOptions {
+        page_width: Some(210.0),
+        page_height: Some(297.0),
+        margin_top: Some(20.0),
+        margin_right: Some(20.0),
+        margin_bottom: Some(20.0),
+        margin_left: Some(20.0),
+        ..Default::default()
+    };
 
-        let line_count = fixture_section.lines.len();
-        for (line_index, line_text) in fixture_section.lines.into_iter().enumerate() {
-            page_operations.push(Op::ShowText {
-                items: vec![TextItem::Text(line_text.to_string())],
-            });
-            if line_index + 1 < line_count {
-                page_operations.push(Op::AddLineBreak);
-            }
-        }
-        page_operations.push(Op::EndTextSection);
+    let mut warnings = Vec::new();
+    let pdf_document =
+        PdfDocument::from_html(FIXTURE_HTML, &embedded_images, &embedded_fonts, &options, &mut warnings)
+            .unwrap_or_else(|e| panic!("failed to generate fixture PDF from HTML: {e}"));
 
-        pdf_pages.push(PdfPage::new(Mm(210.0), Mm(297.0), page_operations));
-    }
-
-    pdf_document
-        .with_pages(pdf_pages)
-        .save(&PdfSaveOptions::default(), &mut Vec::new())
+    pdf_document.save(&PdfSaveOptions::default(), &mut Vec::new())
 }
 
 pub fn wait_for_path_to_exist(path: &str, timeout: Duration) {
