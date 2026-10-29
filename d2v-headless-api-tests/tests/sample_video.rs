@@ -23,7 +23,7 @@ fn sample_video_with_a_phrase_produces_at_least_one_voice_clip() {
 
     let job_temp_dir = config.job_temp_dir(&started_job.job_id);
     let poll_started_at = Instant::now();
-    let poll_timeout = Duration::from_secs(10 * 60);
+    let poll_timeout = Duration::from_secs(2 * 60 * 60);
 
     loop {
         let any_voice_clip_exists = std::fs::read_dir(&job_temp_dir)

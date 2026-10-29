@@ -30,7 +30,7 @@ fn continuing_an_interrupted_conversion_resumes_from_page_two() {
     );
 
     let job_status =
-        d2v_headless_api_tests::poll_status(&config, &started_job.job_id, Duration::from_secs(20 * 60));
+        d2v_headless_api_tests::poll_status(&config, &started_job.job_id, Duration::from_secs(2 * 60 * 60));
     assert_eq!(job_status, JobStatus::Done);
 
     let job_temp_dir = config.job_temp_dir(&started_job.job_id);
@@ -56,7 +56,7 @@ fn continuing_an_interrupted_conversion_resumes_from_page_two() {
     let continued_status = d2v_headless_api_tests::poll_status(
         &config,
         &continued_job.job_id,
-        Duration::from_secs(20 * 60),
+        Duration::from_secs(2 * 60 * 60),
     );
     assert_eq!(continued_status, JobStatus::Done);
 

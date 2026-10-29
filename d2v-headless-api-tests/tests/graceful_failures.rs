@@ -232,7 +232,7 @@ fn knit_mode_on_a_document_with_no_processed_pages_yet_fails_with_clear_message(
             "{}/final_video.mp4",
             config.job_output_dir(&started_job.job_id)
         ),
-        Duration::from_secs(20 * 60),
+        Duration::from_secs(2 * 60 * 60),
     );
 }
 

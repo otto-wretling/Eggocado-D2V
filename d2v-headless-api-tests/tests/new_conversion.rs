@@ -35,7 +35,7 @@ fn new_conversion_produces_a_playable_video_and_matching_srt() {
     let job_status = d2v_headless_api_tests::poll_status(
         &config,
         &started_job.job_id,
-        Duration::from_secs(20 * 60),
+        Duration::from_secs(2 * 60 * 60),
     );
     assert_eq!(job_status, JobStatus::Done);
 

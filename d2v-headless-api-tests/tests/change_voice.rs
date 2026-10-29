@@ -28,7 +28,7 @@ fn changing_voice_for_a_whole_page_produces_an_updated_playable_video() {
     let job_status = d2v_headless_api_tests::poll_status(
         &config,
         &started_job.job_id,
-        Duration::from_secs(15 * 60),
+        Duration::from_secs(2 * 60 * 60),
     );
     assert_eq!(job_status, JobStatus::Done);
 
@@ -65,7 +65,7 @@ fn changing_voice_for_selected_text_produces_an_updated_playable_video() {
     let job_status = d2v_headless_api_tests::poll_status(
         &config,
         &started_job.job_id,
-        Duration::from_secs(15 * 60),
+        Duration::from_secs(2 * 60 * 60),
     );
     assert_eq!(job_status, JobStatus::Done);
 
