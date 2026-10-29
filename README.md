@@ -8,7 +8,7 @@ Eggocado D2V converts a PDF document into a narrated video. Each page is transcr
 
 ## Modes
 
-Everything is driven through one n8n form. To start a run: open the `d2v-workflow-main` workflow in the Docker n8n editor (`http://localhost:5678`), open its `Start` node, and use the Production URL shown there (`http://localhost:5678/form/<webhook-id>`) — the workflow must be active for that URL to work. The form walks you through picking a mode and filling in its fields one step at a time:
+Everything is driven through one n8n form. To start a run: open the `d2v-workflow-main` workflow in the Docker n8n editor (`http://localhost:5678`) and click **Execute workflow** to open the form. The form walks you through picking a mode and filling in its fields one step at a time:
 
 | Mode | What it does |
 |---|---|
