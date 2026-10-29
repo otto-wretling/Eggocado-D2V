@@ -8,13 +8,13 @@ Eggocado D2V converts a PDF document into a narrated video. Each page is transcr
 
 ## Modes
 
-Everything is driven through one n8n form. To start a run: open the `d2v-workflow-main` workflow in the Docker n8n editor (`http://localhost:5678`) and click **Execute workflow** to open the form. The form walks you through picking a mode and filling in its fields one step at a time:
+Everything is driven through one n8n form. To start a run: open the `d2v-workflow-main` workflow in the Docker n8n editor (`http://localhost:5678`) and click **📋 Execute** to open the form. The form walks you through picking a mode and filling in its fields one step at a time:
 
 | Mode | What it does |
 |---|---|
 | 🆕 Convert entire document | Upload a new PDF and process every page start to finish |
 | 🔁 Continue converting entire document | Resume an in-progress document, re-finalize the video, or pick up after an interruption |
-| 🧶 Knit Pages Together | Merge two adjacent pages (e.g. a two-page spread) into a single narrated unit |
+| 🧶 Knit Pages Together | Merge two adjacent pages (e.g., a two-page spread) into a single narrated unit |
 | 🎙️ Convert single page | Re-narrate one page (or knitted pair) in a different voice: the whole page, or just a selected phrase |
 | 🔊 Create Sample Video | Generate a short demo clip for every available TTS voice, useful for picking one |
 
@@ -31,7 +31,7 @@ Every mode is also reachable over HTTP, for scripting or automation, without the
 
 Both endpoints require the same `x-webhook-secret` header value as the one set up in [INSTALL.md](INSTALL.md#securing-the-bare-metal-webhook) (the main n8n instance's own Header Auth credential, reused here). A start request is `multipart/form-data`. The returned `jobId` is the document name, slugified, except Sample Video mode, which uses `sample-<n8n execution id>`.
 
-All required parameters are checked before the job starts: if one is missing or invalid, the POST call itself returns `400` with `{error: "<message>"}` and no job is created. A few checks can only be evaluated after the job starts (e.g. `document` naming something that was never converted, or `overwrite` being needed); those still surface asynchronously as a `failed` status.
+All required parameters are checked before the job starts: if one is missing or invalid, the POST call itself returns `400` with `{error: "<message>"}` and no job is created. A few checks can only be evaluated after the job starts (e.g., `document` naming something that was never converted, or `overwrite` being needed); those still surface asynchronously as a `failed` status.
 
 <details>
 <summary>Parameters and example requests for every mode</summary>
