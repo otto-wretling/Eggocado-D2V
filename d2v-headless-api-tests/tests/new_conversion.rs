@@ -4,6 +4,7 @@ use d2v_headless_api_tests::{
     assert_srt_has_well_formed_cues, assert_srt_is_not_empty, assert_video_decodes_without_errors,
     assert_video_duration_within_range, assert_video_has_audio_and_video_streams,
     generate_test_pdf, start_job, wait_for_file_size_to_stabilize, Config, Field, JobStatus,
+    CONVERSION_TIMEOUT,
 };
 
 #[test]
@@ -35,7 +36,7 @@ fn new_conversion_produces_a_playable_video_and_matching_srt() {
     let job_status = d2v_headless_api_tests::poll_status(
         &config,
         &started_job.job_id,
-        Duration::from_secs(2 * 60 * 60),
+        CONVERSION_TIMEOUT,
     );
     assert_eq!(job_status, JobStatus::Done);
 

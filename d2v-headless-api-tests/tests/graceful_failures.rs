@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use d2v_headless_api_tests::{
-    start_job, start_job_expecting_bad_request, Config, Field, JobStatus,
+    start_job, start_job_expecting_bad_request, Config, Field, JobStatus, CONVERSION_TIMEOUT,
 };
 
 const FAILURE_POLL_TIMEOUT: Duration = Duration::from_secs(60);
@@ -232,7 +232,7 @@ fn knit_mode_on_a_document_with_no_processed_pages_yet_fails_with_clear_message(
             "{}/final_video.mp4",
             config.job_output_dir(&started_job.job_id)
         ),
-        Duration::from_secs(2 * 60 * 60),
+        CONVERSION_TIMEOUT,
     );
 }
 

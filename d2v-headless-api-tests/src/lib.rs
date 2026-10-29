@@ -6,6 +6,8 @@ use std::time::{Duration, Instant};
 use printpdf::*;
 use serde::Deserialize;
 
+pub const CONVERSION_TIMEOUT: Duration = Duration::from_secs(2 * 60 * 60);
+
 pub struct TemporarilyMovedPath {
     original_path: String,
     backup_path: String,
