@@ -127,7 +127,7 @@ curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
 
 Returns `{"jobId":"sample-1234","mode":"sample"}`, where `1234` is the n8n execution ID — each sample request gets its own job, so concurrent calls never collide.
 
-A request missing or invalid required parameter, e.g. `knit` without `leftPage`/`rightPage`, returns `400` instead of starting a job:
+A request with a missing or invalid required parameter, e.g. `knit` without `leftPage`/`rightPage`, returns `400` instead of starting a job:
 
 ```bash
 curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
