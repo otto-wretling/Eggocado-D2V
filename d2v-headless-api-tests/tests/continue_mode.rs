@@ -17,7 +17,7 @@ fn continuing_an_interrupted_conversion_resumes_from_page_two() {
         &[
             Field::Text("mode", "new"),
             Field::Text("document", document_filename),
-            Field::Text("engineModel", "codex:gpt-5.6-sol"),
+            Field::Text("engineModel", &config.engine_model),
             Field::Text("voice", "af_heart"),
             Field::Text("overwrite", "true"),
             Field::File {
@@ -46,11 +46,11 @@ fn continuing_an_interrupted_conversion_resumes_from_page_two() {
         &[
             Field::Text("mode", "continue"),
             Field::Text("document", document_filename),
-            Field::Text("engineModel", "codex:gpt-5.6-sol"),
+            Field::Text("engineModel", &config.engine_model),
             Field::Text("voice", "af_heart"),
         ],
     );
-    assert_eq!(continued_job.mode, "continue");
+    assert_eq!(continued_job.mode.as_deref(), Some("continue"));
     assert_eq!(continued_job.job_id, started_job.job_id);
 
     let continued_status = d2v_headless_api_tests::poll_status(
