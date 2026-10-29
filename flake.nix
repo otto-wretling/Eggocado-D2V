@@ -10,7 +10,7 @@
       forAllSystems = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
     in
     {
-      nixosModules.packages = { username }: import ./nixos/packages.nix { inherit username; };
+      nixosModules.packages = { username }: import ./nixos/packages.nix { inherit nixpkgs username; };
       nixosModules.services = import ./nixos/services.nix;
 
       darwinModules.homebrew = import ./mac/homebrew.nix;
