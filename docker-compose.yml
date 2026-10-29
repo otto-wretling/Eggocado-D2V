@@ -1,6 +1,6 @@
 services:
   n8n:
-    image: n8nio/n8n:2.44.6
+    image: n8nio/n8n:2.45.4
     container_name: n8n
     restart: unless-stopped
     ports:
@@ -24,7 +24,7 @@ services:
     restart: unless-stopped
 
   stirling-pdf:
-    image: stirlingtools/stirling-pdf:3.2.1
+    image: stirlingtools/stirling-pdf:3.2.2
     container_name: stirling-pdf
     restart: unless-stopped
     ports:

@@ -4,6 +4,8 @@
 {
   programs.nix-ld.enable = true;
 
+  environment.variables.NPM_CONFIG_PREFIX = "/home/${username}/.local/share/npm";
+
   environment.systemPackages = [
     pkgs.cargo
     pkgs.cmake

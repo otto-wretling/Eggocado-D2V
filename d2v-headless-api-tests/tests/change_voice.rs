@@ -15,14 +15,14 @@ fn changing_voice_for_a_whole_page_produces_an_updated_playable_video() {
         &[
             Field::Text("mode", "changeVoice"),
             Field::Text("document", "d2v-rust-suite-new-conversion.pdf"),
-            Field::Text("engineModel", "codex:gpt-5.6-sol"),
+            Field::Text("engineModel", &config.engine_model),
             Field::Text("pageSelection", "Page 1"),
             Field::Text("target", "wholePage"),
             Field::Text("voice", "af_bella"),
         ],
     );
 
-    assert_eq!(started_job.mode, "changeVoice");
+    assert_eq!(started_job.mode.as_deref(), Some("changeVoice"));
     assert_eq!(started_job.job_id, "d2v-rust-suite-new-conversion");
 
     let job_status = d2v_headless_api_tests::poll_status(
@@ -51,7 +51,7 @@ fn changing_voice_for_selected_text_produces_an_updated_playable_video() {
         &[
             Field::Text("mode", "changeVoice"),
             Field::Text("document", "d2v-rust-suite-new-conversion.pdf"),
-            Field::Text("engineModel", "codex:gpt-5.6-sol"),
+            Field::Text("engineModel", &config.engine_model),
             Field::Text("pageSelection", "Page 2"),
             Field::Text("target", "selectedText"),
             Field::Text("textToChange", "Product"),
@@ -59,7 +59,7 @@ fn changing_voice_for_selected_text_produces_an_updated_playable_video() {
         ],
     );
 
-    assert_eq!(started_job.mode, "changeVoice");
+    assert_eq!(started_job.mode.as_deref(), Some("changeVoice"));
     assert_eq!(started_job.job_id, "d2v-rust-suite-new-conversion");
 
     let job_status = d2v_headless_api_tests::poll_status(
