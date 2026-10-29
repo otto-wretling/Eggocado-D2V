@@ -1,7 +1,7 @@
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 
-use d2v_headless_api_tests::{start_job, Config, Field};
+use d2v_headless_api_tests::{start_job, Config, Field, CONVERSION_TIMEOUT};
 
 #[test]
 fn sample_video_with_a_phrase_produces_at_least_one_voice_clip() {
@@ -23,7 +23,7 @@ fn sample_video_with_a_phrase_produces_at_least_one_voice_clip() {
 
     let job_temp_dir = config.job_temp_dir(&started_job.job_id);
     let poll_started_at = Instant::now();
-    let poll_timeout = Duration::from_secs(10 * 60);
+    let poll_timeout = CONVERSION_TIMEOUT;
 
     loop {
         let any_voice_clip_exists = std::fs::read_dir(&job_temp_dir)

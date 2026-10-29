@@ -4,7 +4,7 @@ use d2v_headless_api_tests::{
     assert_srt_has_well_formed_cues, assert_srt_is_not_empty, assert_video_decodes_without_errors,
     assert_video_duration_within_range, assert_video_has_audio_and_video_streams,
     discard_all_backups, generate_test_pdf, move_entries_aside_except, move_every_entry_aside,
-    start_job, wait_for_file_size_to_stabilize, Config, Field, JobStatus,
+    start_job, wait_for_file_size_to_stabilize, Config, Field, JobStatus, CONVERSION_TIMEOUT,
 };
 
 #[test]
@@ -30,7 +30,7 @@ fn continuing_an_interrupted_conversion_resumes_from_page_two() {
     );
 
     let job_status =
-        d2v_headless_api_tests::poll_status(&config, &started_job.job_id, Duration::from_secs(20 * 60));
+        d2v_headless_api_tests::poll_status(&config, &started_job.job_id, CONVERSION_TIMEOUT);
     assert_eq!(job_status, JobStatus::Done);
 
     let job_temp_dir = config.job_temp_dir(&started_job.job_id);
@@ -56,7 +56,7 @@ fn continuing_an_interrupted_conversion_resumes_from_page_two() {
     let continued_status = d2v_headless_api_tests::poll_status(
         &config,
         &continued_job.job_id,
-        Duration::from_secs(20 * 60),
+        CONVERSION_TIMEOUT,
     );
     assert_eq!(continued_status, JobStatus::Done);
 

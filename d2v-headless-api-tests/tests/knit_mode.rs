@@ -3,7 +3,7 @@ use std::time::Duration;
 use d2v_headless_api_tests::{
     assert_video_decodes_without_errors, assert_video_duration_within_range,
     assert_video_has_audio_and_video_streams, start_job, wait_for_file_size_to_stabilize, Config,
-    Field, JobStatus,
+    Field, JobStatus, CONVERSION_TIMEOUT,
 };
 
 #[test]
@@ -28,7 +28,7 @@ fn knitting_pages_one_and_two_produces_an_updated_playable_video() {
     let job_status = d2v_headless_api_tests::poll_status(
         &config,
         &started_job.job_id,
-        Duration::from_secs(15 * 60),
+        CONVERSION_TIMEOUT,
     );
     assert_eq!(job_status, JobStatus::Done);
 
