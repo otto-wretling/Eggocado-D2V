@@ -8,13 +8,13 @@ Eggocado D2V converts a PDF document into a narrated video. Each page is transcr
 
 ## Modes
 
-Everything is driven through one n8n form:
+Everything is driven through one n8n form. To start a run: open the `d2v-workflow-main` workflow in the Docker n8n editor (`http://localhost:5678`) and click **📋 Execute** to open the form. The form walks you through picking a mode and filling in its fields one step at a time:
 
 | Mode | What it does |
 |---|---|
 | 🆕 Convert entire document | Upload a new PDF and process every page start to finish |
 | 🔁 Continue converting entire document | Resume an in-progress document, re-finalize the video, or pick up after an interruption |
-| 🧶 Knit Pages Together | Merge two adjacent pages (e.g. a two-page spread) into a single narrated unit |
+| 🧶 Knit Pages Together | Merge two adjacent pages (e.g., a two-page spread) into a single narrated unit |
 | 🎙️ Convert single page | Re-narrate one page (or knitted pair) in a different voice: the whole page, or just a selected phrase |
 | 🔊 Create Sample Video | Generate a short demo clip for every available TTS voice, useful for picking one |
 
@@ -31,7 +31,12 @@ Every mode is also reachable over HTTP, for scripting or automation, without the
 
 Both endpoints require the same `x-webhook-secret` header value as the one set up in [INSTALL.md](INSTALL.md#securing-the-bare-metal-webhook) (the main n8n instance's own Header Auth credential, reused here). A start request is `multipart/form-data`. The returned `jobId` is the document name, slugified, except Sample Video mode, which uses `sample-<n8n execution id>`.
 
-All required parameters are checked before the job starts: if one is missing or invalid, the POST call itself returns `400` with `{error: "<message>"}` and no job is created. A few checks can only be evaluated after the job starts (e.g. `document` naming something that was never converted, or `overwrite` being needed); those still surface asynchronously as a `failed` status.
+All required parameters are checked before the job starts: if one is missing or invalid, the POST call itself returns `400` with `{error: "<message>"}` and no job is created. A few checks can only be evaluated after the job starts (e.g., `document` naming something that was never converted, or `overwrite` being needed); those still surface asynchronously as a `failed` status.
+
+<details>
+<summary>Parameters and example requests for every mode</summary>
+
+Each example sends `D2V_BASE_URL=http://localhost:5678` and `SECRET` set to the shared webhook secret. `engineModel` takes the form `<engine>:<model>`, matching whichever engine and model you have available (see [Transcription engines](INSTALL.md#transcription-engines)).
 
 | Parameter | Used by | Required | If missing/invalid | What it does |
 |---|---|---|---|---|
@@ -47,11 +52,6 @@ All required parameters are checked before the job starts: if one is missing or 
 | `textToChange` | `changeVoice` | Yes, when `target` is `selectedText` | `400` | The exact phrase to re-narrate |
 | `samplePhrase` | `sample` | Yes | `400` | The phrase every voice sample speaks |
 
-<details>
-<summary>Example requests for every mode</summary>
-
-Each example sends `D2V_BASE_URL=http://localhost:5678` and `SECRET` set to the shared webhook secret. `engineModel` takes the form `<engine>:<model>`, matching whichever engine and model you have available (see [Transcription engines](INSTALL.md#transcription-engines)).
-
 Convert entire document:
 
 ```bash
@@ -65,7 +65,7 @@ curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
   -F "data=@/path/to/my-document.pdf;type=application/pdf"
 ```
 
-`overwrite=true` is only needed when `document` names a document that was already converted.
+Returns `{"jobId":"my-document","mode":"new"}` immediately. `overwrite=true` is only needed when `document` names a document that was already converted; omitting `document` entirely falls back to the literal job ID `document`.
 
 Continue converting entire document:
 
@@ -91,14 +91,13 @@ curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
   -F "voice=af_heart"
 ```
 
-Convert single page, whole page:
+Convert single page, whole page (`changeVoice` only re-synthesizes narration, so it takes no `engineModel`):
 
 ```bash
 curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
   -H "x-webhook-secret: $SECRET" \
   -F "mode=changeVoice" \
   -F "document=my-document.pdf" \
-  -F "engineModel=codex:gpt-5.6-sol" \
   -F "pageSelection=Page 1" \
   -F "target=wholePage" \
   -F "voice=af_bella"
@@ -111,7 +110,6 @@ curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
   -H "x-webhook-secret: $SECRET" \
   -F "mode=changeVoice" \
   -F "document=my-document.pdf" \
-  -F "engineModel=codex:gpt-5.6-sol" \
   -F "pageSelection=Page 2" \
   -F "target=selectedText" \
   -F "textToChange=Product" \
@@ -127,11 +125,41 @@ curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
   -F "samplePhrase=Hello, this is a sample of my voice."
 ```
 
+Returns `{"jobId":"sample-1234","mode":"sample"}`, where `1234` is the n8n execution ID — each sample request gets its own job, so concurrent calls never collide.
+
+A request with a missing or invalid required parameter, e.g. `knit` without `leftPage`/`rightPage`, returns `400` instead of starting a job:
+
+```bash
+curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
+  -H "x-webhook-secret: $SECRET" \
+  -F "mode=knit" \
+  -F "document=my-document.pdf" \
+  -F "engineModel=codex:gpt-5.6-sol" \
+  -F "voice=af_heart"
+# 400 {"error":"leftPage and rightPage are required for knit mode"}
+```
+
 Checking status, for any of the above:
 
 ```bash
 curl "$D2V_BASE_URL/webhook/d2v-headless-status?jobId=my-document" \
   -H "x-webhook-secret: $SECRET"
+```
+
+`status` is one of:
+
+| `status` | Meaning |
+|---|---|
+| `not_found` | No job with this `jobId` has ever started (or its output was deleted) |
+| `processing` | The job has started and is still running |
+| `done` | The job finished; `output/<jobId>/final_video.mp4` and `.srt` are ready |
+| `failed` | The job started but could not finish; `message` has the reason |
+
+```json
+{"jobId": "my-document", "status": "not_found"}
+{"jobId": "my-document", "status": "processing"}
+{"jobId": "my-document", "status": "done"}
+{"jobId": "my-document", "status": "failed", "message": "This document has no processed pages yet, so this mode cannot run."}
 ```
 
 </details>
