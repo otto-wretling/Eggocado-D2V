@@ -52,6 +52,20 @@ All required parameters are checked before the job starts: if one is missing or 
 
 Each example sends `D2V_BASE_URL=http://localhost:5678` and `SECRET` set to the shared webhook secret. `engineModel` takes the form `<engine>:<model>`, matching whichever engine and model you have available (see [Transcription engines](INSTALL.md#transcription-engines)).
 
+| Parameter | Used by | Required | If missing/invalid | What it does |
+|---|---|---|---|---|
+| `mode` | every request | Yes | `400` | Which operation to run: `new`, `continue`, `knit`, `changeVoice`, or `sample` |
+| `document` | `new`, `continue`, `knit`, `changeVoice` | `new`: No. Others: Yes | `new`: falls back to the literal job ID `document`. Others: `400` | The document's name; also determines the job ID |
+| `data` | `new` | Yes | `400` | The PDF file to convert. Other modes use the document's already-saved PDF |
+| `engineModel` | `new`, `continue`, `knit` | Yes | `400` | Transcription engine and model, as `<engine>:<model>`. `changeVoice` only re-synthesizes narration, so it has no use for this field |
+| `voice` | `new`, `continue`, `knit`, `changeVoice` | Yes | `400` | Kokoro voice ID used for narration |
+| `overwrite` | `new` | No | Treated as refused; job starts but fails asynchronously if `document` already has a conversion | Confirms replacing an existing document's conversion |
+| `leftPage`, `rightPage` | `knit` | Yes | `400` | The two page numbers to knit together |
+| `pageSelection` | `changeVoice` | Yes | `400` | Which page to target, as `Page N` |
+| `target` | `changeVoice` | Yes | `400` | `wholePage` or `selectedText` |
+| `textToChange` | `changeVoice` | Yes, when `target` is `selectedText` | `400` | The exact phrase to re-narrate |
+| `samplePhrase` | `sample` | Yes | `400` | The phrase every voice sample speaks |
+
 Convert entire document:
 
 ```bash
