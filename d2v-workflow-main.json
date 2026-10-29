@@ -2173,7 +2173,7 @@
             {
               "id": "528f101d-5bd3-4fc7-a471-50b01222e17e",
               "name": "sampleFolderName",
-              "value": "sample",
+              "value": "={{ 'sample-' + $execution.id }}",
               "type": "string"
             }
           ]
@@ -5029,7 +5029,7 @@
               "id": "jobId",
               "name": "jobId",
               "type": "string",
-              "value": "={{ (() => { const mode = $json.body.mode; const slugify = (raw) => (raw.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'document'); return mode === 'sample' ? 'sample' : slugify((($json.body.document) || '').replace(/\\.pdf$/i, '')); })() }}"
+              "value": "={{ (() => { const mode = $json.body.mode; const slugify = (raw) => (raw.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'document'); return mode === 'sample' ? 'sample-' + $execution.id : slugify((($json.body.document) || '').replace(/\\.pdf$/i, '')); })() }}"
             },
             {
               "id": "mode",
@@ -6710,6 +6710,102 @@
           "combinator": "and"
         },
         "options": {}
+      }
+    },
+    {
+      "id": "8f88e3b6-e80f-4e38-ab5d-4c7b809cfc99",
+      "name": "Validate Required Parameters",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        150,
+        -80
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": true,
+        "options": {},
+        "assignments": {
+          "assignments": [
+            {
+              "id": "vrp-1",
+              "name": "validationError",
+              "type": "string",
+              "value": "={{ $('Receive Headless API Request').isExecuted ? (() => { const body = $('Receive Headless API Request').item.json.body; const mode = body.mode; const hasFile = Object.keys($('Receive Headless API Request').item.binary || {}).length > 0; if (!['new', 'continue', 'knit', 'changeVoice', 'sample'].includes(mode)) { return 'mode is required and must be one of: new, continue, knit, changeVoice, sample'; } if (mode === 'sample') { return body.samplePhrase ? '' : 'samplePhrase is required for sample mode'; } if (!body.voice) return 'voice is required'; if (['new', 'continue', 'knit'].includes(mode) && !body.engineModel) return 'engineModel is required'; if (mode === 'new') { if (!hasFile) return 'a file upload is required for new mode'; } else if (!body.document) { return 'document is required for this mode'; } if (mode === 'knit' && (!body.leftPage || !body.rightPage)) { return 'leftPage and rightPage are required for knit mode'; } if (mode === 'changeVoice') { if (!body.pageSelection || !body.target) return 'pageSelection and target are required for changeVoice mode'; if (body.target === 'selectedText' && !body.textToChange) return 'textToChange is required when target is selectedText'; } return ''; })() : '' }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "dedf23e1-5c51-4f42-a87e-23c849b0854c",
+      "name": "Is Headless (Request Invalid)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        300,
+        -80
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ihri-0001",
+              "leftValue": "={{ $json.validationError !== '' }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "3bf419ba-67d3-41b9-bdcf-a861b47177e5",
+      "name": "Respond Bad Request",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        450,
+        -160
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { error: $json.validationError } }}",
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "b69bbf55-1a7b-4392-8ef7-aa4df44841b8",
+      "name": "Fail: Invalid Headless Request",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        600,
+        -160
+      ],
+      "parameters": {
+        "errorType": "errorMessage",
+        "errorMessage": "={{ $('Validate Required Parameters').item.json.validationError }}"
       }
     }
   ],
@@ -8833,7 +8929,7 @@
       "main": [
         [
           {
-            "node": "Respond with Job Info",
+            "node": "Validate Required Parameters",
             "type": "main",
             "index": 0
           }
@@ -9731,6 +9827,46 @@
           }
         ]
       ]
+    },
+    "Validate Required Parameters": {
+      "main": [
+        [
+          {
+            "node": "Is Headless (Request Invalid)?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Headless (Request Invalid)?": {
+      "main": [
+        [
+          {
+            "node": "Respond Bad Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond with Job Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond Bad Request": {
+      "main": [
+        [
+          {
+            "node": "Fail: Invalid Headless Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -9743,7 +9879,7 @@
     "availableInMCP": true,
     "saveExecutionProgress": true
   },
-  "versionId": "1ca8666c-dcc6-46fb-b737-01afb2340e7f",
+  "versionId": "2eb6df8c-c792-419a-9cda-1dc11a066266",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "0d58a7a3f156139856be42466a14e05f00173514ac9794a8494b09c53ea173a0",

@@ -167,6 +167,56 @@ pub enum Field<'a> {
     },
 }
 
+pub fn start_job_expecting_bad_request(config: &Config, fields: &[Field]) -> String {
+    let http_client = reqwest::blocking::Client::new();
+    let mut multipart_form = reqwest::blocking::multipart::Form::new();
+
+    for field in fields {
+        multipart_form = match field {
+            Field::Text(name, value) => multipart_form.text(name.to_string(), value.to_string()),
+            Field::File {
+                name,
+                filename,
+                mime,
+                bytes,
+            } => {
+                let file_part = reqwest::blocking::multipart::Part::bytes(bytes.clone())
+                    .file_name(filename.to_string())
+                    .mime_str(mime)
+                    .expect("invalid mime type");
+                multipart_form.part(name.to_string(), file_part)
+            }
+        };
+    }
+
+    let http_response = http_client
+        .post(format!("{}/webhook/d2v-headless", config.base_url))
+        .header("x-webhook-secret", &config.secret)
+        .multipart(multipart_form)
+        .send()
+        .expect("failed to send start-job request");
+
+    let http_status = http_response.status();
+    let response_body_text = http_response
+        .text()
+        .expect("failed to read start-job response body");
+    assert_eq!(
+        http_status.as_u16(),
+        400,
+        "expected HTTP 400 Bad Request, got {http_status}: {response_body_text}"
+    );
+
+    #[derive(Deserialize)]
+    struct ErrorResponse {
+        error: String,
+    }
+    let error_response: ErrorResponse = serde_json::from_str(&response_body_text)
+        .unwrap_or_else(|parse_error| {
+            panic!("failed to parse bad-request response: {parse_error}\nbody: {response_body_text}")
+        });
+    error_response.error
+}
+
 pub fn start_job(config: &Config, fields: &[Field]) -> StartJobResponse {
     let http_client = reqwest::blocking::Client::new();
     let mut multipart_form = reqwest::blocking::multipart::Form::new();
