@@ -19,7 +19,7 @@ fn sample_video_with_a_phrase_produces_at_least_one_voice_clip() {
     );
 
     assert_eq!(started_job.mode.as_deref(), Some("sample"));
-    assert_eq!(started_job.job_id, "sample");
+    assert!(started_job.job_id.starts_with("sample-"));
 
     let job_temp_dir = config.job_temp_dir(&started_job.job_id);
     let poll_started_at = Instant::now();

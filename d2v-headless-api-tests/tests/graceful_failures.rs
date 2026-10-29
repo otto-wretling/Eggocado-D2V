@@ -1,6 +1,8 @@
 use std::time::Duration;
 
-use d2v_headless_api_tests::{start_job, Config, Field, JobStatus};
+use d2v_headless_api_tests::{
+    start_job, start_job_expecting_bad_request, Config, Field, JobStatus,
+};
 
 const FAILURE_POLL_TIMEOUT: Duration = Duration::from_secs(60);
 
@@ -8,7 +10,7 @@ const FAILURE_POLL_TIMEOUT: Duration = Duration::from_secs(60);
 fn missing_mode_fails_with_clear_message() {
     let config = Config::from_env();
 
-    let started_job = start_job(
+    let error_message = start_job_expecting_bad_request(
         &config,
         &[Field::Text(
             "document",
@@ -16,24 +18,14 @@ fn missing_mode_fails_with_clear_message() {
         )],
     );
 
-    let job_status = d2v_headless_api_tests::poll_status(
-        &config,
-        &started_job.job_id,
-        FAILURE_POLL_TIMEOUT,
-    );
-    match job_status {
-        JobStatus::Failed(message) => {
-            assert!(message.contains("mode"));
-        }
-        other => panic!("expected Failed, got {other:?}"),
-    }
+    assert!(error_message.contains("mode"));
 }
 
 #[test]
 fn invalid_mode_fails_with_clear_message() {
     let config = Config::from_env();
 
-    let started_job = start_job(
+    let error_message = start_job_expecting_bad_request(
         &config,
         &[
             Field::Text("mode", "bogus"),
@@ -41,80 +33,35 @@ fn invalid_mode_fails_with_clear_message() {
         ],
     );
 
-    let job_status = d2v_headless_api_tests::poll_status(
-        &config,
-        &started_job.job_id,
-        FAILURE_POLL_TIMEOUT,
-    );
-    match job_status {
-        JobStatus::Failed(message) => {
-            assert!(message.contains("mode"));
-        }
-        other => panic!("expected Failed, got {other:?}"),
-    }
+    assert!(error_message.contains("mode"));
 }
 
 #[test]
 fn sample_mode_without_sample_phrase_fails_with_clear_message() {
     let config = Config::from_env();
 
-    let started_job = start_job(&config, &[Field::Text("mode", "sample")]);
+    let error_message =
+        start_job_expecting_bad_request(&config, &[Field::Text("mode", "sample")]);
 
-    let job_status = d2v_headless_api_tests::poll_status(
-        &config,
-        &started_job.job_id,
-        FAILURE_POLL_TIMEOUT,
-    );
-    match job_status {
-        JobStatus::Failed(message) => {
-            assert!(message.contains("samplePhrase"));
-        }
-        other => panic!("expected Failed, got {other:?}"),
-    }
+    assert!(error_message.contains("samplePhrase"));
 }
 
 #[test]
 fn knit_mode_without_document_fails_with_clear_message() {
     let config = Config::from_env();
 
-    start_job(
-        &config,
-        &[
-            Field::Text("mode", "new"),
-            Field::Text("document", "d2v-rust-suite-document-required-precondition.pdf"),
-            Field::Text("engineModel", &config.engine_model),
-            Field::Text("voice", "af_heart"),
-            Field::Text("overwrite", "true"),
-            Field::File {
-                name: "data",
-                filename: "d2v-rust-suite-document-required-precondition.pdf",
-                mime: "application/pdf",
-                bytes: d2v_headless_api_tests::generate_test_pdf(),
-            },
-        ],
-    );
-    std::thread::sleep(Duration::from_secs(5));
-
-    let started_job = start_job(
+    let error_message = start_job_expecting_bad_request(
         &config,
         &[
             Field::Text("mode", "knit"),
             Field::Text("engineModel", &config.engine_model),
             Field::Text("voice", "af_heart"),
+            Field::Text("leftPage", "1"),
+            Field::Text("rightPage", "2"),
         ],
     );
 
-    let job_status = d2v_headless_api_tests::poll_status(
-        &config,
-        &started_job.job_id,
-        FAILURE_POLL_TIMEOUT,
-    );
-    match job_status {
-        JobStatus::Failed(message) => {
-            assert!(message.contains("document"));
-        }
-        other => panic!("expected Failed, got {other:?}"),
-    }
+    assert!(error_message.contains("document"));
 }
 
 #[test]
@@ -322,7 +269,7 @@ fn knit_mode_with_too_few_pages_fails_with_clear_message() {
 fn knit_mode_without_left_and_right_page_fails_with_clear_message() {
     let config = Config::from_env();
 
-    let started_job = start_job(
+    let error_message = start_job_expecting_bad_request(
         &config,
         &[
             Field::Text("mode", "knit"),
@@ -332,24 +279,14 @@ fn knit_mode_without_left_and_right_page_fails_with_clear_message() {
         ],
     );
 
-    let job_status = d2v_headless_api_tests::poll_status(
-        &config,
-        &started_job.job_id,
-        FAILURE_POLL_TIMEOUT,
-    );
-    match job_status {
-        JobStatus::Failed(message) => {
-            assert!(message.contains("leftPage"));
-        }
-        other => panic!("expected Failed, got {other:?}"),
-    }
+    assert!(error_message.contains("leftPage"));
 }
 
 #[test]
 fn change_voice_without_page_selection_or_target_fails_with_clear_message() {
     let config = Config::from_env();
 
-    let started_job = start_job(
+    let error_message = start_job_expecting_bad_request(
         &config,
         &[
             Field::Text("mode", "changeVoice"),
@@ -359,24 +296,14 @@ fn change_voice_without_page_selection_or_target_fails_with_clear_message() {
         ],
     );
 
-    let job_status = d2v_headless_api_tests::poll_status(
-        &config,
-        &started_job.job_id,
-        FAILURE_POLL_TIMEOUT,
-    );
-    match job_status {
-        JobStatus::Failed(message) => {
-            assert!(message.contains("pageSelection"));
-        }
-        other => panic!("expected Failed, got {other:?}"),
-    }
+    assert!(error_message.contains("pageSelection"));
 }
 
 #[test]
 fn change_voice_selected_text_without_text_to_change_fails_with_clear_message() {
     let config = Config::from_env();
 
-    let started_job = start_job(
+    let error_message = start_job_expecting_bad_request(
         &config,
         &[
             Field::Text("mode", "changeVoice"),
@@ -388,24 +315,14 @@ fn change_voice_selected_text_without_text_to_change_fails_with_clear_message() 
         ],
     );
 
-    let job_status = d2v_headless_api_tests::poll_status(
-        &config,
-        &started_job.job_id,
-        FAILURE_POLL_TIMEOUT,
-    );
-    match job_status {
-        JobStatus::Failed(message) => {
-            assert!(message.contains("textToChange"));
-        }
-        other => panic!("expected Failed, got {other:?}"),
-    }
+    assert!(error_message.contains("textToChange"));
 }
 
 #[test]
 fn missing_voice_fails_with_clear_message() {
     let config = Config::from_env();
 
-    let started_job = start_job(
+    let error_message = start_job_expecting_bad_request(
         &config,
         &[
             Field::Text("mode", "new"),
@@ -414,24 +331,14 @@ fn missing_voice_fails_with_clear_message() {
         ],
     );
 
-    let job_status = d2v_headless_api_tests::poll_status(
-        &config,
-        &started_job.job_id,
-        FAILURE_POLL_TIMEOUT,
-    );
-    match job_status {
-        JobStatus::Failed(message) => {
-            assert!(message.contains("voice"));
-        }
-        other => panic!("expected Failed, got {other:?}"),
-    }
+    assert!(error_message.contains("voice"));
 }
 
 #[test]
 fn missing_engine_model_fails_with_clear_message() {
     let config = Config::from_env();
 
-    let started_job = start_job(
+    let error_message = start_job_expecting_bad_request(
         &config,
         &[
             Field::Text("mode", "new"),
@@ -443,24 +350,14 @@ fn missing_engine_model_fails_with_clear_message() {
         ],
     );
 
-    let job_status = d2v_headless_api_tests::poll_status(
-        &config,
-        &started_job.job_id,
-        FAILURE_POLL_TIMEOUT,
-    );
-    match job_status {
-        JobStatus::Failed(message) => {
-            assert!(message.contains("engineModel"));
-        }
-        other => panic!("expected Failed, got {other:?}"),
-    }
+    assert!(error_message.contains("engineModel"));
 }
 
 #[test]
 fn new_conversion_without_file_fails_with_clear_message() {
     let config = Config::from_env();
 
-    let started_job = start_job(
+    let error_message = start_job_expecting_bad_request(
         &config,
         &[
             Field::Text("mode", "new"),
@@ -470,15 +367,5 @@ fn new_conversion_without_file_fails_with_clear_message() {
         ],
     );
 
-    let job_status = d2v_headless_api_tests::poll_status(
-        &config,
-        &started_job.job_id,
-        FAILURE_POLL_TIMEOUT,
-    );
-    match job_status {
-        JobStatus::Failed(message) => {
-            assert!(message.contains("PDF"));
-        }
-        other => panic!("expected Failed, got {other:?}"),
-    }
+    assert!(error_message.contains("file"));
 }
