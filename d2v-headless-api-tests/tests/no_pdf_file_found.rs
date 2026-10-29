@@ -16,7 +16,7 @@ fn continuing_a_document_with_its_pdf_missing_fails_with_clear_message() {
         &[
             Field::Text("mode", "continue"),
             Field::Text("document", document_filename),
-            Field::Text("engineModel", "codex:gpt-5.6-sol"),
+            Field::Text("engineModel", &config.engine_model),
             Field::Text("voice", "af_heart"),
         ],
     );
