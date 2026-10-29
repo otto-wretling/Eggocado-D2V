@@ -34,7 +34,7 @@ Both endpoints require the same `x-webhook-secret` header value as the one set u
 All required parameters are checked before the job starts: if one is missing or invalid, the POST call itself returns `400` with `{error: "<message>"}` and no job is created. A few checks can only be evaluated after the job starts (e.g. `document` naming something that was never converted, or `overwrite` being needed); those still surface asynchronously as a `failed` status.
 
 <details>
-<summary>Example requests for every mode</summary>
+<summary>Parameters and example requests for every mode</summary>
 
 Each example sends `D2V_BASE_URL=http://localhost:5678` and `SECRET` set to the shared webhook secret. `engineModel` takes the form `<engine>:<model>`, matching whichever engine and model you have available (see [Transcription engines](INSTALL.md#transcription-engines)).
 
