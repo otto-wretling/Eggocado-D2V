@@ -1,5 +1,16 @@
 # D2V Agent Guidelines
 
+## Code style
+
+- No code comments. Name functions, variables, and types so the code explains itself; a reader should never need a comment to understand what something does or why.
+- A self-documenting name states what it actually checks or does, not a generic verb. `verify_srt` tells a reader unfamiliar with the project nothing; `assert_srt_has_well_formed_cues` does. Prefer the specific claim over the generic action every time.
+
+## Testing
+
+- `d2v-headless-api-tests/` is a Rust integration test suite covering the headless API's happy paths and failure cases, run against a live instance with no mocking. See [Testing](README.md#testing) for the required environment variables and how to run it.
+- Tests run one at a time (`.cargo/config.toml` sets `RUST_TEST_THREADS=1`), since they share the same `temp/`/`output/` folders and the single-worker Kokoro TTS service a real conversion would use. Never remove that setting or run the suite with a higher thread count.
+- When changing workflow behavior that a test covers, run the relevant test file against the live system afterward and confirm it still passes before considering the change done.
+
 ## n8n Workflow Preferences
 
 - Do not suggest Execute Command nodes or Code nodes in n8n workflows. Use built-in nodes only. Expressions inside node fields (e.g. Edit Fields) are fine.
@@ -26,6 +37,8 @@
 
 ## Commit messages
 
+- Base commit messages and pull request descriptions only on the diff itself. Read the actual code changes and describe those; never factor in anything from the conversation that produced them (what was investigated, which approach was tried first, why a change was made, who asked for it). If the diff doesn't show it, it doesn't belong in the message.
+- Only include sections the user actually asked for. A pull request description needs a summary of the change; add a test plan, checklist, or any other section only when the user asks for one, not by default.
 - Never truncate or abbreviate a word in the title (e.g. "dedup" for "deduplication", "config" for "configuration"). Spell it out in full.
 - Keep the title at or under 50 characters, 72 as a hard ceiling. GitHub and most git tools truncate titles past ~72 characters with an ellipsis, and that cut lands mid-word regardless of what you wrote — a title that's too long causes exactly the mid-word truncation this file already forbids, just via the renderer instead of your own wording. If spelling a word out in full would push the title past the ceiling, cut other content from the title and move it to the body instead; never shorten a word to make it fit.
 - Never state the current state of a specific machine or instance (e.g. "still unpublished in n8n") — that's true only right now, on one system, and is wrong or irrelevant the moment anything changes or anyone else reads the history.

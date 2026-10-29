@@ -12,16 +12,49 @@ permissions:
   security-events: write
 
 jobs:
-  analyze:
+  changes:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        language: [python, actions]
+    if: github.event_name != 'schedule'
+    outputs:
+      python: ${{ steps.filter.outputs.python }}
+      actions: ${{ steps.filter.outputs.actions }}
+      rust: ${{ steps.filter.outputs.rust }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: github/codeql-action/init@793b778da9c9275a0f276522b27cb5fc14bba279 # v4
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: filter
+        with:
+          filters: |
+            python:
+              - 'nemo-normalizer/**'
+            actions:
+              - '.github/workflows/**'
+            rust:
+              - 'd2v-headless-api-tests/**'
+
+  analyze:
+    needs: changes
+    if: always()
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - language: python
+            build-mode: none
+          - language: actions
+            build-mode: none
+          - language: rust
+            build-mode: none
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        if: github.event_name == 'schedule' || needs.changes.outputs[matrix.language] == 'true'
+
+      - uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4
+        if: github.event_name == 'schedule' || needs.changes.outputs[matrix.language] == 'true'
         with:
           languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
 
-      - uses: github/codeql-action/analyze@793b778da9c9275a0f276522b27cb5fc14bba279 # v4
+      - uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4
+        if: github.event_name == 'schedule' || needs.changes.outputs[matrix.language] == 'true'

@@ -10,7 +10,24 @@ permissions:
   security-events: write
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      dockerfile: ${{ steps.filter.outputs.dockerfile }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: filter
+        with:
+          filters: |
+            dockerfile:
+              - 'nemo-normalizer/Dockerfile'
+              - '.github/workflows/hadolint.yml'
+
   hadolint:
+    needs: changes
+    if: needs.changes.outputs.dockerfile == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -20,6 +37,6 @@ jobs:
 
       - name: Upload SARIF to code scanning
         if: always()
-        uses: github/codeql-action/upload-sarif@793b778da9c9275a0f276522b27cb5fc14bba279 # v4
+        uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4
         with:
           sarif_file: hadolint.sarif
