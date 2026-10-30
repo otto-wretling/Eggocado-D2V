@@ -262,29 +262,26 @@ pub fn start_job(config: &Config, fields: &[Field]) -> StartJobResponse {
     })
 }
 
-pub fn check_status_once(config: &Config, job_id: &str) -> JobStatus {
+pub fn check_status_once(config: &Config, job_id: &str) -> Result<JobStatus, reqwest::Error> {
     let http_client = reqwest::blocking::Client::new();
 
     let http_response = http_client
         .get(format!("{}/webhook/d2v-headless-status", config.base_url))
         .query(&[("jobId", job_id)])
         .header("x-webhook-secret", &config.secret)
-        .send()
-        .expect("failed to send status request");
+        .send()?;
 
-    let response_body_text = http_response
-        .text()
-        .expect("failed to read status response body");
+    let response_body_text = http_response.text()?;
     let status_response: StatusResponse = serde_json::from_str(&response_body_text)
         .unwrap_or_else(|parse_error| {
             panic!("failed to parse status response: {parse_error}\nbody: {response_body_text}")
         });
 
-    parse_job_status(status_response)
+    Ok(parse_job_status(status_response))
 }
 
 pub fn ensure_document_converted(config: &Config, document_filename: &str, expected_job_id: &str) {
-    if check_status_once(config, expected_job_id) == JobStatus::Done {
+    if matches!(check_status_once(config, expected_job_id), Ok(JobStatus::Done)) {
         return;
     }
 
@@ -317,9 +314,9 @@ pub fn poll_status(config: &Config, job_id: &str, timeout: Duration) -> JobStatu
 
     loop {
         match check_status_once(config, job_id) {
-            JobStatus::Done => return JobStatus::Done,
-            JobStatus::Failed(message) => return JobStatus::Failed(message),
-            JobStatus::NotFound | JobStatus::Processing => {}
+            Ok(JobStatus::Done) => return JobStatus::Done,
+            Ok(JobStatus::Failed(message)) => return JobStatus::Failed(message),
+            Ok(JobStatus::NotFound | JobStatus::Processing) | Err(_) => {}
         }
 
         if poll_started_at.elapsed() > timeout {
