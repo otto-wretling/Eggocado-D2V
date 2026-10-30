@@ -2,7 +2,10 @@
 { pkgs, ... }:
 
 let
-  d2vPkgs = nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system};
+  d2vPkgs = import nixpkgs {
+    system = pkgs.stdenv.hostPlatform.system;
+    config.allowUnfreePredicate = package: builtins.elem (pkgs.lib.getName package) [ "n8n" ];
+  };
 in
 
 {
