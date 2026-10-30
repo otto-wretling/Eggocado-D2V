@@ -4,10 +4,14 @@ macOS (Apple Silicon) and Linux/NixOS. Windows support is planned.
 
 ## Prerequisites
 
-On NixOS, `nixos/packages.nix` covers this entire section in one import: Docker, ffmpeg, espeak-ng, the bare-metal n8n package, `cargo`/`rustc` (for the Rust test suite, see [Testing](README.md#testing)), and also `nix-ld`/`uv`/`cmake`/`gcc`/`gnumake`, which Kokoro-FastAPI (below) needs to build and run on NixOS. It takes the system username as a curried argument:
+On NixOS, this repo's `nixosModules.packages` flake output covers this entire section in one import: Docker, ffmpeg, espeak-ng, the bare-metal n8n package, `cargo`/`rustc` (for the Rust test suite, see [Testing](README.md#testing)), and also `nix-ld`/`uv`/`cmake`/`gcc`/`gnumake`, which Kokoro-FastAPI (below) needs to build and run on NixOS. The module pulls these packages from its own pinned nixpkgs (tracked in this repo's `flake.lock`), independent of your system's nixpkgs version, so a Node/Java security fix here doesn't wait on a full system nixpkgs bump. Add it as a flake input and import the module, passing your system username as a curried argument:
 
 ```nix
-imports = [ (import /path/to/Eggocado-D2V/nixos/packages.nix { username = "yourusername"; }) ];
+# flake.nix
+inputs.eggocado-d2v.url = "path:/path/to/Eggocado-D2V";
+
+# configuration.nix
+imports = [ (eggocado-d2v.nixosModules.packages { username = "yourusername"; }) ];
 ```
 
 The Docker, ffmpeg/espeak-ng, and n8n subsections below are the macOS (Homebrew) equivalent of what that import covers. Ollama, Claude Code, Codex, and Kokoro-FastAPI's own setup are the same steps on both platforms.
