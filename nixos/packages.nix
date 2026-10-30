@@ -20,12 +20,27 @@ in
     d2vPkgs.ffmpeg-full
     d2vPkgs.gcc
     d2vPkgs.gnumake
-    d2vPkgs.n8n
     d2vPkgs.rustc
     d2vPkgs.uv
+    pkgs.n8n
   ];
 
   networking.firewall.trustedInterfaces = [ "docker0" "d2v-bridge" ];
+
+  services.ollama = {
+    enable = true;
+    package = d2vPkgs.ollama;
+  };
+
+  nixpkgs.overlays = [
+    (final: prev: {
+      n8n = prev.n8n.overrideAttrs (old: {
+        pnpmDeps = old.pnpmDeps.overrideAttrs (_: {
+          outputHash = "sha256-kSv/8YxvwCFxrSRTqYHP+TAmDgu5OPbcwolHVIqCGDA=";
+        });
+      });
+    })
+  ];
 
   users.users.${username}.extraGroups = [ "docker" ];
 

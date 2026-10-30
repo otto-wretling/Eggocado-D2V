@@ -25,10 +25,10 @@ Required by the bare-metal n8n instance (video assembly) and Kokoro-FastAPI (fal
 ### Ollama
 Optional: one of three transcription engines (see "Transcription engines" below). Skip this section entirely if you only plan to use Claude Code or Codex. If you do want a local model, any vision-capable Ollama model works, so pick whichever fits your hardware and documents.
 
-Download from https://ollama.com, then pull a model, for example:
+On NixOS, `nixosModules.packages` (see [Prerequisites](#prerequisites) above) already runs Ollama as a service, listening on `http://127.0.0.1:11434`. Elsewhere, download from https://ollama.com and run it yourself. Either way, pull a model, for example:
 
 ```bash
-ollama pull gemma3:27b
+ollama pull gemma4:31b
 ```
 
 Whichever models you've pulled are fetched live and offered in the engine/model dropdown at the start of each conversion.
