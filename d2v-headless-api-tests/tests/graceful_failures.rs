@@ -1,7 +1,8 @@
 use std::time::Duration;
 
 use d2v_headless_api_tests::{
-    start_job, start_job_expecting_bad_request, Config, Field, JobStatus, CONVERSION_TIMEOUT,
+    discard_all_backups, ensure_document_converted, move_entries_aside_except, start_job,
+    start_job_expecting_bad_request, Config, Field, JobStatus, CONVERSION_TIMEOUT,
 };
 
 const FAILURE_POLL_TIMEOUT: Duration = Duration::from_secs(60);
@@ -119,6 +120,11 @@ fn new_conversion_on_existing_document_without_overwrite_fails_with_clear_messag
 #[test]
 fn change_voice_with_text_not_in_transcript_fails_with_clear_message() {
     let config = Config::from_env();
+    ensure_document_converted(
+        &config,
+        "d2v-rust-suite-new-conversion.pdf",
+        "d2v-rust-suite-new-conversion",
+    );
 
     let started_job = start_job(
         &config,
@@ -149,6 +155,11 @@ fn change_voice_with_text_not_in_transcript_fails_with_clear_message() {
 #[test]
 fn change_voice_with_page_that_does_not_exist_fails_with_clear_message() {
     let config = Config::from_env();
+    ensure_document_converted(
+        &config,
+        "d2v-rust-suite-new-conversion.pdf",
+        "d2v-rust-suite-new-conversion",
+    );
 
     let started_job = start_job(
         &config,
@@ -239,12 +250,41 @@ fn knit_mode_on_a_document_with_no_processed_pages_yet_fails_with_clear_message(
 #[test]
 fn knit_mode_with_too_few_pages_fails_with_clear_message() {
     let config = Config::from_env();
+    let run_nonce = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .expect("system clock is before the Unix epoch")
+        .as_nanos();
+    let document_filename = format!("d2v-rust-suite-too-few-pages-precondition-{run_nonce}.pdf");
+
+    let setup_job = start_job(
+        &config,
+        &[
+            Field::Text("mode", "new"),
+            Field::Text("document", &document_filename),
+            Field::Text("engineModel", &config.engine_model),
+            Field::Text("voice", "af_heart"),
+            Field::Text("overwrite", "true"),
+            Field::File {
+                name: "data",
+                filename: &document_filename,
+                mime: "application/pdf",
+                bytes: d2v_headless_api_tests::generate_test_pdf(),
+            },
+        ],
+    );
+    let setup_status =
+        d2v_headless_api_tests::poll_status(&config, &setup_job.job_id, CONVERSION_TIMEOUT);
+    assert_eq!(setup_status, JobStatus::Done);
+
+    let temp_backups = move_entries_aside_except(&config.job_temp_dir(&setup_job.job_id), |name| {
+        name.starts_with("1_") || name == "meta.json" || name.ends_with(".pdf")
+    });
 
     let started_job = start_job(
         &config,
         &[
             Field::Text("mode", "knit"),
-            Field::Text("document", "d2v-jobid-match-test.pdf"),
+            Field::Text("document", &document_filename),
             Field::Text("engineModel", &config.engine_model),
             Field::Text("leftPage", "1"),
             Field::Text("rightPage", "2"),
@@ -263,6 +303,8 @@ fn knit_mode_with_too_few_pages_fails_with_clear_message() {
         }
         other => panic!("expected Failed, got {other:?}"),
     }
+
+    discard_all_backups(temp_backups);
 }
 
 #[test]
