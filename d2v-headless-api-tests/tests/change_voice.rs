@@ -2,13 +2,18 @@ use std::time::Duration;
 
 use d2v_headless_api_tests::{
     assert_video_decodes_without_errors, assert_video_duration_within_range,
-    assert_video_has_audio_and_video_streams, start_job, wait_for_file_size_to_stabilize, Config,
-    Field, JobStatus, CONVERSION_TIMEOUT,
+    assert_video_has_audio_and_video_streams, ensure_document_converted, start_job,
+    wait_for_file_size_to_stabilize, Config, Field, JobStatus, CONVERSION_TIMEOUT,
 };
 
 #[test]
 fn changing_voice_for_a_whole_page_produces_an_updated_playable_video() {
     let config = Config::from_env();
+    ensure_document_converted(
+        &config,
+        "d2v-rust-suite-new-conversion.pdf",
+        "d2v-rust-suite-new-conversion",
+    );
 
     let started_job = start_job(
         &config,
@@ -45,6 +50,11 @@ fn changing_voice_for_a_whole_page_produces_an_updated_playable_video() {
 #[test]
 fn changing_voice_for_selected_text_produces_an_updated_playable_video() {
     let config = Config::from_env();
+    ensure_document_converted(
+        &config,
+        "d2v-rust-suite-new-conversion.pdf",
+        "d2v-rust-suite-new-conversion",
+    );
 
     let started_job = start_job(
         &config,

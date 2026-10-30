@@ -283,6 +283,33 @@ pub fn check_status_once(config: &Config, job_id: &str) -> JobStatus {
     parse_job_status(status_response)
 }
 
+pub fn ensure_document_converted(config: &Config, document_filename: &str, expected_job_id: &str) {
+    if check_status_once(config, expected_job_id) == JobStatus::Done {
+        return;
+    }
+
+    let started_job = start_job(
+        config,
+        &[
+            Field::Text("mode", "new"),
+            Field::Text("document", document_filename),
+            Field::Text("engineModel", &config.engine_model),
+            Field::Text("voice", "af_heart"),
+            Field::Text("overwrite", "true"),
+            Field::File {
+                name: "data",
+                filename: document_filename,
+                mime: "application/pdf",
+                bytes: generate_test_pdf(),
+            },
+        ],
+    );
+    assert_eq!(started_job.job_id, expected_job_id);
+
+    let job_status = poll_status(config, &started_job.job_id, CONVERSION_TIMEOUT);
+    assert_eq!(job_status, JobStatus::Done);
+}
+
 pub fn poll_status(config: &Config, job_id: &str, timeout: Duration) -> JobStatus {
     let poll_started_at = Instant::now();
 
