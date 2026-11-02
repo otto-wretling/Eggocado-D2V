@@ -240,7 +240,7 @@ D2V_ENGINE_MODEL=<engine>:<model> \
 cargo test
 ```
 
-`D2V_ENGINE_MODEL` is whichever transcription engine and model you have available (see [Transcription engines](INSTALL.md#transcription-engines)), for example `codex:gpt-5.6-sol`, `claude:claude-sonnet-5`, or `ollama:gemma3:27b`. The suite never hardcodes one, so it runs the same way regardless of which engine you use.
+`D2V_ENGINE_MODEL` is whichever transcription engine and model you have available (see [Transcription engines](INSTALL.md#transcription-engines)), for example `codex:gpt-5.6-sol`, `claude:claude-sonnet-5`, or `ollama:gemma4:31b`. The suite never hardcodes one, so it runs the same way regardless of which engine you use.
 
 Tests run one at a time, enforced via that directory's own `.cargo/config.toml`, since they share the same `temp/`/`output/` folders and the single-worker Kokoro TTS service a real conversion would use. A full run takes a while: several tests wait for a multi-minute video conversion to complete.
 
