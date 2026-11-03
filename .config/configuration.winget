@@ -1,0 +1,74 @@
+$schema: https://raw.githubusercontent.com/PowerShell/DSC/main/schemas/2023/08/config/document.json
+metadata:
+  winget:
+    processor:
+      identifier: dscv3
+resources:
+- type: Microsoft.WinGet/Package
+  name: WSL
+  properties:
+    id: Microsoft.WSL
+    source: winget
+  metadata:
+    winget:
+      securityContext: elevated
+    description: Install Windows Subsystem for Linux
+
+- type: Microsoft.WinGet/Package
+  name: DockerDesktop
+  dependsOn:
+  - WSL
+  properties:
+    id: Docker.DockerDesktop
+    source: winget
+  metadata:
+    winget:
+      securityContext: elevated
+    description: Install Docker Desktop
+
+- type: Microsoft.DSC.Transitional/WindowsPowerShellScript
+  name: WslConfig
+  properties:
+    input:
+      wsl2:
+        networkingMode: mirrored
+      experimental:
+        hostAddressLoopback: "true"
+    testScript: |
+      param($settings)
+      $path = Join-Path $env:USERPROFILE '.wslconfig'
+      if (-not ('WslConfig.PrivateProfile' -as [type])) {
+        Add-Type -Namespace WslConfig -Name PrivateProfile -MemberDefinition '
+          [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+          public static extern uint GetPrivateProfileString(string section, string key, string defaultValue, System.Text.StringBuilder value, uint size, string path);
+          [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+          public static extern bool WritePrivateProfileString(string section, string key, string value, string path);'
+      }
+      $mismatchedEntries = foreach ($section in $settings.PSObject.Properties) {
+        foreach ($entry in $section.Value.PSObject.Properties) {
+          $currentValue = New-Object System.Text.StringBuilder 256
+          [void][WslConfig.PrivateProfile]::GetPrivateProfileString($section.Name, $entry.Name, '', $currentValue, 256, $path)
+          if ($currentValue.ToString() -cne [string]$entry.Value) { $entry.Name }
+        }
+      }
+      -not $mismatchedEntries
+    setScript: |
+      param($settings)
+      $ErrorActionPreference = 'Stop'
+      $path = Join-Path $env:USERPROFILE '.wslconfig'
+      if (-not ('WslConfig.PrivateProfile' -as [type])) {
+        Add-Type -Namespace WslConfig -Name PrivateProfile -MemberDefinition '
+          [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+          public static extern uint GetPrivateProfileString(string section, string key, string defaultValue, System.Text.StringBuilder value, uint size, string path);
+          [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+          public static extern bool WritePrivateProfileString(string section, string key, string value, string path);'
+      }
+      foreach ($section in $settings.PSObject.Properties) {
+        foreach ($entry in $section.Value.PSObject.Properties) {
+          if (-not [WslConfig.PrivateProfile]::WritePrivateProfileString($section.Name, $entry.Name, [string]$entry.Value, $path)) {
+            throw "Writing $($entry.Name) to $path failed"
+          }
+        }
+      }
+  metadata:
+    description: Set WSL to mirrored networking with host address loopback in .wslconfig
