@@ -56,7 +56,7 @@ sudo nixos-rebuild switch --flake /etc/nixos#eggocado-d2v
 
 This section covers macOS and NixOS. On Windows, [Windows](#windows) covers it.
 
-On NixOS, this repo's `nixosModules.packages` flake output covers this entire section in one import: Docker, ffmpeg, espeak-ng, the bare-metal n8n package, `cargo`/`rustc` (for the Rust test suite, see [Testing](README.md#testing)), and the `nix-ld`/`uv`/`cmake`/`gcc`/`gnumake` build tools. The module pulls these packages from its own pinned nixpkgs (tracked in this repo's `flake.lock`), independent of your system's nixpkgs version, so a Node/Java security fix here doesn't wait on a full system nixpkgs bump. Add it as a flake input and import the module, passing your system username as a curried argument:
+On NixOS, this repo's `nixosModules.packages` flake output covers this entire section in one import: Docker, ffmpeg, espeak-ng, the bare-metal n8n package, Node.js and npm (for the transcription engine CLIs, with global installs on your `PATH`), `cargo`/`rustc` (for the Rust test suite, see [Testing](README.md#testing)), and the `nix-ld`/`uv`/`cmake`/`gcc`/`gnumake` build tools. The module pulls these packages from its own pinned nixpkgs (tracked in this repo's `flake.lock`), independent of your system's nixpkgs version, so a Node/Java security fix here doesn't wait on a full system nixpkgs bump. Add it as a flake input and import the module, passing your system username as a curried argument:
 
 ```nix
 # flake.nix

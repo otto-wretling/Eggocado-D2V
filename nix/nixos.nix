@@ -12,6 +12,7 @@ let
     pkgs.gcc
     pkgs.git
     pkgs.gnumake
+    pkgs.nodejs
     pkgs.rustc
     pkgs.uv
   ];
@@ -134,6 +135,10 @@ let
         programs.nix-ld.enable = true;
 
         environment.variables.NPM_CONFIG_PREFIX = "${cfg.homeDirectory}/.local/share/npm";
+
+        environment.extraInit = ''
+          export PATH="${cfg.homeDirectory}/.local/share/npm/bin:$PATH"
+        '';
 
         environment.systemPackages = hostPackages d2vPkgs ++ [ pkgs.n8n ];
 
