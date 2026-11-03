@@ -133,3 +133,15 @@ curl http://localhost:8881/v1/audio/voices    # Kokoro-FastAPI
 curl http://localhost:8765/health             # NeMo normalizer
 curl http://localhost:5679/healthz            # Bare-metal n8n
 ```
+
+## Troubleshooting
+
+### Docker Desktop: "WSL integration with distro unexpectedly stopped"
+
+On Windows, Docker Desktop can report that WSL integration with your NixOS-WSL distribution unexpectedly stopped, typically after Docker Desktop restarts or updates while WSL keeps running. The `docker` command is then missing inside the distribution, and Docker Desktop's log repeats `waiting 1m0s for the backend socket`. This is a known Docker Desktop issue, [docker/desktop-feedback#582](https://github.com/docker/desktop-feedback/issues/582): a Docker Desktop backend that starts while the WSL VM is still running skips publishing the sockets its WSL integration connects to.
+
+To recover:
+
+1. Quit Docker Desktop.
+2. Run `wsl --shutdown` in PowerShell.
+3. Start Docker Desktop.
