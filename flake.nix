@@ -50,6 +50,11 @@
       darwinModules.homebrew = moduleFrom ./nix/mac.nix mac.homebrew;
       darwinModules.services = moduleFrom ./nix/mac.nix mac.services;
 
+      templates.wsl = {
+        path = ./nix/wsl-template;
+        description = "NixOS-WSL system flake running Eggocado D2V's host services";
+      };
+
       packages = forLinuxSystems (system: {
         kokoro-fastapi-cpu = (kokoroFor system "cpu").environment;
         kokoro-fastapi-gpu = (kokoroFor system "gpu").environment;
