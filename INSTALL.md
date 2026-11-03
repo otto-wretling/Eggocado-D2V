@@ -54,7 +54,7 @@ cd /path/to/Eggocado-D2V
 N8N_PORT=5679 n8n start
 ```
 
-This service is required to use D2V. `mac/services.nix` has a launchd example if you use nix-darwin, or on NixOS, `nixos/services.nix`'s `n8n-d2v-baremetal` systemd user service, wired into the system configuration and confirmed working end to end on a full document conversion.
+This service is required to use D2V. `nix/mac.nix` has a launchd example if you use nix-darwin, or on NixOS, `nix/nixos.nix`'s `n8n-d2v-baremetal` systemd user service, wired into the system configuration and confirmed working end to end on a full document conversion.
 
 ### Kokoro-FastAPI (native, for GPU acceleration where available)
 Text-to-speech runs as a separate, native service, so it can use Apple Silicon's GPU (MPS) where available. This is a separate project you clone alongside this one; see [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI) for the current setup steps:
@@ -68,7 +68,7 @@ python docker/scripts/download_model.py --output api/src/models/v1_0
 ./start-cpu.sh        # Linux, CPU inference
 ```
 
-This starts Kokoro on port 8881. Like bare-metal n8n, this service is required to use D2V: `mac/services.nix` has a launchd example if you use nix-darwin (optional), or on NixOS, `nixos/services.nix`'s `kokoro-fastapi` systemd user service, CPU-only (`USE_GPU=false`), confirmed working via a live TTS request returning audio and word-level timestamps.
+This starts Kokoro on port 8881. Like bare-metal n8n, this service is required to use D2V: `nix/mac.nix` has a launchd example if you use nix-darwin (optional), or on NixOS, `nix/nixos.nix`'s `kokoro-fastapi` systemd user service, which selects MPS, CUDA, or CPU in that order of availability. Both also define a CPU-only Kokoro instance on port 8882 that starts on demand.
 
 ## Docker services
 
