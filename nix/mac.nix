@@ -18,13 +18,20 @@ in
   services = { config, lib, ... }:
     let
       cfg = config.eggocado-d2v;
-      sharedServices = shared.services { inherit lib cfg; };
+      sharedServices = shared.services {
+        inherit lib cfg;
+        kokoroPaths = {
+          source = cfg.kokoroRoot;
+          modelDirectory = "src/models";
+          voicesDirectory = "src/voices/v1_0";
+        };
+      };
       cpuKokoroLabel = "io.github.remsky.kokoro-fastapi-cpu";
 
       kokoroAgent = { label, instance, startsAtLogin, logName }: {
         serviceConfig = {
           Label = label;
-          ProgramArguments = [ "/opt/homebrew/bin/uv" "run" "--no-sync" ] ++ instance.serverArguments;
+          ProgramArguments = [ "/opt/homebrew/bin/uv" "run" "--no-sync" "uvicorn" ] ++ instance.uvicornArguments;
           RunAtLoad = startsAtLogin;
           KeepAlive = startsAtLogin;
           StandardOutPath = "/tmp/${logName}.log";
@@ -40,13 +47,20 @@ in
     {
       imports = [ shared.options ];
 
-      eggocado-d2v = {
+      options.eggocado-d2v.kokoroRoot = lib.mkOption {
+        type = lib.types.strMatching "/.*";
+        default = "${cfg.homeDirectory}/Documents/GitHub/Kokoro-FastAPI";
+        defaultText = lib.literalExpression ''"''${config.eggocado-d2v.homeDirectory}/Documents/GitHub/Kokoro-FastAPI"'';
+        description = "Kokoro-FastAPI checkout, including its uv environment and downloaded model.";
+      };
+
+      config.eggocado-d2v = {
         user = lib.mkDefault config.system.primaryUser;
         homeDirectory = lib.mkDefault "/Users/${cfg.user}";
         acceleration.kokoroDevice = lib.mkDefault "mps";
       };
 
-      launchd.user.agents.n8n = {
+      config.launchd.user.agents.n8n = {
         serviceConfig = {
           Label = "io.n8n.n8n";
           ProgramArguments = [ "/nix/var/nix/profiles/system/sw/bin/n8n" "start" ];
@@ -67,14 +81,14 @@ in
         };
       };
 
-      launchd.user.agents.kokoro = kokoroAgent {
+      config.launchd.user.agents.kokoro = kokoroAgent {
         label = "io.github.remsky.kokoro-fastapi";
         instance = sharedServices.acceleratedKokoro;
         startsAtLogin = true;
         logName = "kokoro";
       };
 
-      launchd.user.agents.kokoro-cpu = kokoroAgent {
+      config.launchd.user.agents.kokoro-cpu = kokoroAgent {
         label = cpuKokoroLabel;
         instance = sharedServices.cpuKokoro;
         startsAtLogin = false;

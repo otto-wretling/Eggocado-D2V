@@ -7,13 +7,34 @@
       url = "github:nix-community/NixOS-WSL/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    kokoro-fastapi = {
+      url = "github:remsky/Kokoro-FastAPI/release";
+      flake = false;
+    };
+    pyproject-nix = {
+      url = "github:pyproject-nix/pyproject.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    uv2nix = {
+      url = "github:pyproject-nix/uv2nix";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    pyproject-build-systems = {
+      url = "github:pyproject-nix/build-system-pkgs";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.uv2nix.follows = "uv2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, nixos-wsl, ... }:
+  outputs = { self, nixpkgs, nixos-wsl, kokoro-fastapi, pyproject-nix, uv2nix, pyproject-build-systems, ... }:
     let
       forAllSystems = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
+      forLinuxSystems = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" ];
       moduleFrom = nixpkgs.lib.setDefaultModuleLocation;
-      nixos = import ./nix/nixos.nix { inherit nixpkgs; };
+      nixos = import ./nix/nixos.nix { inherit nixpkgs pyproject-nix uv2nix pyproject-build-systems kokoro-fastapi; };
+      kokoroFor = nixos.kokoroFor;
       mac = import ./nix/mac.nix;
       checkUser = "d2v-check";
       checkSystemBaseline = {
@@ -24,10 +45,16 @@
     {
       nixosModules.packages = { username }: moduleFrom ./nix/nixos.nix (nixos.packages { inherit username; });
       nixosModules.services = moduleFrom ./nix/nixos.nix nixos.services;
-      nixosModules.wsl = moduleFrom ./nix/wsl.nix (import ./nix/wsl.nix { inherit nixpkgs; });
+      nixosModules.wsl = moduleFrom ./nix/wsl.nix (import ./nix/wsl.nix { inherit nixos; });
 
       darwinModules.homebrew = moduleFrom ./nix/mac.nix mac.homebrew;
       darwinModules.services = moduleFrom ./nix/mac.nix mac.services;
+
+      packages = forLinuxSystems (system: {
+        kokoro-fastapi-cpu = (kokoroFor system "cpu").environment;
+        kokoro-fastapi-gpu = (kokoroFor system "gpu").environment;
+        kokoro-model = (kokoroFor system "cpu").modelDirectory;
+      });
 
       checks.x86_64-linux = {
         nixos-system-with-packages-module = (nixpkgs.lib.nixosSystem {

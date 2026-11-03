@@ -1,10 +1,9 @@
-{ nixpkgs }:
+{ nixos }:
 { config, lib, pkgs, utils, ... }:
 
 let
-  shared = import ./shared.nix;
   cfg = config.eggocado-d2v;
-  linuxUserServices = shared.linuxUserServices {
+  linuxUserServices = nixos.linuxUserServices {
     inherit lib pkgs cfg;
     userExecutableDirectories = [ "${cfg.homeDirectory}/.local/share/npm/bin" ];
     acceleratorLibraryDirectories = [ "/run/opengl-driver/lib" ];
@@ -12,7 +11,7 @@ let
   dockerDesktopIntegrationCommands = [ "chmod" "install" "mkdir" "mv" "rm" "stat" "test" ];
 in
 {
-  imports = [ (shared.linuxHost { inherit nixpkgs; }) ];
+  imports = [ nixos.linuxHost ];
 
   config = {
     assertions = [

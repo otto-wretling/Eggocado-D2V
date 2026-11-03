@@ -4,7 +4,7 @@ macOS (Apple Silicon) and Linux/NixOS. Windows support is planned.
 
 ## Prerequisites
 
-On NixOS, this repo's `nixosModules.packages` flake output covers this entire section in one import: Docker, ffmpeg, espeak-ng, the bare-metal n8n package, `cargo`/`rustc` (for the Rust test suite, see [Testing](README.md#testing)), and also `nix-ld`/`uv`/`cmake`/`gcc`/`gnumake`, which Kokoro-FastAPI (below) needs to build and run on NixOS. The module pulls these packages from its own pinned nixpkgs (tracked in this repo's `flake.lock`), independent of your system's nixpkgs version, so a Node/Java security fix here doesn't wait on a full system nixpkgs bump. Add it as a flake input and import the module, passing your system username as a curried argument:
+On NixOS, this repo's `nixosModules.packages` flake output covers this entire section in one import: Docker, ffmpeg, espeak-ng, the bare-metal n8n package, `cargo`/`rustc` (for the Rust test suite, see [Testing](README.md#testing)), and the `nix-ld`/`uv`/`cmake`/`gcc`/`gnumake` build tools. The module pulls these packages from its own pinned nixpkgs (tracked in this repo's `flake.lock`), independent of your system's nixpkgs version, so a Node/Java security fix here doesn't wait on a full system nixpkgs bump. Add it as a flake input and import the module, passing your system username as a curried argument:
 
 ```nix
 # flake.nix
@@ -14,7 +14,7 @@ inputs.eggocado-d2v.url = "path:/path/to/Eggocado-D2V";
 imports = [ (eggocado-d2v.nixosModules.packages { username = "yourusername"; }) ];
 ```
 
-The Docker, ffmpeg/espeak-ng, and n8n subsections below are the macOS (Homebrew) equivalent of what that import covers. Ollama, Claude Code, Codex, and Kokoro-FastAPI's own setup are the same steps on both platforms.
+The Docker, ffmpeg/espeak-ng, and n8n subsections below are the macOS (Homebrew) equivalent of what that import covers. Ollama, Claude Code, and Codex are the same steps on both platforms. On NixOS, Kokoro-FastAPI comes from this flake as well (see [Kokoro-FastAPI](#kokoro-fastapi-native-for-gpu-acceleration-where-available) below).
 
 ### Docker
 Required to run the containerized services. See ["Get Docker"](https://docs.docker.com/get-started/get-docker/) for the current setup steps for your platform. Start Docker before proceeding.
@@ -57,18 +57,15 @@ N8N_PORT=5679 n8n start
 This service is required to use D2V. `nix/mac.nix` has a launchd example if you use nix-darwin, or on NixOS, `nix/nixos.nix`'s `n8n-d2v-baremetal` systemd user service, wired into the system configuration and confirmed working end to end on a full document conversion.
 
 ### Kokoro-FastAPI (native, for GPU acceleration where available)
-Text-to-speech runs as a separate, native service, so it can use Apple Silicon's GPU (MPS) where available. This is a separate project you clone alongside this one; see [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI) for the current setup steps:
+Text-to-speech runs as a separate, native service on port 8881, so it can use the GPU where available, plus a CPU-only instance on port 8882 that the bare-metal n8n starts on demand through its `D2V_START_CPU_TTS_COMMAND` environment variable. Like bare-metal n8n, this service is required to use D2V. Kokoro selects MPS, CUDA, or CPU in that order of availability.
 
-```bash
-cd /path/to/GitHub  # wherever you keep repos, as a sibling to Eggocado-D2V
-git clone https://github.com/remsky/Kokoro-FastAPI.git
-cd Kokoro-FastAPI
-python docker/scripts/download_model.py --output api/src/models/v1_0
-./start-gpu_mac.sh    # macOS (Apple Silicon, MPS)
-./start-cpu.sh        # Linux, CPU inference
+On NixOS, `nix/nixos.nix`'s `kokoro-fastapi` and `kokoro-fastapi-cpu` systemd user services run [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI) entirely from this flake: its source is the pinned `kokoro-fastapi` flake input, Nix builds its Python environment from Kokoro-FastAPI's own `uv.lock`, and Nix downloads the model weights with fixed hashes. The environment uses CPU PyTorch by default. For an NVIDIA GPU, set the CUDA 12.6 build in your configuration:
+
+```nix
+eggocado-d2v.kokoro.torchVariant = "gpu";
 ```
 
-This starts Kokoro on port 8881. Like bare-metal n8n, this service is required to use D2V: `nix/mac.nix` has a launchd example if you use nix-darwin (optional), or on NixOS, `nix/nixos.nix`'s `kokoro-fastapi` systemd user service, which selects MPS, CUDA, or CPU in that order of availability. Both also define a CPU-only Kokoro instance on port 8882 that starts on demand.
+On macOS, clone Kokoro-FastAPI as a sibling of this repo and set it up following [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI)'s Apple Silicon (MPS) instructions. `nix/mac.nix` has a launchd example if you use nix-darwin (optional), which runs the checkout at `eggocado-d2v.kokoroRoot` (by default `~/Documents/GitHub/Kokoro-FastAPI`).
 
 ## Docker services
 
