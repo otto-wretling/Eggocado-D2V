@@ -1,8 +1,60 @@
 # Installation
 
-macOS (Apple Silicon) and Linux/NixOS. Windows support is planned.
+macOS (Apple Silicon), Linux/NixOS, and Windows through NixOS-WSL. On Windows, start with [Windows](#windows).
+
+## Windows
+
+On Windows, D2V runs in a [NixOS-WSL](https://github.com/nix-community/NixOS-WSL) distribution. Its NixOS configuration provides bare-metal n8n, Kokoro-FastAPI, Ollama, ffmpeg, and espeak-ng from [Prerequisites](#prerequisites), and step 6 adds the transcription engine CLIs. Docker Desktop on Windows runs the [Docker services](#docker-services). Kokoro-FastAPI and Ollama use an NVIDIA GPU through the Windows driver when one is present.
+
+1. Download [`.config/configuration.winget`](.config/configuration.winget), review it, and apply it in PowerShell from the folder you saved it to, accepting the UAC prompts:
+
+   ```powershell
+   winget configure -f configuration.winget --accept-configuration-agreements
+   ```
+
+   It installs WSL and Docker Desktop, and sets `networkingMode=mirrored` and `hostAddressLoopback=true` in `%USERPROFILE%\.wslconfig` so the containers and the services in the distribution reach each other. Restart Windows if the WSL installation asks for it. If WSL was already running, run `wsl --shutdown` to apply the new `.wslconfig`.
+
+2. Install NixOS-WSL following its [Installation](https://nix-community.github.io/NixOS-WSL/install.html) guide.
+
+3. Inside the distribution, replace `/etc/nixos` with this repo's NixOS-WSL template and build it:
+
+   ```bash
+   sudo mv /etc/nixos /etc/nixos.original
+   sudo mkdir /etc/nixos
+   cd /etc/nixos
+   sudo nix --extra-experimental-features 'nix-command flakes' flake init -t github:otto-wretling/Eggocado-D2V#wsl
+   sudo nixos-rebuild switch --flake /etc/nixos#eggocado-d2v
+   ```
+
+   The template's `configuration.nix` sets `wsl.defaultUser = "nixos"`, NixOS-WSL's default user. If your distribution uses a different user name, set it there before running `nixos-rebuild`. On a machine with a CPU only, also set `eggocado-d2v.kokoro.torchVariant = "cpu";` there for a smaller Kokoro-FastAPI environment.
+
+4. In Docker Desktop, open **Settings > Resources > WSL Integration**, turn on the NixOS-WSL distribution, and select **Apply**. See [Docker Desktop WSL 2 backend on Windows](https://docs.docker.com/desktop/features/wsl/) for details.
+
+5. Inside the distribution, clone this repo to `~/Documents/GitHub/Eggocado-D2V`, where the services run from, and start the Docker services:
+
+   ```bash
+   git clone https://github.com/otto-wretling/Eggocado-D2V.git ~/Documents/GitHub/Eggocado-D2V
+   cd ~/Documents/GitHub/Eggocado-D2V
+   docker compose up -d
+   ```
+
+6. Install the CLIs for the engines you plan to use from [Transcription engines](#transcription-engines) inside the distribution, and pull an Ollama model there as shown in [Ollama](#ollama).
+
+7. Continue with [Importing the workflows](#importing-the-workflows).
+
+Run the commands in the rest of this guide inside the distribution. From PowerShell, address the services as `127.0.0.1`, for example `curl.exe http://127.0.0.1:5679/healthz`.
+
+To update D2V's NixOS configuration later, run inside the distribution:
+
+```bash
+cd /etc/nixos
+sudo nix flake update eggocado-d2v
+sudo nixos-rebuild switch --flake /etc/nixos#eggocado-d2v
+```
 
 ## Prerequisites
+
+This section covers macOS and NixOS. On Windows, [Windows](#windows) covers it.
 
 On NixOS, this repo's `nixosModules.packages` flake output covers this entire section in one import: Docker, ffmpeg, espeak-ng, the bare-metal n8n package, `cargo`/`rustc` (for the Rust test suite, see [Testing](README.md#testing)), and the `nix-ld`/`uv`/`cmake`/`gcc`/`gnumake` build tools. The module pulls these packages from its own pinned nixpkgs (tracked in this repo's `flake.lock`), independent of your system's nixpkgs version, so a Node/Java security fix here doesn't wait on a full system nixpkgs bump. Add it as a flake input and import the module, passing your system username as a curried argument:
 

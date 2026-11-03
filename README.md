@@ -2,7 +2,7 @@
 
 Eggocado D2V converts a PDF document into a narrated video. Each page is transcribed by a vision-language model, normalized for speech, synthesized to audio, and assembled into a video clip. Clips are concatenated into a final video with subtitles and chapters.
 
-> **Platform support:** macOS (Apple Silicon) and Linux/NixOS. Windows support is planned.
+> **Platform support:** macOS (Apple Silicon), Linux/NixOS, and Windows through NixOS-WSL. See [Windows](INSTALL.md#windows) in INSTALL.md.
 
 > **Language support:** English only, for now. Kokoro and some other TTS backends support additional languages, but the transcription prompt, text normalization, and the TTS call are all currently hardcoded for English.
 
