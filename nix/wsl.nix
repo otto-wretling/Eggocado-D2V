@@ -1,4 +1,4 @@
-{ nixos }:
+{ nixos, ollama-release }:
 { config, lib, pkgs, utils, ... }:
 
 let
@@ -10,22 +10,18 @@ let
   };
   dockerDesktopIntegrationCommands = [ "chmod" "install" "mkdir" "mv" "rm" "stat" "test" ];
 
-  ollamaRelease = pkgs.stdenv.mkDerivation rec {
-    pname = "ollama";
-    version = "0.40.14";
-    src = pkgs.fetchurl {
-      url = "https://github.com/ollama/ollama/releases/download/v${version}/ollama-linux-amd64.tar.zst";
-      sha256 = "993e83d08c3d13d17c55009a3e2664c8a25445e644aec3a68bef5abb6abce67d";
-    };
-    nativeBuildInputs = [ pkgs.zstd pkgs.autoPatchelfHook ];
+  ollamaRelease = pkgs.stdenv.mkDerivation {
+    name = "ollama-release";
+    src = ollama-release;
+    nativeBuildInputs = [ pkgs.autoPatchelfHook ];
     buildInputs = [ pkgs.stdenv.cc.cc.lib ];
     autoPatchelfIgnoreMissingDeps = true;
     appendRunpaths = [ "$ORIGIN" "/run/opengl-driver/lib" ];
-    sourceRoot = ".";
-    unpackPhase = "tar --zstd -xf $src";
+    dontUnpack = true;
     installPhase = ''
       mkdir -p $out
-      cp -r bin lib $out/
+      cp -r $src/bin $src/lib $out/
+      chmod -R u+w $out
     '';
     meta.mainProgram = "ollama";
   };

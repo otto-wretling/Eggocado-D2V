@@ -11,6 +11,10 @@
       url = "github:remsky/Kokoro-FastAPI/release";
       flake = false;
     };
+    ollama-release = {
+      url = "https://github.com/ollama/ollama/releases/latest/download/ollama-linux-amd64.tar.zst";
+      flake = false;
+    };
     pyproject-nix = {
       url = "github:pyproject-nix/pyproject.nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -28,7 +32,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, nixos-wsl, kokoro-fastapi, pyproject-nix, uv2nix, pyproject-build-systems, ... }:
+  outputs = { self, nixpkgs, nixos-wsl, kokoro-fastapi, ollama-release, pyproject-nix, uv2nix, pyproject-build-systems, ... }:
     let
       forAllSystems = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" ];
       forLinuxSystems = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" ];
@@ -45,7 +49,7 @@
     {
       nixosModules.packages = { username }: moduleFrom ./nix/nixos.nix (nixos.packages { inherit username; });
       nixosModules.services = moduleFrom ./nix/nixos.nix nixos.services;
-      nixosModules.wsl = moduleFrom ./nix/wsl.nix (import ./nix/wsl.nix { inherit nixos; });
+      nixosModules.wsl = moduleFrom ./nix/wsl.nix (import ./nix/wsl.nix { inherit nixos ollama-release; });
 
       darwinModules.homebrew = moduleFrom ./nix/mac.nix mac.homebrew;
       darwinModules.services = moduleFrom ./nix/mac.nix mac.services;
