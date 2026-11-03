@@ -9,6 +9,7 @@ let
     userExecutableDirectories = [ "${cfg.homeDirectory}/.local/share/npm/bin" ];
     acceleratorLibraryDirectories = [ "/run/opengl-driver/lib" ];
   };
+  dockerDesktopIntegrationCommands = [ "chmod" "install" "mkdir" "mv" "rm" "stat" "test" ];
 in
 {
   imports = [ (shared.linuxHost { inherit nixpkgs; }) ];
@@ -26,6 +27,9 @@ in
     wsl = {
       docker-desktop.enable = true;
       useWindowsDriver = true;
+      extraBin = map
+        (command: { src = "${pkgs.coreutils}/bin/${command}"; })
+        dockerDesktopIntegrationCommands;
     };
 
     networking.firewall.allowedTCPPorts = with linuxUserServices.ports; [ n8n acceleratedKokoro cpuKokoro ];
