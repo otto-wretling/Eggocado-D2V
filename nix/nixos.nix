@@ -10,6 +10,7 @@ let
     pkgs.espeak-ng
     pkgs.ffmpeg-full
     pkgs.gcc
+    pkgs.git
     pkgs.gnumake
     pkgs.rustc
     pkgs.uv
