@@ -113,40 +113,23 @@ let
   linuxHost = { config, lib, pkgs, ... }:
     let
       cfg = config.eggocado-d2v;
-      isCudaRedistributable = name: lib.hasPrefix "cuda" name || lib.hasPrefix "libcu" name || lib.hasPrefix "libnv" name;
       d2vPkgs = import nixpkgs {
         system = pkgs.stdenv.hostPlatform.system;
-        config.allowUnfreePredicate = package:
-          builtins.elem (pkgs.lib.getName package) [ "n8n" ] || isCudaRedistributable (pkgs.lib.getName package);
+        config.allowUnfreePredicate = package: builtins.elem (pkgs.lib.getName package) [ "n8n" ];
       };
-      nvidiaCudaArchitecture = "sm_" + lib.replaceStrings [ "." ] [ "" ] cfg.nvidia.computeCapability;
     in
     {
       imports = [ shared.options linuxOptions ];
 
-      options.eggocado-d2v = {
-        nvidia.computeCapability = lib.mkOption {
-          type = lib.types.nullOr (lib.types.strMatching "[0-9]+\\.[0-9]+");
-          default = null;
-          example = "6.1";
-          description = "Compute capability of the NVIDIA GPU, as printed by nvidia-smi --query-gpu=compute_cap. Builds Ollama's CUDA kernels for it and selects Kokoro's gpu PyTorch build. Null selects the CPU builds.";
-        };
-
-        ollamaPackage = lib.mkOption {
-          type = lib.types.package;
-          default =
-            if cfg.nvidia.computeCapability == null
-            then d2vPkgs.ollama
-            else d2vPkgs.ollama-cuda.override { cudaArches = [ nvidiaCudaArchitecture ]; };
-          defaultText = lib.literalMD "Ollama from this flake's pinned nixpkgs, built with CUDA for `eggocado-d2v.nvidia.computeCapability` when it is set";
-          description = "Ollama package serving local transcription models.";
-        };
+      options.eggocado-d2v.ollamaPackage = lib.mkOption {
+        type = lib.types.package;
+        default = d2vPkgs.ollama;
+        defaultText = lib.literalMD "Ollama from this flake's pinned nixpkgs";
+        description = "Ollama package serving local transcription models.";
       };
 
       config = {
         eggocado-d2v.homeDirectory = lib.mkDefault "/home/${cfg.user}";
-
-        eggocado-d2v.kokoro.torchVariant = lib.mkIf (cfg.nvidia.computeCapability != null) (lib.mkDefault "gpu");
 
         programs.nix-ld.enable = true;
 

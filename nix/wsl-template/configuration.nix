@@ -10,7 +10,5 @@
 
   nixpkgs.config.allowUnfreePredicate = package: builtins.elem (lib.getName package) [ "n8n" ];
 
-  eggocado-d2v.nvidia.computeCapability = null;
-
   system.stateVersion = "26.05";
 }
