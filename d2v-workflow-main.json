@@ -118,7 +118,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n    model: $('Set Transcription Model').item.json.transcriptionModel,\n    prompt: [\n      \"You are a precise document transcription assistant. Look at this page visually and transcribe all text exactly as it appears, from top to bottom, left to right. Rules:\",\n      \"1. Transcribe all text verbatim — preserve numbers, symbols, currencies, dates, codes, and abbreviations exactly as written.\",\n      \"2. If there are charts, graphs, or diagrams, describe them in plain natural language within the flow of the text. If there are images or photographs, describe them in plain natural language but place the description at the end of the transcription, including where on the page the image appears, for example: 'The image in the top left displays...'.\",\n      \"3. Ignore page numbers, headers, and footers unless critical to understanding the content.\",\n      \"4. Do not use Markdown formatting, bullet points, or stage directions. Return only plain text.\",\n      \"5. Do not summarize, explain, skip, or shorten any text.\",\n      \"6. End every sentence with a period.\",\n      \"7. For tables, first write one sentence summarizing what the table contains. Then transcribe each data row by pairing each cell with its column header, in the format \\\"Header: Value.\\\" for every column in that row, left to right. Repeat this for every row until the entire table is transcribed. Do not skip any rows or columns.\"\n    ].join(\"\\n\"),\n    imageBase64: $json.imageBase64,\n    useCpu: $('Select Mode').item.json.resolvedAcceleration === 'cpu'\n  }) }}",
+        "jsonBody": "={{ JSON.stringify({\n    model: $('Set Transcription Model').item.json.transcriptionModel,\n    prompt: [\n      \"You are a precise document transcription assistant. Look at this page visually and transcribe all text exactly as it appears, from top to bottom, left to right. Rules:\",\n      \"1. Transcribe all text verbatim — preserve numbers, symbols, currencies, dates, codes, and abbreviations exactly as written.\",\n      \"2. If there are charts, graphs, or diagrams, describe them in plain natural language within the flow of the text. If there are images or photographs, describe them in plain natural language but place the description at the end of the transcription, including where on the page the image appears, for example: 'The image in the top left displays...'.\",\n      \"3. Ignore page numbers, headers, and footers unless critical to understanding the content.\",\n      \"4. Do not use Markdown formatting, bullet points, or stage directions. Return only plain text.\",\n      \"5. Do not summarize, explain, skip, or shorten any text.\",\n      \"6. End every sentence with a period.\",\n      \"7. For tables, first write one sentence summarizing what the table contains. Then transcribe each data row by pairing each cell with its column header, in the format \\\"Header: Value.\\\" for every column in that row, left to right. Repeat this for every row until the entire table is transcribed. Do not skip any rows or columns.\"\n    ].join(\"\\n\"),\n    imageBase64: $('Extract Image to Base64').item.json.imageBase64,\n    useCpu: ($('Select Mode').item.json.resolvedAcceleration === 'cpu' || $('Record CPU Fallback').isExecuted)\n  }) }}",
         "options": {
           "batching": {
             "batch": {
@@ -146,7 +146,8 @@
           "id": "dT2rDdHX1TfPrVi1",
           "name": "D2V Webhook Shared Secret"
         }
-      }
+      },
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -158,7 +159,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "={{ (() => {\n    const isPage = $('Set Page Number').isExecuted;\n    const isChangeVoice = $('Set Change-Voice Page Number').isExecuted;\n    const isSample = $('Set Sample Voice Number').isExecuted;\n    const isNormalKnit = !isPage && !isChangeVoice && !isSample;\n    const isChangeVoiceKnit = isChangeVoice && $('Set Change-Voice Page Number').item.json.isKnit;\n    const isKnitRender = isNormalKnit || isChangeVoiceKnit;\n    const docPrefix = $('Set Doc Prefix').isExecuted ? $('Set Doc Prefix').item.json.docPrefix : (isSample ? ($('Populate Variables').item.json.sampleFolderName + '/') : ($('Set Document Folder').item.json.docFolder + '/'));\n    const left = isNormalKnit ? $('Page Knitting Configuration').item.json['⬅️ Left Page Number'] : null;\n    const right = isNormalKnit ? $('Page Knitting Configuration').item.json['Right Page Number ➡️'] : null;\n    const p = isNormalKnit\n      ? `${left}-${right}_knit`\n      : (isPage\n          ? $('Set Page Number').item.json.pageNumber\n          : (isChangeVoice\n              ? $('Set Change-Voice Page Number').item.json.fileBasename\n              : 'sample_' + $('Set Sample Voice Number').item.json.voiceId\n            )\n        );\n    const img = `temp/${docPrefix}${p}_image.png`;\n    const name = isSample ? $('Set Sample Voice Number').item.json.friendlyName : null;\n    const video = $('Select Mode').item.json.resolvedAcceleration === 'cpu' ? $('Configure Software Encoding').item.json : $('Store Video Encoding Configuration').item.json;\n    const deviceArgs = video.ffmpegHardwareDeviceArgs ? video.ffmpegHardwareDeviceArgs + ' ' : '';\n\n    const sampleImageCmds = isSample ? [\n      'REFW=1920',\n      'REFH=1080',\n      'FONTSIZE=$((REFH / 12))',\n      `NAME='${name}'`,\n      'NAMELEN=${#NAME}',\n      'CELLW=$(( (NAMELEN * FONTSIZE * 6 / 10) + FONTSIZE ))',\n      'CELLH=$(( FONTSIZE * 2 ))',\n      'COLS=$(( (REFW + CELLW - 1) / CELLW ))',\n      'ROWS=$(( (REFH + CELLH - 1) / CELLH ))',\n      'GRIDW=$((COLS * CELLW))',\n      'OFFSETX=$(( (REFW - GRIDW) / 2 ))',\n      'FILTERS=\"\"',\n      `for ((r=0; r<ROWS; r++)); do for ((c=0; c<COLS; c++)); do CELLX=$((OFFSETX + c*CELLW)); CELLY=$((r*CELLH)); FILTERS=\"\\${FILTERS}drawtext=text='\\${NAME}':fontcolor=black:fontsize=\\${FONTSIZE}:x=\\${CELLX}+(\\${CELLW}-text_w)/2:y=\\${CELLY}+(\\${CELLH}-text_h)/2,\"; done; done`,\n      'FILTERS=\"${FILTERS%,}\"',\n      `ffmpeg -y -f lavfi -i color=white:s=\\${REFW}x\\${REFH} -vf \"$FILTERS\" -frames:v 1 ${img}`\n    ] : [];\n\n    const ffmpegCmd = isKnitRender\n      ? `ffmpeg -y ${deviceArgs}-loop 1 -t \"$DUR\" -i ${img} -i temp/${docPrefix}${p}_audio.wav -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2${video.ffmpegVideoFilterSuffix}\" ${video.ffmpegVideoEncoderArgs} -c:a aac -b:a 192k temp/${docPrefix}${p}_clip.mp4`\n      : `ffmpeg -y ${deviceArgs}-loop 1 -t \"$DUR\" -i ${img} -i temp/${docPrefix}${p}_audio.wav -filter_complex \"[0:v]split[bg_src][fg_src];[bg_src]scale=iw*2:trunc(ih/2)*2,boxblur=20:3[bg];[fg_src]scale=trunc(iw/2)*2:trunc(ih/2)*2[fg];[bg][fg]overlay=(main_w-overlay_w)/2:0${video.ffmpegVideoFilterSuffix}[v]\" -map \"[v]\" -map 1:a ${video.ffmpegVideoEncoderArgs} -c:a aac -b:a 192k temp/${docPrefix}${p}_clip.mp4`;\n\n    return [\n      'set -e',\n      `export PATH=${$('Populate Variables').item.json.ffmpegPath}:$PATH`,\n      ...sampleImageCmds,\n      `DUR=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 temp/${docPrefix}${p}_audio.wav)`,\n      ffmpegCmd,\n      `(xattr -d com.apple.quarantine temp/${docPrefix}${p}_clip.mp4 2>/dev/null || true)`\n    ].join(' && ');\n  })() }}"
+              "value": "={{ (() => {\n    const isPage = $('Set Page Number').isExecuted;\n    const isChangeVoice = $('Set Change-Voice Page Number').isExecuted;\n    const isSample = $('Set Sample Voice Number').isExecuted;\n    const isNormalKnit = !isPage && !isChangeVoice && !isSample;\n    const isChangeVoiceKnit = isChangeVoice && $('Set Change-Voice Page Number').item.json.isKnit;\n    const isKnitRender = isNormalKnit || isChangeVoiceKnit;\n    const docPrefix = $('Set Doc Prefix').isExecuted ? $('Set Doc Prefix').item.json.docPrefix : (isSample ? ($('Populate Variables').item.json.sampleFolderName + '/') : ($('Set Document Folder').item.json.docFolder + '/'));\n    const left = isNormalKnit ? $('Page Knitting Configuration').item.json['⬅️ Left Page Number'] : null;\n    const right = isNormalKnit ? $('Page Knitting Configuration').item.json['Right Page Number ➡️'] : null;\n    const p = isNormalKnit\n      ? `${left}-${right}_knit`\n      : (isPage\n          ? $('Set Page Number').item.json.pageNumber\n          : (isChangeVoice\n              ? $('Set Change-Voice Page Number').item.json.fileBasename\n              : 'sample_' + $('Set Sample Voice Number').item.json.voiceId\n            )\n        );\n    const img = `temp/${docPrefix}${p}_image.png`;\n    const name = isSample ? $('Set Sample Voice Number').item.json.friendlyName : null;\n    const video = ($('Select Mode').item.json.resolvedAcceleration === 'cpu' || $('Record CPU Fallback').isExecuted) ? $('Configure Software Encoding').item.json : $('Store Video Encoding Configuration').item.json;\n    const deviceArgs = video.ffmpegHardwareDeviceArgs ? video.ffmpegHardwareDeviceArgs + ' ' : '';\n\n    const sampleImageCmds = isSample ? [\n      'REFW=1920',\n      'REFH=1080',\n      'FONTSIZE=$((REFH / 12))',\n      `NAME='${name}'`,\n      'NAMELEN=${#NAME}',\n      'CELLW=$(( (NAMELEN * FONTSIZE * 6 / 10) + FONTSIZE ))',\n      'CELLH=$(( FONTSIZE * 2 ))',\n      'COLS=$(( (REFW + CELLW - 1) / CELLW ))',\n      'ROWS=$(( (REFH + CELLH - 1) / CELLH ))',\n      'GRIDW=$((COLS * CELLW))',\n      'OFFSETX=$(( (REFW - GRIDW) / 2 ))',\n      'FILTERS=\"\"',\n      `for ((r=0; r<ROWS; r++)); do for ((c=0; c<COLS; c++)); do CELLX=$((OFFSETX + c*CELLW)); CELLY=$((r*CELLH)); FILTERS=\"\\${FILTERS}drawtext=text='\\${NAME}':fontcolor=black:fontsize=\\${FONTSIZE}:x=\\${CELLX}+(\\${CELLW}-text_w)/2:y=\\${CELLY}+(\\${CELLH}-text_h)/2,\"; done; done`,\n      'FILTERS=\"${FILTERS%,}\"',\n      `ffmpeg -y -f lavfi -i color=white:s=\\${REFW}x\\${REFH} -vf \"$FILTERS\" -frames:v 1 ${img}`\n    ] : [];\n\n    const ffmpegCmd = isKnitRender\n      ? `ffmpeg -y ${deviceArgs}-loop 1 -t \"$DUR\" -i ${img} -i temp/${docPrefix}${p}_audio.wav -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2${video.ffmpegVideoFilterSuffix}\" ${video.ffmpegVideoEncoderArgs} -c:a aac -b:a 192k temp/${docPrefix}${p}_clip.mp4`\n      : `ffmpeg -y ${deviceArgs}-loop 1 -t \"$DUR\" -i ${img} -i temp/${docPrefix}${p}_audio.wav -filter_complex \"[0:v]split[bg_src][fg_src];[bg_src]scale=iw*2:trunc(ih/2)*2,boxblur=20:3[bg];[fg_src]scale=trunc(iw/2)*2:trunc(ih/2)*2[fg];[bg][fg]overlay=(main_w-overlay_w)/2:0${video.ffmpegVideoFilterSuffix}[v]\" -map \"[v]\" -map 1:a ${video.ffmpegVideoEncoderArgs} -c:a aac -b:a 192k temp/${docPrefix}${p}_clip.mp4`;\n\n    return [\n      'set -e',\n      `export PATH=${$('Populate Variables').item.json.ffmpegPath}:$PATH`,\n      ...sampleImageCmds,\n      `DUR=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 temp/${docPrefix}${p}_audio.wav)`,\n      ffmpegCmd,\n      `(xattr -d com.apple.quarantine temp/${docPrefix}${p}_clip.mp4 2>/dev/null || true)`\n    ].join(' && ');\n  })() }}"
             }
           ]
         },
@@ -189,7 +190,8 @@
           "id": "dT2rDdHX1TfPrVi1",
           "name": "D2V Webhook Shared Secret"
         }
-      }
+      },
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -309,7 +311,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "={{ (() => {\n    const basename = $('Determine Output Basename').item.json.outputBasename;\n    const clipGlob = $('Determine Output Basename').item.json.tempClipGlob;\n    const chaptersFile = $('Determine Output Basename').item.json.chaptersFile;\n    const simple = $('Determine Output Basename').item.json.useSimpleConcat;\n    const docPrefix = simple ? 'sample/' : ($('Set Document Folder').item.json.docFolder + '/');\n    const tempDir = $('Populate Variables').item.json.tempDirRelative;\n    const outputDir = $('Populate Variables').item.json.outputDirRelative;\n    const video = $('Select Mode').item.json.resolvedAcceleration === 'cpu' ? $('Configure Software Encoding').item.json : $('Store Video Encoding Configuration').item.json;\n    const deviceArgs = video.ffmpegHardwareDeviceArgs ? video.ffmpegHardwareDeviceArgs + ' ' : '';\n\n    const sortedVoiceIds = $('Aggregate All Timestamps').item.json.pages\n      .map(x => x.data)\n      .filter(d => d.voiceId)\n      .sort((a, b) => (a.voiceId < b.voiceId ? -1 : (a.voiceId > b.voiceId ? 1 : 0)))\n      .map(d => d.voiceId);\n\n    const winningClipLines = (() => {\n      const allPages = $('Aggregate All Timestamps').item.json.pages.map(p => p.data);\n      const byRecency = allPages.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));\n      const claimedIndexes = new Set();\n      const winners = [];\n      for (const page of byRecency) {\n        const coveredIndexes = page.knitPages ? page.knitPages.map(Number) : [Number(page.pageIndex)];\n        if (coveredIndexes.some(index => claimedIndexes.has(index))) continue;\n        coveredIndexes.forEach(index => claimedIndexes.add(index));\n        winners.push(page);\n      }\n      winners.sort((a, b) => Math.min(...(a.knitPages ? a.knitPages.map(Number) : [a.pageIndex])) - Math.min(...(b.knitPages ? b.knitPages.map(Number) : [b.pageIndex])));\n      return winners.map(page => {\n        const base = page.knitPages ? page.knitPages.join('-') + '_knit' : String(page.pageIndex);\n        return `echo \"file '$PWD/${tempDir}/${docPrefix}${base}_clip.mp4'\" >> ${tempDir}/${docPrefix}${basename}_concat_list.txt`;\n      }).join(' && ');\n    })();\n\n    const concatListCheck = `[ -s ${tempDir}/${docPrefix}${basename}_concat_list.txt ] || { echo \"ERROR: concat list ${tempDir}/${docPrefix}${basename}_concat_list.txt is empty, no clips matched\" >&2; exit 1; }`;\n\n    const simpleCmds = [\n      `mkdir -p ${outputDir}`,\n      `: > ${tempDir}/${docPrefix}${basename}_concat_list.txt`,\n      ...sortedVoiceIds.map(id => `echo \"file '$PWD/${tempDir}/${docPrefix}sample_${id}_clip.mp4'\" >> ${tempDir}/${docPrefix}${basename}_concat_list.txt`),\n      concatListCheck,\n      `ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy -f mp4 ${outputDir}/${docPrefix}${basename}.mp4.tmp`,\n      `mv ${outputDir}/${docPrefix}${basename}.mp4.tmp ${outputDir}/${docPrefix}${basename}.mp4`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    const complexCmds = [\n      `mkdir -p ${tempDir}/${docPrefix} ${outputDir}/${docPrefix}`,\n      `: > ${tempDir}/${docPrefix}${basename}_concat_list.txt && ${winningClipLines}`,\n      concatListCheck,\n      'MAX_W=0',\n      `for f in ${tempDir}/${docPrefix}*_knit_clip.mp4; do [ -f \"$f\" ] || break; W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$f\" | head -1); if [ \"$W\" -gt \"$MAX_W\" ]; then MAX_W=$W; fi; done`,\n      `SINGLE=$(find ${tempDir}/${docPrefix} -maxdepth 1 -name \"${clipGlob}\" ! -name \"*_knit_clip.mp4\" | sort -V | head -1)`,\n      'if [ -n \"$SINGLE\" ]; then CLIP_W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$SINGLE\" | head -1); PAGE_W=$((CLIP_W/2)); if [ \"$PAGE_W\" -gt \"$MAX_W\" ]; then MAX_W=$PAGE_W; fi; else CLIP_W=$MAX_W; fi',\n      'TARGET_W=$MAX_W',\n      `if [ \"$CLIP_W\" -eq \"$TARGET_W\" ]; then ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy -f mp4 ${outputDir}/${docPrefix}${basename}.mp4.tmp; elif [ \"$CLIP_W\" -gt \"$TARGET_W\" ]; then X=$(( (CLIP_W - TARGET_W) / 2 )) && ffmpeg -y ${deviceArgs}-f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"crop=\\${TARGET_W}:ih:\\${X}:0${video.ffmpegVideoFilterSuffix}\" ${video.ffmpegFinalVideoEncoderArgs} -c:a copy -f mp4 ${outputDir}/${docPrefix}${basename}.mp4.tmp; else OX=$(( (TARGET_W - CLIP_W) / 2 )) && ffmpeg -y ${deviceArgs}-f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"split[bg][fg];[bg]scale=\\${TARGET_W}:ih,boxblur=20:3[bg_b];[fg][bg_b]overlay=\\${OX}:0${video.ffmpegVideoFilterSuffix}\" ${video.ffmpegFinalVideoEncoderArgs} -c:a copy -f mp4 ${outputDir}/${docPrefix}${basename}.mp4.tmp; fi`,\n      `mv ${outputDir}/${docPrefix}${basename}.mp4.tmp ${outputDir}/${docPrefix}${basename}.mp4`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    return ['set -e', `export PATH=${$('Populate Variables').item.json.ffmpegPath}:$PATH`, ...(simple ? simpleCmds : complexCmds)].join(' && ');\n  })() }}"
+              "value": "={{ (() => {\n    const basename = $('Determine Output Basename').item.json.outputBasename;\n    const clipGlob = $('Determine Output Basename').item.json.tempClipGlob;\n    const chaptersFile = $('Determine Output Basename').item.json.chaptersFile;\n    const simple = $('Determine Output Basename').item.json.useSimpleConcat;\n    const docPrefix = simple ? 'sample/' : ($('Set Document Folder').item.json.docFolder + '/');\n    const tempDir = $('Populate Variables').item.json.tempDirRelative;\n    const outputDir = $('Populate Variables').item.json.outputDirRelative;\n    const video = ($('Select Mode').item.json.resolvedAcceleration === 'cpu' || $('Record CPU Fallback').isExecuted) ? $('Configure Software Encoding').item.json : $('Store Video Encoding Configuration').item.json;\n    const deviceArgs = video.ffmpegHardwareDeviceArgs ? video.ffmpegHardwareDeviceArgs + ' ' : '';\n\n    const sortedVoiceIds = $('Aggregate All Timestamps').item.json.pages\n      .map(x => x.data)\n      .filter(d => d.voiceId)\n      .sort((a, b) => (a.voiceId < b.voiceId ? -1 : (a.voiceId > b.voiceId ? 1 : 0)))\n      .map(d => d.voiceId);\n\n    const winningClipLines = (() => {\n      const allPages = $('Aggregate All Timestamps').item.json.pages.map(p => p.data);\n      const byRecency = allPages.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));\n      const claimedIndexes = new Set();\n      const winners = [];\n      for (const page of byRecency) {\n        const coveredIndexes = page.knitPages ? page.knitPages.map(Number) : [Number(page.pageIndex)];\n        if (coveredIndexes.some(index => claimedIndexes.has(index))) continue;\n        coveredIndexes.forEach(index => claimedIndexes.add(index));\n        winners.push(page);\n      }\n      winners.sort((a, b) => Math.min(...(a.knitPages ? a.knitPages.map(Number) : [a.pageIndex])) - Math.min(...(b.knitPages ? b.knitPages.map(Number) : [b.pageIndex])));\n      return winners.map(page => {\n        const base = page.knitPages ? page.knitPages.join('-') + '_knit' : String(page.pageIndex);\n        return `echo \"file '$PWD/${tempDir}/${docPrefix}${base}_clip.mp4'\" >> ${tempDir}/${docPrefix}${basename}_concat_list.txt`;\n      }).join(' && ');\n    })();\n\n    const concatListCheck = `[ -s ${tempDir}/${docPrefix}${basename}_concat_list.txt ] || { echo \"ERROR: concat list ${tempDir}/${docPrefix}${basename}_concat_list.txt is empty, no clips matched\" >&2; exit 1; }`;\n\n    const simpleCmds = [\n      `mkdir -p ${outputDir}`,\n      `: > ${tempDir}/${docPrefix}${basename}_concat_list.txt`,\n      ...sortedVoiceIds.map(id => `echo \"file '$PWD/${tempDir}/${docPrefix}sample_${id}_clip.mp4'\" >> ${tempDir}/${docPrefix}${basename}_concat_list.txt`),\n      concatListCheck,\n      `ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy -f mp4 ${outputDir}/${docPrefix}${basename}.mp4.tmp`,\n      `mv ${outputDir}/${docPrefix}${basename}.mp4.tmp ${outputDir}/${docPrefix}${basename}.mp4`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    const complexCmds = [\n      `mkdir -p ${tempDir}/${docPrefix} ${outputDir}/${docPrefix}`,\n      `: > ${tempDir}/${docPrefix}${basename}_concat_list.txt && ${winningClipLines}`,\n      concatListCheck,\n      'MAX_W=0',\n      `for f in ${tempDir}/${docPrefix}*_knit_clip.mp4; do [ -f \"$f\" ] || break; W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$f\" | head -1); if [ \"$W\" -gt \"$MAX_W\" ]; then MAX_W=$W; fi; done`,\n      `SINGLE=$(find ${tempDir}/${docPrefix} -maxdepth 1 -name \"${clipGlob}\" ! -name \"*_knit_clip.mp4\" | sort -V | head -1)`,\n      'if [ -n \"$SINGLE\" ]; then CLIP_W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$SINGLE\" | head -1); PAGE_W=$((CLIP_W/2)); if [ \"$PAGE_W\" -gt \"$MAX_W\" ]; then MAX_W=$PAGE_W; fi; else CLIP_W=$MAX_W; fi',\n      'TARGET_W=$MAX_W',\n      `if [ \"$CLIP_W\" -eq \"$TARGET_W\" ]; then ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy -f mp4 ${outputDir}/${docPrefix}${basename}.mp4.tmp; elif [ \"$CLIP_W\" -gt \"$TARGET_W\" ]; then X=$(( (CLIP_W - TARGET_W) / 2 )) && ffmpeg -y ${deviceArgs}-f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"crop=\\${TARGET_W}:ih:\\${X}:0${video.ffmpegVideoFilterSuffix}\" ${video.ffmpegFinalVideoEncoderArgs} -c:a copy -f mp4 ${outputDir}/${docPrefix}${basename}.mp4.tmp; else OX=$(( (TARGET_W - CLIP_W) / 2 )) && ffmpeg -y ${deviceArgs}-f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"split[bg][fg];[bg]scale=\\${TARGET_W}:ih,boxblur=20:3[bg_b];[fg][bg_b]overlay=\\${OX}:0${video.ffmpegVideoFilterSuffix}\" ${video.ffmpegFinalVideoEncoderArgs} -c:a copy -f mp4 ${outputDir}/${docPrefix}${basename}.mp4.tmp; fi`,\n      `mv ${outputDir}/${docPrefix}${basename}.mp4.tmp ${outputDir}/${docPrefix}${basename}.mp4`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    return ['set -e', `export PATH=${$('Populate Variables').item.json.ffmpegPath}:$PATH`, ...(simple ? simpleCmds : complexCmds)].join(' && ');\n  })() }}"
             }
           ]
         },
@@ -335,7 +337,8 @@
           "id": "dT2rDdHX1TfPrVi1",
           "name": "D2V Webhook Shared Secret"
         }
-      }
+      },
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -749,7 +752,7 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n    path: \"/dev/captioned_speech\",\n    useCpuKokoro: $('Select Mode').item.json.resolvedAcceleration === 'cpu',\n    body: {\n      model: \"kokoro\",\n      voice: $('Set Sample Voice Number').isExecuted\n        ? $('Set Sample Voice Number').item.json.voiceId\n        : ($('Set Knit Page Number').isExecuted\n            ? $('Set Knit Page Number').item.json.voice\n            : ($('Set Default Voice').isExecuted\n                ? $('Set Default Voice').item.json.voice\n                : ((Object.keys($('Read Default Voice').item.binary || {}).length > 0)\n                    ? $('Extract Default Voice').item.json.text.trim()\n                    : $('Populate Variables').item.json.defaultFallbackVoice)\n              )\n          ),\n      lang_code: \"a\",\n      input: JSON.parse($('Extract Normalized Transcription from Text File').item.json.text).text,\n      response_format: \"wav\",\n      return_timestamps: true,\n      stream: false,\n      allow_voice_tags: true\n    }\n  }) }}",
+        "jsonBody": "={{ JSON.stringify({\n    path: \"/dev/captioned_speech\",\n    useCpuKokoro: ($('Select Mode').item.json.resolvedAcceleration === 'cpu' || $('Record CPU Fallback').isExecuted),\n    body: {\n      model: \"kokoro\",\n      voice: $('Set Sample Voice Number').isExecuted\n        ? $('Set Sample Voice Number').item.json.voiceId\n        : ($('Set Knit Page Number').isExecuted\n            ? $('Set Knit Page Number').item.json.voice\n            : ($('Set Default Voice').isExecuted\n                ? $('Set Default Voice').item.json.voice\n                : ((Object.keys($('Read Default Voice').item.binary || {}).length > 0)\n                    ? $('Extract Default Voice').item.json.text.trim()\n                    : $('Populate Variables').item.json.defaultFallbackVoice)\n              )\n          ),\n      lang_code: \"a\",\n      input: JSON.parse($('Extract Normalized Transcription from Text File').item.json.text).text,\n      response_format: \"wav\",\n      return_timestamps: true,\n      stream: false,\n      allow_voice_tags: true\n    }\n  }) }}",
         "options": {
           "batching": {
             "batch": {
@@ -777,7 +780,8 @@
           "id": "dT2rDdHX1TfPrVi1",
           "name": "D2V Webhook Shared Secret"
         }
-      }
+      },
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -1426,7 +1430,7 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n    model: $('Set Transcription Model').item.json.transcriptionModel,\n    imageBase64: $json.imageBase64,\n    useCpu: $('Select Mode').item.json.resolvedAcceleration === 'cpu',\n    prompt: [\n      \"You are given two consecutive page transcriptions from a document and a combined image showing both pages side by side. Merge them into one transcription following these rules:\",\n      \"1. Assume all transcribed text is completely correct. Do not change, correct, or paraphrase any words.\",\n      \"2. Reorder the text if necessary so it reads naturally across the full double-page spread, left to right, top to bottom, as a reader would experience it.\",\n      \"3. Always place image descriptions at the end of the transcription, including where on the spread the image appears, for example: 'The image in the top left displays...'. Descriptions of charts, graphs, tables, and other visual data should remain where they appear in the reading order.\",\n      \"4. Only rewrite descriptions of images, charts, graphs, or tables that clearly span both pages and can be better described when seen as a whole.\",\n      \"5. If data values on one page lack labels because the legend or column headers appear on the other page, use those labels to identify all unlabeled values across both pages.\",\n      \"6. Preserve all numbers, names, dates, abbreviations, and symbols exactly as written.\",\n      \"7. Return only the merged transcription as plain text, nothing else.\",\n      \"Left page:\",\n      $('Extract Left Page Transcription from File').item.json.text,\n      \"Right page:\",\n      $('Extract Right Page Transcription from File').item.json.text\n    ].join(\"\\n\")\n  }) }}",
+        "jsonBody": "={{ JSON.stringify({\n    model: $('Set Transcription Model').item.json.transcriptionModel,\n    imageBase64: $('Extract Knitted Image to Base64').item.json.imageBase64,\n    useCpu: ($('Select Mode').item.json.resolvedAcceleration === 'cpu' || $('Record CPU Fallback').isExecuted),\n    prompt: [\n      \"You are given two consecutive page transcriptions from a document and a combined image showing both pages side by side. Merge them into one transcription following these rules:\",\n      \"1. Assume all transcribed text is completely correct. Do not change, correct, or paraphrase any words.\",\n      \"2. Reorder the text if necessary so it reads naturally across the full double-page spread, left to right, top to bottom, as a reader would experience it.\",\n      \"3. Always place image descriptions at the end of the transcription, including where on the spread the image appears, for example: 'The image in the top left displays...'. Descriptions of charts, graphs, tables, and other visual data should remain where they appear in the reading order.\",\n      \"4. Only rewrite descriptions of images, charts, graphs, or tables that clearly span both pages and can be better described when seen as a whole.\",\n      \"5. If data values on one page lack labels because the legend or column headers appear on the other page, use those labels to identify all unlabeled values across both pages.\",\n      \"6. Preserve all numbers, names, dates, abbreviations, and symbols exactly as written.\",\n      \"7. Return only the merged transcription as plain text, nothing else.\",\n      \"Left page:\",\n      $('Extract Left Page Transcription from File').item.json.text,\n      \"Right page:\",\n      $('Extract Right Page Transcription from File').item.json.text\n    ].join(\"\\n\")\n  }) }}",
         "options": {
           "timeout": 3600000
         }
@@ -1444,7 +1448,8 @@
           "id": "dT2rDdHX1TfPrVi1",
           "name": "D2V Webhook Shared Secret"
         }
-      }
+      },
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -1735,7 +1740,7 @@
     },
     {
       "parameters": {
-        "url": "={{ $('Populate Variables').item.json.nativeKokoroBaseUrl }}/v1/audio/voices",
+        "url": "={{ $('Record CPU Fallback').isExecuted ? $('Populate Variables').item.json.nativeCpuKokoroBaseUrl : $('Populate Variables').item.json.nativeKokoroBaseUrl }}/v1/audio/voices",
         "options": {}
       },
       "id": "edbc78b3-4df0-4fbc-ad3d-e5e624f45f58",
@@ -1745,7 +1750,8 @@
       "position": [
         -9696,
         560
-      ]
+      ],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -2102,6 +2108,12 @@
               "id": "pv-0007",
               "name": "nativeKokoroBaseUrl",
               "value": "http://host.docker.internal:8881",
+              "type": "string"
+            },
+            {
+              "id": "pv-0020",
+              "name": "nativeCpuKokoroBaseUrl",
+              "value": "http://host.docker.internal:8882",
               "type": "string"
             },
             {
@@ -6905,7 +6917,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "={{ $('Select Mode').item.json.resolvedAcceleration === 'cpu' ? '$D2V_START_CPU_TTS_COMMAND && for attempt in $(seq 1 180); do curl -sf http://127.0.0.1:8882/health > /dev/null && exit 0; sleep 1; done; echo \"CPU text-to-speech did not answer its health check within 180 seconds\" >&2; exit 1' : 'true' }}"
+              "value": "={{ ($('Select Mode').item.json.resolvedAcceleration === 'cpu' || $('Record CPU Fallback').isExecuted) ? '$D2V_START_CPU_TTS_COMMAND && for attempt in $(seq 1 180); do curl -sf http://127.0.0.1:8882/health > /dev/null && exit 0; sleep 1; done; echo \"CPU text-to-speech did not answer its health check within 180 seconds\" >&2; exit 1' : 'true' }}"
             }
           ]
         },
@@ -6938,7 +6950,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "={{ $('Select Mode').item.json.resolvedAcceleration === 'cpu' ? '$D2V_STOP_CPU_TTS_COMMAND' : 'true' }}"
+              "value": "={{ ($('Select Mode').item.json.resolvedAcceleration === 'cpu' || $('Record CPU Fallback').isExecuted) ? '$D2V_STOP_CPU_TTS_COMMAND' : 'true' }}"
             }
           ]
         },
@@ -6972,7 +6984,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "={{ $('Select Mode').item.json.resolvedAcceleration === 'cpu' && $('Set Transcription Engine').item.json.engineKey === 'ollama' ? \"curl -s -o /dev/null http://127.0.0.1:11434/api/generate -d '\" + JSON.stringify({ model: $('Set Transcription Model').item.json.transcriptionModel, keep_alive: 0 }) + \"'\" : 'true' }}"
+              "value": "={{ ($('Select Mode').item.json.resolvedAcceleration === 'cpu' || $('Record CPU Fallback').isExecuted) && $('Set Transcription Engine').item.json.engineKey === 'ollama' ? \"curl -s -o /dev/null http://127.0.0.1:11434/api/generate -d '\" + JSON.stringify({ model: $('Set Transcription Model').item.json.transcriptionModel, keep_alive: 0 }) + \"'\" : 'true' }}"
             }
           ]
         },
@@ -6995,6 +7007,446 @@
         }
       },
       "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "retry-image-transcription-on-cpu",
+              "leftValue": "={{ $('Set Transcription Engine').item.json.engineKey === 'ollama' && !($('Select Mode').item.json.resolvedAcceleration === 'cpu' || $('Record CPU Fallback').isExecuted) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "1f570603-ba12-4fac-92dc-45ae7f162d08",
+      "name": "Retry Image Transcription on CPU?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -3056,
+        -224
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "retry-knit-transcription-on-cpu",
+              "leftValue": "={{ $('Set Transcription Engine').item.json.engineKey === 'ollama' && !($('Select Mode').item.json.resolvedAcceleration === 'cpu' || $('Record CPU Fallback').isExecuted) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "e2c82226-9004-43f4-a2b1-08eb8842833f",
+      "name": "Retry Knit Transcription on CPU?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -9968,
+        1120
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "retry-text-to-speech-on-cpu",
+              "leftValue": "={{ !($('Select Mode').item.json.resolvedAcceleration === 'cpu' || $('Record CPU Fallback').isExecuted) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "1871e228-bf3f-4ed1-ba81-ba9325d82d72",
+      "name": "Retry Text-to-Speech on CPU?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -240,
+        -288
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "retry-clip-encoding-on-cpu",
+              "leftValue": "={{ !($('Select Mode').item.json.resolvedAcceleration === 'cpu' || $('Record CPU Fallback').isExecuted) && $('Store Video Encoding Configuration').item.json.ffmpegVideoEncoderArgs !== $('Configure Software Encoding').item.json.ffmpegVideoEncoderArgs }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "9fdd2b13-ee11-4537-a569-ee000ae6a811",
+      "name": "Retry Clip Encoding on CPU?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1200,
+        -224
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "retry-final-video-encoding-on-cpu",
+              "leftValue": "={{ !($('Select Mode').item.json.resolvedAcceleration === 'cpu' || $('Record CPU Fallback').isExecuted) && $('Store Video Encoding Configuration').item.json.ffmpegVideoEncoderArgs !== $('Configure Software Encoding').item.json.ffmpegVideoEncoderArgs }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "353731f3-3183-4afe-89b0-6fa51f31d028",
+      "name": "Retry Final Video Encoding on CPU?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2784,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cpu-fallback-stage",
+              "name": "cpuFallbackStage",
+              "value": "={{ $prevNode.name.replace(/^Retry | on CPU\\?$/g, '') }}",
+              "type": "string"
+            },
+            {
+              "id": "cpu-fallback-reason",
+              "name": "cpuFallbackReason",
+              "value": "={{ typeof $json.error === 'string' ? $json.error : ($json.error?.message ?? JSON.stringify($json.error)) }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "558b55b2-1f54-4ddf-94de-d91e884d38db",
+      "name": "Record CPU Fallback",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -16,
+        -480
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "fallback-image-transcription",
+                    "leftValue": "={{ $json.cpuFallbackStage }}",
+                    "rightValue": "Image Transcription",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Image Transcription"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "fallback-knit-transcription",
+                    "leftValue": "={{ $json.cpuFallbackStage }}",
+                    "rightValue": "Knit Transcription",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Knit Transcription"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "fallback-text-to-speech",
+                    "leftValue": "={{ $json.cpuFallbackStage }}",
+                    "rightValue": "Text-to-Speech",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text-to-Speech"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "fallback-clip-encoding",
+                    "leftValue": "={{ $json.cpuFallbackStage }}",
+                    "rightValue": "Clip Encoding",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Clip Encoding"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "fallback-final-video-encoding",
+                    "leftValue": "={{ $json.cpuFallbackStage }}",
+                    "rightValue": "Final Video Encoding",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Final Video Encoding"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "fallback-voice-list",
+                    "leftValue": "={{ $json.cpuFallbackStage }}",
+                    "rightValue": "Voice List",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Voice List"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7b128c4a-c961-4abb-858a-90758d2350ce",
+      "name": "Route CPU Fallback Retry",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        -480
+      ]
+    },
+    {
+      "parameters": {
+        "errorMessage": "={{ typeof $json.error === 'string' ? $json.error : ($json.error?.message ?? JSON.stringify($json.error)) }}"
+      },
+      "id": "8fde03fd-3b90-45ee-bd93-a1b5470c0170",
+      "name": "Fail: Conversion Stage Failed",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        -672
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "retry-voice-list-on-cpu",
+              "leftValue": "={{ !$('Record CPU Fallback').isExecuted }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b96df777-c006-43d8-b0f9-17b5384bbb3c",
+      "name": "Retry Voice List on CPU?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -9696,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/clip",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "command",
+              "value": "$D2V_START_CPU_TTS_COMMAND && for attempt in $(seq 1 180); do curl -sf http://127.0.0.1:8882/health > /dev/null && exit 0; sleep 1; done; echo \"CPU text-to-speech did not answer its health check within 180 seconds\" >&2; exit 1"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "b38cefb0-1104-4ae1-af06-0e11392ef51a",
+      "name": "Start CPU Text-to-Speech for Voice List",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -9920,
+        368
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dT2rDdHX1TfPrVi1",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -7048,6 +7500,13 @@
         [
           {
             "node": "Convert Transcription to Text File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Retry Image Transcription on CPU?",
             "type": "main",
             "index": 0
           }
@@ -7370,6 +7829,13 @@
           },
           {
             "node": "Read Word Map from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Retry Text-to-Speech on CPU?",
             "type": "main",
             "index": 0
           }
@@ -7731,6 +8197,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Retry Knit Transcription on CPU?",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -7865,6 +8338,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Retry Voice List on CPU?",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -7934,6 +8414,13 @@
         [
           {
             "node": "Route Sample Loop Back",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Retry Clip Encoding on CPU?",
             "type": "main",
             "index": 0
           }
@@ -10104,6 +10591,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Retry Final Video Encoding on CPU?",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -10112,6 +10606,182 @@
         [
           {
             "node": "Unload Ollama Model After CPU Conversion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry Image Transcription on CPU?": {
+      "main": [
+        [
+          {
+            "node": "Record CPU Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fail: Conversion Stage Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry Knit Transcription on CPU?": {
+      "main": [
+        [
+          {
+            "node": "Record CPU Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fail: Conversion Stage Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry Text-to-Speech on CPU?": {
+      "main": [
+        [
+          {
+            "node": "Record CPU Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fail: Conversion Stage Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry Clip Encoding on CPU?": {
+      "main": [
+        [
+          {
+            "node": "Record CPU Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fail: Conversion Stage Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry Final Video Encoding on CPU?": {
+      "main": [
+        [
+          {
+            "node": "Record CPU Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fail: Conversion Stage Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record CPU Fallback": {
+      "main": [
+        [
+          {
+            "node": "Route CPU Fallback Retry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route CPU Fallback Retry": {
+      "main": [
+        [
+          {
+            "node": "Request Image Transcription",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Knit Transcriptions",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Start CPU Text-to-Speech When Selected",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Request Clip Assembly",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Request Final Video Assembly",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Start CPU Text-to-Speech for Voice List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry Voice List on CPU?": {
+      "main": [
+        [
+          {
+            "node": "Record CPU Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fail: Conversion Stage Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start CPU Text-to-Speech for Voice List": {
+      "main": [
+        [
+          {
+            "node": "Fetch Available Voices",
             "type": "main",
             "index": 0
           }
@@ -10129,7 +10799,7 @@
     "availableInMCP": true,
     "saveExecutionProgress": true
   },
-  "versionId": "75aac657-f89e-4621-afb7-b4eca3c4d1ed",
+  "versionId": "b57dcee5-7de4-4906-8779-5a2da5c1c7c1",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "b32aa4a304393161a5917c0e39ea5a4df2f2a6e973dfb06f73854940521bd52f",
@@ -10138,7 +10808,7 @@
   },
   "nodeGroups": [
     {
-      "id": "1237be1a-76a1-49ed-b856-2b0cf7530eb4",
+      "id": "dad98da5-283a-4d0a-9caf-8c165c29a032",
       "name": "Document Picker",
       "nodeIds": [
         "4111729b-35c2-44dd-9859-0deaa165ef1d",
@@ -10147,7 +10817,7 @@
       ]
     },
     {
-      "id": "7805b436-794b-418b-a677-2db841eee677",
+      "id": "f849d31a-56f8-4b14-8b19-b41098cc7934",
       "name": "Document Folder Setup",
       "nodeIds": [
         "b4bdb253-3ff9-4172-a060-a8406a61500d",
@@ -10156,7 +10826,7 @@
       ]
     },
     {
-      "id": "0c035f77-9eaf-438a-9329-3b25e222d2a9",
+      "id": "d2706e49-3273-4877-9b06-3920094ff0ba",
       "name": "New Conversion - PDF Upload & Page Extraction",
       "nodeIds": [
         "a6c61e91-f96d-42ae-9ee8-145f77258e41",
@@ -10165,7 +10835,7 @@
       ]
     },
     {
-      "id": "cea38fe3-41f1-4519-9c1b-87f4cba878b2",
+      "id": "d12992ab-fdcd-4a6d-8327-58fa8774d621",
       "name": "Transcript Normalization & Word Map",
       "nodeIds": [
         "0e5f6212-20e6-4acb-961e-ed28a51afdd6",
@@ -10178,29 +10848,33 @@
       ]
     },
     {
-      "id": "140e40ba-c22c-4681-a7e2-760b595a4077",
-      "name": "TTS & Clip Assembly",
+      "id": "8ac6ecc0-675a-467f-99bb-0a956638eb8e",
+      "name": "TTS Audio File",
       "nodeIds": [
-        "0e416aa8-3241-4e14-8bce-4d9dc133d91d",
         "e88f9b03-a71a-4b8e-9b24-bf1612abcdcf",
-        "d5a067ce-d69a-40a0-a872-b631a2f5fbf7",
-        "2d844c92-584d-498e-b943-70c9ce934f51",
-        "8f0d9b8e-22a5-4498-ab7c-653655b23891",
-        "6af65ae0-d648-4f2a-9536-e6ad53759884",
-        "7fb9918c-40ba-4776-b5f4-ba7ebb09277d",
-        "0a861c0e-859b-4849-a6e6-efc437699497",
-        "0a85c2c1-4ed6-4fd9-9e1f-a2b9ea0b8eae"
+        "2d844c92-584d-498e-b943-70c9ce934f51"
       ]
     },
     {
-      "id": "fbcefd51-3eb0-4f7c-95f9-9ce5f66d5784",
+      "id": "59246b89-3e71-4ddc-9da7-2006fba746a5",
+      "name": "TTS Timestamps",
+      "nodeIds": [
+        "d5a067ce-d69a-40a0-a872-b631a2f5fbf7",
+        "8f0d9b8e-22a5-4498-ab7c-653655b23891",
+        "6af65ae0-d648-4f2a-9536-e6ad53759884",
+        "7fb9918c-40ba-4776-b5f4-ba7ebb09277d",
+        "0a861c0e-859b-4849-a6e6-efc437699497"
+      ]
+    },
+    {
+      "id": "4cbb65eb-b46e-4e95-97bf-f3944a618f1e",
       "name": "Voice Fetching & Sample Setup",
       "nodeIds": [
         "996a93e7-6dd0-469c-8ecb-d0cd23bf7ddf"
       ]
     },
     {
-      "id": "353c970b-8f59-4ecd-9f1c-5c5f3f1f2e90",
+      "id": "21228756-dfe5-4c38-a85b-7d0fd94a6224",
       "name": "Finalization & Video Assembly",
       "nodeIds": [
         "511103b3-8179-475c-a0a7-8a856f1c8dd7",
@@ -10209,8 +10883,7 @@
         "8de182f8-3454-4498-a737-47ab2ecabf38",
         "5932d857-856b-4307-a922-eae4f4a9b499",
         "43a9add9-c4e6-41f8-8a1e-41ae735171a2",
-        "46c88e05-2bfd-4c0b-9ec8-dc9c841fc635",
-        "a1aa3900-7c65-4216-9b0b-e6965f3dc6e5"
+        "46c88e05-2bfd-4c0b-9ec8-dc9c841fc635"
       ]
     }
   ],
