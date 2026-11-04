@@ -51,6 +51,7 @@ Each example sends `D2V_BASE_URL=http://localhost:5678` and `SECRET` set to the 
 | `target` | `changeVoice` | Yes | `400` | `wholePage` or `selectedText` |
 | `textToChange` | `changeVoice` | Yes, when `target` is `selectedText` | `400` | The exact phrase to re-narrate |
 | `samplePhrase` | `sample` | Yes | `400` | The phrase every voice sample speaks |
+| `acceleration` | every request | No | Missing: `platformDefault`. Invalid: `400` | Which hardware processes the conversion: `platformDefault` (the `eggocado-d2v.acceleration.platformDefault` option, `automatic` unless set), `automatic`, or `cpu` |
 
 Convert entire document:
 
@@ -173,6 +174,7 @@ curl "$D2V_BASE_URL/webhook/d2v-headless-status?jobId=my-document" \
 | nemo-normalizer | `8765` | Docker | Normalizes transcribed text for speech |
 | Bare-metal n8n | `5679` | Host process | Runs ffmpeg and shells out to the Claude Code/Codex CLIs, directly on the host so they can use the GPU and the CLIs' own host-level logins |
 | Kokoro-FastAPI | `8881` | Host process | Text-to-speech, running natively: Apple Silicon GPU (MPS) acceleration on macOS, CPU inference on Linux |
+| Kokoro-FastAPI (CPU) | `8882` | Host process | Text-to-speech on the CPU, started for conversions that run on the CPU and stopped after the final video |
 | Ollama | `11434` | Host process | One of three transcription engines (optional, only if you use it), running natively so it can use the GPU |
 
 Claude Code and Codex run as CLI calls from bare-metal n8n, authenticated via each CLI's own cached host-level login.
@@ -180,6 +182,8 @@ Claude Code and Codex run as CLI calls from bare-metal n8n, authenticated via ea
 The Docker/host-process split exists because GPU-accelerated tools (ffmpeg hardware encoding, Ollama, Kokoro) need direct host GPU access, only available outside Docker. As much as possible (PDF rendering, text normalization, orchestration) stays in the easy-to-set-up Docker stack. Only the pieces that need the GPU run on the host.
 
 **The transcription engine is chosen per run**, from a dropdown at the start of each conversion: a local vision-capable Ollama model (any model you've pulled), Claude Code, or OpenAI Codex.
+
+**The hardware is chosen per run as well**: Use platform default, Automatic, or CPU. Automatic uses the GPU wherever a stage supports it: Ollama, Kokoro-FastAPI, and VA-API, VideoToolbox, or NVENC video encoding. CPU runs Ollama on the CPU, starts the CPU Kokoro-FastAPI instance, and encodes with libx264. When an accelerated stage fails, the conversion retries that stage on the CPU and keeps every later stage on the CPU.
 
 ### Security note
 
@@ -242,7 +246,7 @@ cargo test
 
 `D2V_ENGINE_MODEL` is whichever transcription engine and model you have available (see [Transcription engines](INSTALL.md#transcription-engines)), for example `codex:gpt-5.6-sol`, `claude:claude-sonnet-5`, or `ollama:gemma4:31b`. The suite never hardcodes one, so it runs the same way regardless of which engine you use.
 
-Tests run one at a time, enforced via that directory's own `.cargo/config.toml`, since they share the same `temp/`/`output/` folders and the single-worker Kokoro TTS service a real conversion would use. A full run takes a while: several tests wait for a multi-minute video conversion to complete.
+Tests run one at a time, enforced via that directory's own `.cargo/config.toml`, since they share the same `temp/`/`output/` folders and the single-worker Kokoro TTS service a real conversion would use. The same file builds the test binaries one at a time, so linking fits alongside the running services on a machine with 8 GB of memory, such as a default WSL distribution on a 16 GB PC. A full run takes a while: several tests wait for a multi-minute video conversion to complete.
 
 ## Credits
 

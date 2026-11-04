@@ -9,6 +9,7 @@
 
 - `d2v-headless-api-tests/` is a Rust integration test suite covering the headless API's happy paths and failure cases, run against a live instance with no mocking. See [Testing](README.md#testing) for the required environment variables and how to run it.
 - Tests run one at a time (`.cargo/config.toml` sets `RUST_TEST_THREADS=1`), since they share the same `temp/`/`output/` folders and the single-worker Kokoro TTS service a real conversion would use. Never remove that setting or run the suite with a higher thread count.
+- The same file sets `jobs = 1`, so the build compiles and links one test binary at a time. Linking every binary at once exhausts the memory of an 8 GB machine running the D2V services. Never pass `--jobs` or remove that setting.
 - When changing workflow behavior that a test covers, run the relevant test file against the live system afterward and confirm it still passes before considering the change done.
 
 ## n8n Workflow Preferences

@@ -396,6 +396,30 @@ fn missing_engine_model_fails_with_clear_message() {
 }
 
 #[test]
+fn invalid_acceleration_fails_with_clear_message() {
+    let config = Config::from_env();
+
+    let error_message = start_job_expecting_bad_request(
+        &config,
+        &[
+            Field::Text("mode", "new"),
+            Field::Text("document", "d2v-rust-suite-invalid-acceleration-precondition.pdf"),
+            Field::Text("engineModel", &config.engine_model),
+            Field::Text("voice", "af_heart"),
+            Field::Text("acceleration", "bogus"),
+            Field::File {
+                name: "data",
+                filename: "d2v-rust-suite-invalid-acceleration-precondition.pdf",
+                mime: "application/pdf",
+                bytes: d2v_headless_api_tests::generate_test_pdf(),
+            },
+        ],
+    );
+
+    assert!(error_message.contains("acceleration"));
+}
+
+#[test]
 fn new_conversion_without_file_fails_with_clear_message() {
     let config = Config::from_env();
 

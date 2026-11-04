@@ -481,6 +481,24 @@ pub fn ffprobe(video_file_path: &str) -> serde_json::Value {
     serde_json::from_slice(&ffprobe_output.stdout).expect("ffprobe produced invalid JSON")
 }
 
+pub fn something_listens_on(address: &str) -> bool {
+    let socket_address: std::net::SocketAddr = address
+        .parse()
+        .unwrap_or_else(|e| panic!("invalid socket address {address}: {e}"));
+    std::net::TcpStream::connect_timeout(&socket_address, Duration::from_secs(2)).is_ok()
+}
+
+pub fn wait_until_nothing_listens_on(address: &str, timeout: Duration) {
+    let wait_started_at = Instant::now();
+
+    while something_listens_on(address) {
+        if wait_started_at.elapsed() > timeout {
+            panic!("{address} still accepted connections after {timeout:?}");
+        }
+        sleep(Duration::from_secs(2));
+    }
+}
+
 pub fn assert_video_has_audio_and_video_streams(video_file_path: &str) {
     let ffprobe_json = ffprobe(video_file_path);
     let media_streams = ffprobe_json["streams"]
