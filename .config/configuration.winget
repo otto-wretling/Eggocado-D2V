@@ -26,6 +26,14 @@ resources:
       securityContext: elevated
     description: Install Docker Desktop
 
+- type: Microsoft.WinGet/Package
+  name: Ollama
+  properties:
+    id: Ollama.Ollama
+    source: winget
+  metadata:
+    description: Install Ollama for local transcription models
+
 - type: Microsoft.DSC.Transitional/WindowsPowerShellScript
   name: WslConfig
   properties:

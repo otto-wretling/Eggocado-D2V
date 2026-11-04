@@ -71,19 +71,6 @@
         "type": "github"
       }
     },
-    "ollama-release": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1793688021,
-        "narHash": "sha256-fcVT0wF0oN6Xlvt7HRoIBj/oD9WYqp50mU0HIrYCYYA=",
-        "type": "tarball",
-        "url": "https://github.com/ollama/ollama/releases/latest/download/ollama-linux-amd64.tar.zst"
-      },
-      "original": {
-        "type": "tarball",
-        "url": "https://github.com/ollama/ollama/releases/latest/download/ollama-linux-amd64.tar.zst"
-      }
-    },
     "pyproject-build-systems": {
       "inputs": {
         "nixpkgs": [
@@ -135,7 +122,6 @@
         "kokoro-fastapi": "kokoro-fastapi",
         "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs",
-        "ollama-release": "ollama-release",
         "pyproject-build-systems": "pyproject-build-systems",
         "pyproject-nix": "pyproject-nix",
         "uv2nix": "uv2nix"

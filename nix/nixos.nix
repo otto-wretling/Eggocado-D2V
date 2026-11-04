@@ -143,7 +143,7 @@ let
         environment.systemPackages = hostPackages d2vPkgs ++ [ pkgs.n8n ];
 
         services.ollama = {
-          enable = true;
+          enable = lib.mkDefault true;
           package = cfg.ollamaPackage;
         };
 

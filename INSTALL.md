@@ -4,7 +4,7 @@ macOS (Apple Silicon), Linux/NixOS, and Windows through NixOS-WSL. On Windows, s
 
 ## Windows
 
-On Windows, D2V runs in a [NixOS-WSL](https://github.com/nix-community/NixOS-WSL) distribution. Its NixOS configuration provides bare-metal n8n, Kokoro-FastAPI, Ollama, ffmpeg, and espeak-ng from [Prerequisites](#prerequisites), and step 6 adds the transcription engine CLIs. Docker Desktop on Windows runs the [Docker services](#docker-services). Kokoro-FastAPI and Ollama use an NVIDIA GPU through the Windows driver when one is present.
+On Windows, D2V runs in a [NixOS-WSL](https://github.com/nix-community/NixOS-WSL) distribution. Its NixOS configuration provides bare-metal n8n, Kokoro-FastAPI, ffmpeg, and espeak-ng from [Prerequisites](#prerequisites), and step 6 adds the transcription engine CLIs. Docker Desktop on Windows runs the [Docker services](#docker-services). Ollama runs natively on Windows with the full system memory and GPU, and the distribution reaches it at `http://127.0.0.1:11434`. Kokoro-FastAPI uses an NVIDIA GPU through the Windows driver when one is present.
 
 1. Download [`.config/configuration.winget`](.config/configuration.winget), review it, and apply it in PowerShell from the folder you saved it to, accepting the UAC prompts:
 
@@ -12,7 +12,7 @@ On Windows, D2V runs in a [NixOS-WSL](https://github.com/nix-community/NixOS-WSL
    winget configure -f configuration.winget --accept-configuration-agreements
    ```
 
-   It installs WSL and Docker Desktop, and sets `networkingMode=mirrored` and `hostAddressLoopback=true` in `%USERPROFILE%\.wslconfig` so the containers and the services in the distribution reach each other. Restart Windows if the WSL installation asks for it. If WSL was already running, run `wsl --shutdown` to apply the new `.wslconfig`.
+   It installs WSL, Docker Desktop, and Ollama, and sets `networkingMode=mirrored` and `hostAddressLoopback=true` in `%USERPROFILE%\.wslconfig` so the containers and the services in the distribution reach each other. Restart Windows if the WSL installation asks for it. If WSL was already running, run `wsl --shutdown` to apply the new `.wslconfig`.
 
 2. Install NixOS-WSL following its [Installation](https://nix-community.github.io/NixOS-WSL/install.html) guide.
 
@@ -38,7 +38,7 @@ On Windows, D2V runs in a [NixOS-WSL](https://github.com/nix-community/NixOS-WSL
 
    The `d2v-docker-services` user service then starts the [Docker services](#docker-services) from that checkout as soon as Docker Desktop's integration answers, and recreates them each time the distribution starts so the `n8n` container mounts the checkout after the distribution's files are available. The first start builds the nemo-normalizer image, which takes several minutes.
 
-6. Install the CLIs for the engines you plan to use from [Transcription engines](#transcription-engines) inside the distribution, and pull an Ollama model there as shown in [Ollama](#ollama).
+6. Install the CLIs for the engines you plan to use from [Transcription engines](#transcription-engines) inside the distribution, and pull an Ollama model in PowerShell as shown in [Ollama](#ollama).
 
 7. Continue with [Importing the workflows](#importing-the-workflows).
 
@@ -77,7 +77,7 @@ Required by the bare-metal n8n instance (video assembly) and Kokoro-FastAPI (fal
 ### Ollama
 Optional: one of three transcription engines (see "Transcription engines" below). Skip this section entirely if you only plan to use Claude Code or Codex. If you do want a local model, any vision-capable Ollama model works, so pick whichever fits your hardware and documents.
 
-On NixOS, `nixosModules.packages` (see [Prerequisites](#prerequisites) above) already runs Ollama as a service, listening on `http://127.0.0.1:11434`. Elsewhere, download from https://ollama.com and run it yourself. Either way, pull a model, for example:
+On NixOS, `nixosModules.packages` (see [Prerequisites](#prerequisites) above) already runs Ollama as a service, listening on `http://127.0.0.1:11434`. On Windows, `configuration.winget` installs it (see [Windows](#windows) above). Elsewhere, download from https://ollama.com and run it yourself. Either way, pull a model, for example:
 
 ```bash
 ollama pull gemma4:31b

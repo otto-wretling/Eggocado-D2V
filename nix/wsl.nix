@@ -1,4 +1,4 @@
-{ nixos, ollama-release }:
+{ nixos }:
 { config, lib, pkgs, utils, ... }:
 
 let
@@ -10,22 +10,6 @@ let
   };
   dockerDesktopIntegrationCommands = [ "chmod" "install" "mkdir" "mv" "rm" "stat" "test" ];
   dockerDesktopCli = "/usr/bin/docker";
-
-  ollamaRelease = pkgs.stdenv.mkDerivation {
-    name = "ollama-release";
-    src = ollama-release;
-    nativeBuildInputs = [ pkgs.autoPatchelfHook ];
-    buildInputs = [ pkgs.stdenv.cc.cc.lib ];
-    autoPatchelfIgnoreMissingDeps = true;
-    appendRunpaths = [ "$ORIGIN" "/run/opengl-driver/lib" ];
-    dontUnpack = true;
-    installPhase = ''
-      mkdir -p $out
-      cp -r $src/bin $src/lib $out/
-      chmod -R u+w $out
-    '';
-    meta.mainProgram = "ollama";
-  };
 in
 {
   imports = [ nixos.linuxHost ];
@@ -40,9 +24,7 @@ in
 
     eggocado-d2v.user = lib.mkDefault config.wsl.defaultUser;
 
-    eggocado-d2v.ollamaPackage = lib.mkDefault ollamaRelease;
-
-    services.ollama.environmentVariables.LD_LIBRARY_PATH = "/run/opengl-driver/lib";
+    services.ollama.enable = false;
 
     eggocado-d2v.kokoro.torchVariant = lib.mkDefault "gpu";
 
