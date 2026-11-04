@@ -9,6 +9,7 @@ let
     acceleratorLibraryDirectories = [ "/run/opengl-driver/lib" ];
   };
   dockerDesktopIntegrationCommands = [ "chmod" "install" "mkdir" "mv" "rm" "stat" "test" ];
+  dockerDesktopCli = "/usr/bin/docker";
 
   ollamaRelease = pkgs.stdenv.mkDerivation {
     name = "ollama-release";
@@ -72,6 +73,23 @@ in
         };
         wantedBy = lib.optionals service.startsWithSession [ "default.target" ];
       })
-      linuxUserServices.services;
+      linuxUserServices.services // {
+      d2v-docker-services = {
+        description = "Eggocado D2V Docker Compose services on Docker Desktop";
+        unitConfig = {
+          ConditionUser = cfg.user;
+          StartLimitIntervalSec = 0;
+        };
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+          ExecStart = "${dockerDesktopCli} compose up --detach --force-recreate";
+          Restart = "on-failure";
+          RestartSec = 5;
+          WorkingDirectory = cfg.projectRoot;
+        };
+        wantedBy = [ "default.target" ];
+      };
+    };
   };
 }

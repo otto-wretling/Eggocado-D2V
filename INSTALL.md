@@ -30,13 +30,13 @@ On Windows, D2V runs in a [NixOS-WSL](https://github.com/nix-community/NixOS-WSL
 
 4. In Docker Desktop, open **Settings > Resources > WSL Integration**, turn on the NixOS-WSL distribution, and select **Apply**. See [Docker Desktop WSL 2 backend on Windows](https://docs.docker.com/desktop/features/wsl/) for details.
 
-5. Inside the distribution, clone this repo to `~/Documents/GitHub/Eggocado-D2V`, where the services run from, and start the Docker services:
+5. Inside the distribution, clone this repo to `~/Documents/GitHub/Eggocado-D2V`, where the services run from:
 
    ```bash
    git clone https://github.com/otto-wretling/Eggocado-D2V.git ~/Documents/GitHub/Eggocado-D2V
-   cd ~/Documents/GitHub/Eggocado-D2V
-   docker compose up -d
    ```
+
+   The `d2v-docker-services` user service then starts the [Docker services](#docker-services) from that checkout as soon as Docker Desktop's integration answers, and recreates them each time the distribution starts so the `n8n` container mounts the checkout after the distribution's files are available. The first start builds the nemo-normalizer image, which takes several minutes.
 
 6. Install the CLIs for the engines you plan to use from [Transcription engines](#transcription-engines) inside the distribution, and pull an Ollama model there as shown in [Ollama](#ollama).
 
@@ -194,3 +194,11 @@ To recover:
 1. Quit Docker Desktop.
 2. Run `wsl --shutdown` in PowerShell.
 3. Start Docker Desktop.
+
+### Windows: empty project folder in the Docker n8n
+
+When Docker Desktop restarts while the NixOS-WSL distribution keeps running, the `n8n` container can come back with an empty `/home/node/project`, and conversions fail to find their files. Recreate the Docker services inside the distribution:
+
+```bash
+systemctl --user restart d2v-docker-services
+```
