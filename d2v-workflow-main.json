@@ -158,7 +158,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "={{ (() => {\n    const isPage = $('Set Page Number').isExecuted;\n    const isChangeVoice = $('Set Change-Voice Page Number').isExecuted;\n    const isSample = $('Set Sample Voice Number').isExecuted;\n    const isNormalKnit = !isPage && !isChangeVoice && !isSample;\n    const isChangeVoiceKnit = isChangeVoice && $('Set Change-Voice Page Number').item.json.isKnit;\n    const isKnitRender = isNormalKnit || isChangeVoiceKnit;\n    const docPrefix = $('Set Doc Prefix').isExecuted ? $('Set Doc Prefix').item.json.docPrefix : (isSample ? ($('Populate Variables').item.json.sampleFolderName + '/') : ($('Set Document Folder').item.json.docFolder + '/'));\n    const left = isNormalKnit ? $('Page Knitting Configuration').item.json['⬅️ Left Page Number'] : null;\n    const right = isNormalKnit ? $('Page Knitting Configuration').item.json['Right Page Number ➡️'] : null;\n    const p = isNormalKnit\n      ? `${left}-${right}_knit`\n      : (isPage\n          ? $('Set Page Number').item.json.pageNumber\n          : (isChangeVoice\n              ? $('Set Change-Voice Page Number').item.json.fileBasename\n              : 'sample_' + $('Set Sample Voice Number').item.json.voiceId\n            )\n        );\n    const img = `temp/${docPrefix}${p}_image.png`;\n    const name = isSample ? $('Set Sample Voice Number').item.json.friendlyName : null;\n    const video = $('Store Video Encoding Configuration').item.json;\n    const deviceArgs = video.ffmpegHardwareDeviceArgs ? video.ffmpegHardwareDeviceArgs + ' ' : '';\n\n    const sampleImageCmds = isSample ? [\n      'REFW=1920',\n      'REFH=1080',\n      'FONTSIZE=$((REFH / 12))',\n      `NAME='${name}'`,\n      'NAMELEN=${#NAME}',\n      'CELLW=$(( (NAMELEN * FONTSIZE * 6 / 10) + FONTSIZE ))',\n      'CELLH=$(( FONTSIZE * 2 ))',\n      'COLS=$(( (REFW + CELLW - 1) / CELLW ))',\n      'ROWS=$(( (REFH + CELLH - 1) / CELLH ))',\n      'GRIDW=$((COLS * CELLW))',\n      'OFFSETX=$(( (REFW - GRIDW) / 2 ))',\n      'FILTERS=\"\"',\n      `for ((r=0; r<ROWS; r++)); do for ((c=0; c<COLS; c++)); do CELLX=$((OFFSETX + c*CELLW)); CELLY=$((r*CELLH)); FILTERS=\"\\${FILTERS}drawtext=text='\\${NAME}':fontcolor=black:fontsize=\\${FONTSIZE}:x=\\${CELLX}+(\\${CELLW}-text_w)/2:y=\\${CELLY}+(\\${CELLH}-text_h)/2,\"; done; done`,\n      'FILTERS=\"${FILTERS%,}\"',\n      `ffmpeg -y -f lavfi -i color=white:s=\\${REFW}x\\${REFH} -vf \"$FILTERS\" -frames:v 1 ${img}`\n    ] : [];\n\n    const ffmpegCmd = isKnitRender\n      ? `ffmpeg -y ${deviceArgs}-loop 1 -t \"$DUR\" -i ${img} -i temp/${docPrefix}${p}_audio.wav -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2${video.ffmpegVideoFilterSuffix}\" ${video.ffmpegVideoEncoderArgs} -c:a aac -b:a 192k temp/${docPrefix}${p}_clip.mp4`\n      : `ffmpeg -y ${deviceArgs}-loop 1 -t \"$DUR\" -i ${img} -i temp/${docPrefix}${p}_audio.wav -filter_complex \"[0:v]split[bg_src][fg_src];[bg_src]scale=iw*2:trunc(ih/2)*2,boxblur=20:3[bg];[fg_src]scale=trunc(iw/2)*2:trunc(ih/2)*2[fg];[bg][fg]overlay=(main_w-overlay_w)/2:0${video.ffmpegVideoFilterSuffix}[v]\" -map \"[v]\" -map 1:a ${video.ffmpegVideoEncoderArgs} -c:a aac -b:a 192k temp/${docPrefix}${p}_clip.mp4`;\n\n    return [\n      'set -e',\n      `export PATH=${$('Populate Variables').item.json.ffmpegPath}:$PATH`,\n      ...sampleImageCmds,\n      `DUR=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 temp/${docPrefix}${p}_audio.wav)`,\n      ffmpegCmd,\n      `(xattr -d com.apple.quarantine temp/${docPrefix}${p}_clip.mp4 2>/dev/null || true)`\n    ].join(' && ');\n  })() }}"
+              "value": "={{ (() => {\n    const isPage = $('Set Page Number').isExecuted;\n    const isChangeVoice = $('Set Change-Voice Page Number').isExecuted;\n    const isSample = $('Set Sample Voice Number').isExecuted;\n    const isNormalKnit = !isPage && !isChangeVoice && !isSample;\n    const isChangeVoiceKnit = isChangeVoice && $('Set Change-Voice Page Number').item.json.isKnit;\n    const isKnitRender = isNormalKnit || isChangeVoiceKnit;\n    const docPrefix = $('Set Doc Prefix').isExecuted ? $('Set Doc Prefix').item.json.docPrefix : (isSample ? ($('Populate Variables').item.json.sampleFolderName + '/') : ($('Set Document Folder').item.json.docFolder + '/'));\n    const left = isNormalKnit ? $('Page Knitting Configuration').item.json['⬅️ Left Page Number'] : null;\n    const right = isNormalKnit ? $('Page Knitting Configuration').item.json['Right Page Number ➡️'] : null;\n    const p = isNormalKnit\n      ? `${left}-${right}_knit`\n      : (isPage\n          ? $('Set Page Number').item.json.pageNumber\n          : (isChangeVoice\n              ? $('Set Change-Voice Page Number').item.json.fileBasename\n              : 'sample_' + $('Set Sample Voice Number').item.json.voiceId\n            )\n        );\n    const img = `temp/${docPrefix}${p}_image.png`;\n    const name = isSample ? $('Set Sample Voice Number').item.json.friendlyName : null;\n    const video = $('Select Mode').item.json.resolvedAcceleration === 'cpu' ? $('Configure Software Encoding').item.json : $('Store Video Encoding Configuration').item.json;\n    const deviceArgs = video.ffmpegHardwareDeviceArgs ? video.ffmpegHardwareDeviceArgs + ' ' : '';\n\n    const sampleImageCmds = isSample ? [\n      'REFW=1920',\n      'REFH=1080',\n      'FONTSIZE=$((REFH / 12))',\n      `NAME='${name}'`,\n      'NAMELEN=${#NAME}',\n      'CELLW=$(( (NAMELEN * FONTSIZE * 6 / 10) + FONTSIZE ))',\n      'CELLH=$(( FONTSIZE * 2 ))',\n      'COLS=$(( (REFW + CELLW - 1) / CELLW ))',\n      'ROWS=$(( (REFH + CELLH - 1) / CELLH ))',\n      'GRIDW=$((COLS * CELLW))',\n      'OFFSETX=$(( (REFW - GRIDW) / 2 ))',\n      'FILTERS=\"\"',\n      `for ((r=0; r<ROWS; r++)); do for ((c=0; c<COLS; c++)); do CELLX=$((OFFSETX + c*CELLW)); CELLY=$((r*CELLH)); FILTERS=\"\\${FILTERS}drawtext=text='\\${NAME}':fontcolor=black:fontsize=\\${FONTSIZE}:x=\\${CELLX}+(\\${CELLW}-text_w)/2:y=\\${CELLY}+(\\${CELLH}-text_h)/2,\"; done; done`,\n      'FILTERS=\"${FILTERS%,}\"',\n      `ffmpeg -y -f lavfi -i color=white:s=\\${REFW}x\\${REFH} -vf \"$FILTERS\" -frames:v 1 ${img}`\n    ] : [];\n\n    const ffmpegCmd = isKnitRender\n      ? `ffmpeg -y ${deviceArgs}-loop 1 -t \"$DUR\" -i ${img} -i temp/${docPrefix}${p}_audio.wav -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2${video.ffmpegVideoFilterSuffix}\" ${video.ffmpegVideoEncoderArgs} -c:a aac -b:a 192k temp/${docPrefix}${p}_clip.mp4`\n      : `ffmpeg -y ${deviceArgs}-loop 1 -t \"$DUR\" -i ${img} -i temp/${docPrefix}${p}_audio.wav -filter_complex \"[0:v]split[bg_src][fg_src];[bg_src]scale=iw*2:trunc(ih/2)*2,boxblur=20:3[bg];[fg_src]scale=trunc(iw/2)*2:trunc(ih/2)*2[fg];[bg][fg]overlay=(main_w-overlay_w)/2:0${video.ffmpegVideoFilterSuffix}[v]\" -map \"[v]\" -map 1:a ${video.ffmpegVideoEncoderArgs} -c:a aac -b:a 192k temp/${docPrefix}${p}_clip.mp4`;\n\n    return [\n      'set -e',\n      `export PATH=${$('Populate Variables').item.json.ffmpegPath}:$PATH`,\n      ...sampleImageCmds,\n      `DUR=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 temp/${docPrefix}${p}_audio.wav)`,\n      ffmpegCmd,\n      `(xattr -d com.apple.quarantine temp/${docPrefix}${p}_clip.mp4 2>/dev/null || true)`\n    ].join(' && ');\n  })() }}"
             }
           ]
         },
@@ -309,7 +309,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "={{ (() => {\n    const basename = $('Determine Output Basename').item.json.outputBasename;\n    const clipGlob = $('Determine Output Basename').item.json.tempClipGlob;\n    const chaptersFile = $('Determine Output Basename').item.json.chaptersFile;\n    const simple = $('Determine Output Basename').item.json.useSimpleConcat;\n    const docPrefix = simple ? 'sample/' : ($('Set Document Folder').item.json.docFolder + '/');\n    const tempDir = $('Populate Variables').item.json.tempDirRelative;\n    const outputDir = $('Populate Variables').item.json.outputDirRelative;\n    const video = $('Store Video Encoding Configuration').item.json;\n    const deviceArgs = video.ffmpegHardwareDeviceArgs ? video.ffmpegHardwareDeviceArgs + ' ' : '';\n\n    const sortedVoiceIds = $('Aggregate All Timestamps').item.json.pages\n      .map(x => x.data)\n      .filter(d => d.voiceId)\n      .sort((a, b) => (a.voiceId < b.voiceId ? -1 : (a.voiceId > b.voiceId ? 1 : 0)))\n      .map(d => d.voiceId);\n\n    const winningClipLines = (() => {\n      const allPages = $('Aggregate All Timestamps').item.json.pages.map(p => p.data);\n      const byRecency = allPages.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));\n      const claimedIndexes = new Set();\n      const winners = [];\n      for (const page of byRecency) {\n        const coveredIndexes = page.knitPages ? page.knitPages.map(Number) : [Number(page.pageIndex)];\n        if (coveredIndexes.some(index => claimedIndexes.has(index))) continue;\n        coveredIndexes.forEach(index => claimedIndexes.add(index));\n        winners.push(page);\n      }\n      winners.sort((a, b) => Math.min(...(a.knitPages ? a.knitPages.map(Number) : [a.pageIndex])) - Math.min(...(b.knitPages ? b.knitPages.map(Number) : [b.pageIndex])));\n      return winners.map(page => {\n        const base = page.knitPages ? page.knitPages.join('-') + '_knit' : String(page.pageIndex);\n        return `echo \"file '$PWD/${tempDir}/${docPrefix}${base}_clip.mp4'\" >> ${tempDir}/${docPrefix}${basename}_concat_list.txt`;\n      }).join(' && ');\n    })();\n\n    const concatListCheck = `[ -s ${tempDir}/${docPrefix}${basename}_concat_list.txt ] || { echo \"ERROR: concat list ${tempDir}/${docPrefix}${basename}_concat_list.txt is empty, no clips matched\" >&2; exit 1; }`;\n\n    const simpleCmds = [\n      `mkdir -p ${outputDir}`,\n      `: > ${tempDir}/${docPrefix}${basename}_concat_list.txt`,\n      ...sortedVoiceIds.map(id => `echo \"file '$PWD/${tempDir}/${docPrefix}sample_${id}_clip.mp4'\" >> ${tempDir}/${docPrefix}${basename}_concat_list.txt`),\n      concatListCheck,\n      `ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy -f mp4 ${outputDir}/${docPrefix}${basename}.mp4.tmp`,\n      `mv ${outputDir}/${docPrefix}${basename}.mp4.tmp ${outputDir}/${docPrefix}${basename}.mp4`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    const complexCmds = [\n      `mkdir -p ${tempDir}/${docPrefix} ${outputDir}/${docPrefix}`,\n      `: > ${tempDir}/${docPrefix}${basename}_concat_list.txt && ${winningClipLines}`,\n      concatListCheck,\n      'MAX_W=0',\n      `for f in ${tempDir}/${docPrefix}*_knit_clip.mp4; do [ -f \"$f\" ] || break; W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$f\" | head -1); if [ \"$W\" -gt \"$MAX_W\" ]; then MAX_W=$W; fi; done`,\n      `SINGLE=$(find ${tempDir}/${docPrefix} -maxdepth 1 -name \"${clipGlob}\" ! -name \"*_knit_clip.mp4\" | sort -V | head -1)`,\n      'if [ -n \"$SINGLE\" ]; then CLIP_W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$SINGLE\" | head -1); PAGE_W=$((CLIP_W/2)); if [ \"$PAGE_W\" -gt \"$MAX_W\" ]; then MAX_W=$PAGE_W; fi; else CLIP_W=$MAX_W; fi',\n      'TARGET_W=$MAX_W',\n      `if [ \"$CLIP_W\" -eq \"$TARGET_W\" ]; then ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy -f mp4 ${outputDir}/${docPrefix}${basename}.mp4.tmp; elif [ \"$CLIP_W\" -gt \"$TARGET_W\" ]; then X=$(( (CLIP_W - TARGET_W) / 2 )) && ffmpeg -y ${deviceArgs}-f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"crop=\\${TARGET_W}:ih:\\${X}:0${video.ffmpegVideoFilterSuffix}\" ${video.ffmpegFinalVideoEncoderArgs} -c:a copy -f mp4 ${outputDir}/${docPrefix}${basename}.mp4.tmp; else OX=$(( (TARGET_W - CLIP_W) / 2 )) && ffmpeg -y ${deviceArgs}-f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"split[bg][fg];[bg]scale=\\${TARGET_W}:ih,boxblur=20:3[bg_b];[fg][bg_b]overlay=\\${OX}:0${video.ffmpegVideoFilterSuffix}\" ${video.ffmpegFinalVideoEncoderArgs} -c:a copy -f mp4 ${outputDir}/${docPrefix}${basename}.mp4.tmp; fi`,\n      `mv ${outputDir}/${docPrefix}${basename}.mp4.tmp ${outputDir}/${docPrefix}${basename}.mp4`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    return ['set -e', `export PATH=${$('Populate Variables').item.json.ffmpegPath}:$PATH`, ...(simple ? simpleCmds : complexCmds)].join(' && ');\n  })() }}"
+              "value": "={{ (() => {\n    const basename = $('Determine Output Basename').item.json.outputBasename;\n    const clipGlob = $('Determine Output Basename').item.json.tempClipGlob;\n    const chaptersFile = $('Determine Output Basename').item.json.chaptersFile;\n    const simple = $('Determine Output Basename').item.json.useSimpleConcat;\n    const docPrefix = simple ? 'sample/' : ($('Set Document Folder').item.json.docFolder + '/');\n    const tempDir = $('Populate Variables').item.json.tempDirRelative;\n    const outputDir = $('Populate Variables').item.json.outputDirRelative;\n    const video = $('Select Mode').item.json.resolvedAcceleration === 'cpu' ? $('Configure Software Encoding').item.json : $('Store Video Encoding Configuration').item.json;\n    const deviceArgs = video.ffmpegHardwareDeviceArgs ? video.ffmpegHardwareDeviceArgs + ' ' : '';\n\n    const sortedVoiceIds = $('Aggregate All Timestamps').item.json.pages\n      .map(x => x.data)\n      .filter(d => d.voiceId)\n      .sort((a, b) => (a.voiceId < b.voiceId ? -1 : (a.voiceId > b.voiceId ? 1 : 0)))\n      .map(d => d.voiceId);\n\n    const winningClipLines = (() => {\n      const allPages = $('Aggregate All Timestamps').item.json.pages.map(p => p.data);\n      const byRecency = allPages.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));\n      const claimedIndexes = new Set();\n      const winners = [];\n      for (const page of byRecency) {\n        const coveredIndexes = page.knitPages ? page.knitPages.map(Number) : [Number(page.pageIndex)];\n        if (coveredIndexes.some(index => claimedIndexes.has(index))) continue;\n        coveredIndexes.forEach(index => claimedIndexes.add(index));\n        winners.push(page);\n      }\n      winners.sort((a, b) => Math.min(...(a.knitPages ? a.knitPages.map(Number) : [a.pageIndex])) - Math.min(...(b.knitPages ? b.knitPages.map(Number) : [b.pageIndex])));\n      return winners.map(page => {\n        const base = page.knitPages ? page.knitPages.join('-') + '_knit' : String(page.pageIndex);\n        return `echo \"file '$PWD/${tempDir}/${docPrefix}${base}_clip.mp4'\" >> ${tempDir}/${docPrefix}${basename}_concat_list.txt`;\n      }).join(' && ');\n    })();\n\n    const concatListCheck = `[ -s ${tempDir}/${docPrefix}${basename}_concat_list.txt ] || { echo \"ERROR: concat list ${tempDir}/${docPrefix}${basename}_concat_list.txt is empty, no clips matched\" >&2; exit 1; }`;\n\n    const simpleCmds = [\n      `mkdir -p ${outputDir}`,\n      `: > ${tempDir}/${docPrefix}${basename}_concat_list.txt`,\n      ...sortedVoiceIds.map(id => `echo \"file '$PWD/${tempDir}/${docPrefix}sample_${id}_clip.mp4'\" >> ${tempDir}/${docPrefix}${basename}_concat_list.txt`),\n      concatListCheck,\n      `ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy -f mp4 ${outputDir}/${docPrefix}${basename}.mp4.tmp`,\n      `mv ${outputDir}/${docPrefix}${basename}.mp4.tmp ${outputDir}/${docPrefix}${basename}.mp4`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    const complexCmds = [\n      `mkdir -p ${tempDir}/${docPrefix} ${outputDir}/${docPrefix}`,\n      `: > ${tempDir}/${docPrefix}${basename}_concat_list.txt && ${winningClipLines}`,\n      concatListCheck,\n      'MAX_W=0',\n      `for f in ${tempDir}/${docPrefix}*_knit_clip.mp4; do [ -f \"$f\" ] || break; W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$f\" | head -1); if [ \"$W\" -gt \"$MAX_W\" ]; then MAX_W=$W; fi; done`,\n      `SINGLE=$(find ${tempDir}/${docPrefix} -maxdepth 1 -name \"${clipGlob}\" ! -name \"*_knit_clip.mp4\" | sort -V | head -1)`,\n      'if [ -n \"$SINGLE\" ]; then CLIP_W=$(ffprobe -v quiet -show_entries stream=width -of csv=p=0 \"$SINGLE\" | head -1); PAGE_W=$((CLIP_W/2)); if [ \"$PAGE_W\" -gt \"$MAX_W\" ]; then MAX_W=$PAGE_W; fi; else CLIP_W=$MAX_W; fi',\n      'TARGET_W=$MAX_W',\n      `if [ \"$CLIP_W\" -eq \"$TARGET_W\" ]; then ffmpeg -y -f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -c copy -f mp4 ${outputDir}/${docPrefix}${basename}.mp4.tmp; elif [ \"$CLIP_W\" -gt \"$TARGET_W\" ]; then X=$(( (CLIP_W - TARGET_W) / 2 )) && ffmpeg -y ${deviceArgs}-f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"crop=\\${TARGET_W}:ih:\\${X}:0${video.ffmpegVideoFilterSuffix}\" ${video.ffmpegFinalVideoEncoderArgs} -c:a copy -f mp4 ${outputDir}/${docPrefix}${basename}.mp4.tmp; else OX=$(( (TARGET_W - CLIP_W) / 2 )) && ffmpeg -y ${deviceArgs}-f concat -safe 0 -i ${tempDir}/${docPrefix}${basename}_concat_list.txt -i ${tempDir}/${docPrefix}${chaptersFile} -map_metadata 1 -vf \"split[bg][fg];[bg]scale=\\${TARGET_W}:ih,boxblur=20:3[bg_b];[fg][bg_b]overlay=\\${OX}:0${video.ffmpegVideoFilterSuffix}\" ${video.ffmpegFinalVideoEncoderArgs} -c:a copy -f mp4 ${outputDir}/${docPrefix}${basename}.mp4.tmp; fi`,\n      `mv ${outputDir}/${docPrefix}${basename}.mp4.tmp ${outputDir}/${docPrefix}${basename}.mp4`,\n      `(xattr -d com.apple.quarantine \"$PWD/${outputDir}/${docPrefix}${basename}.mp4\" 2>/dev/null || true)`\n    ];\n\n    return ['set -e', `export PATH=${$('Populate Variables').item.json.ffmpegPath}:$PATH`, ...(simple ? simpleCmds : complexCmds)].join(' && ');\n  })() }}"
             }
           ]
         },
@@ -749,7 +749,7 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n    path: \"/dev/captioned_speech\",\n    body: {\n      model: \"kokoro\",\n      voice: $('Set Sample Voice Number').isExecuted\n        ? $('Set Sample Voice Number').item.json.voiceId\n        : ($('Set Knit Page Number').isExecuted\n            ? $('Set Knit Page Number').item.json.voice\n            : ($('Set Default Voice').isExecuted\n                ? $('Set Default Voice').item.json.voice\n                : ((Object.keys($('Read Default Voice').item.binary || {}).length > 0)\n                    ? $('Extract Default Voice').item.json.text.trim()\n                    : $('Populate Variables').item.json.defaultFallbackVoice)\n              )\n          ),\n      lang_code: \"a\",\n      input: JSON.parse($json.text).text,\n      response_format: \"wav\",\n      return_timestamps: true,\n      stream: false,\n      allow_voice_tags: true\n    }\n  }) }}",
+        "jsonBody": "={{ JSON.stringify({\n    path: \"/dev/captioned_speech\",\n    useCpuKokoro: $('Select Mode').item.json.resolvedAcceleration === 'cpu',\n    body: {\n      model: \"kokoro\",\n      voice: $('Set Sample Voice Number').isExecuted\n        ? $('Set Sample Voice Number').item.json.voiceId\n        : ($('Set Knit Page Number').isExecuted\n            ? $('Set Knit Page Number').item.json.voice\n            : ($('Set Default Voice').isExecuted\n                ? $('Set Default Voice').item.json.voice\n                : ((Object.keys($('Read Default Voice').item.binary || {}).length > 0)\n                    ? $('Extract Default Voice').item.json.text.trim()\n                    : $('Populate Variables').item.json.defaultFallbackVoice)\n              )\n          ),\n      lang_code: \"a\",\n      input: JSON.parse($('Extract Normalized Transcription from Text File').item.json.text).text,\n      response_format: \"wav\",\n      return_timestamps: true,\n      stream: false,\n      allow_voice_tags: true\n    }\n  }) }}",
         "options": {
           "batching": {
             "batch": {
@@ -2599,7 +2599,7 @@
     {
       "parameters": {
         "defineForm": "json",
-        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"Which engine and model should transcribe document pages?\",\n    fieldName: \"engineModel\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: (() => {\n        const opts = [];\n        const ollama = $('Fetch Ollama Models').isExecuted ? $('Fetch Ollama Models').item.json : null;\n        if (ollama && ollama.models && ollama.models.length) {\n          ollama.models.forEach(m => opts.push({ option: \"🦙 Local Gemma (Ollama) - \" + m }));\n        }\n        const claude = $('Fetch Claude Models').isExecuted ? $('Fetch Claude Models').item.json : null;\n        const claudeReleases = (claude && claude.result && claude.result.releases) ? claude.result.releases.filter(x => x.isMaintained).map(x => x.name) : null;\n        if (claudeReleases && claudeReleases.length) {\n          claudeReleases.forEach(m => opts.push({ option: \"🟣 Claude Code - \" + m }));\n        }\n        const codex = $('Fetch Codex Models').isExecuted ? $('Fetch Codex Models').item.json : null;\n        if (codex && codex.models && codex.models.length) {\n          codex.models.forEach(m => opts.push({ option: \"⚪ OpenAI Codex - \" + m }));\n        }\n        return opts;\n      })()\n    },\n    requiredField: true,\n    defaultValue: ($('Carry Forward Previous Answers').isExecuted ? $('Carry Forward Previous Answers').item.json.prevEngineModel : undefined)\n  },\n  {\n    fieldLabel: \"Select Mode\",\n    fieldName: \"Select Mode\",\n    fieldType: \"radio\",\n    fieldOptions: {\n      values: [\n        { option: $('Populate Variables').item.json.modeNewConversion },\n        { option: $('Populate Variables').item.json.modeContinue },\n        { option: $('Populate Variables').item.json.modeKnit },\n        { option: $('Populate Variables').item.json.modeChangeVoice },\n        { option: $('Populate Variables').item.json.modeSample }\n      ]\n    },\n    requiredField: true,\n    defaultValue: ($('Carry Forward Previous Answers').isExecuted ? $('Carry Forward Previous Answers').item.json.prevMode : undefined)\n  },\n  {\n    fieldLabel: \"🔁🧶🎙️ Which document? (Continue, Knit, Change Voice only)\",\n    fieldName: \"document\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: $('Aggregate Document List').item.json.documents.filter(d => d.doc && d.doc.docFolder).map(d => ({ option: d.doc.originalFilename }))\n    },\n    defaultValue: ($('Carry Forward Previous Answers').isExecuted ? $('Carry Forward Previous Answers').item.json.prevDocument : undefined)\n  },\n  {\n    fieldLabel: \"🔊 Sample Video only: phrase for the voice to say\",\n    fieldName: \"samplePhrase\",\n    fieldType: \"textarea\",\n    defaultValue: ($('Carry Forward Previous Answers').isExecuted ? $('Carry Forward Previous Answers').item.json.prevSamplePhrase : \"This is what {voice} sounds like. The North Wind and the Sun were disputing which was the stronger, when a traveler came along wrapped in a warm cloak. They agreed that the one who first succeeded in making the traveler take his cloak off should be considered stronger than the other. Then the North Wind blew as hard as he could, but the more he blew the more closely did the traveler fold his cloak around him; and at last the North Wind gave up the attempt. Then the Sun shone out warmly, and immediately the traveler took off his cloak. And so the North Wind was obliged to confess that the Sun was the stronger of the two.\")\n  }\n] }}",
+        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"Which engine and model should transcribe document pages?\",\n    fieldName: \"engineModel\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: (() => {\n        const opts = [];\n        const ollama = $('Fetch Ollama Models').isExecuted ? $('Fetch Ollama Models').item.json : null;\n        if (ollama && ollama.models && ollama.models.length) {\n          ollama.models.forEach(m => opts.push({ option: \"🦙 Local Gemma (Ollama) - \" + m }));\n        }\n        const claude = $('Fetch Claude Models').isExecuted ? $('Fetch Claude Models').item.json : null;\n        const claudeReleases = (claude && claude.result && claude.result.releases) ? claude.result.releases.filter(x => x.isMaintained).map(x => x.name) : null;\n        if (claudeReleases && claudeReleases.length) {\n          claudeReleases.forEach(m => opts.push({ option: \"🟣 Claude Code - \" + m }));\n        }\n        const codex = $('Fetch Codex Models').isExecuted ? $('Fetch Codex Models').item.json : null;\n        if (codex && codex.models && codex.models.length) {\n          codex.models.forEach(m => opts.push({ option: \"⚪ OpenAI Codex - \" + m }));\n        }\n        return opts;\n      })()\n    },\n    requiredField: true,\n    defaultValue: ($('Carry Forward Previous Answers').isExecuted ? $('Carry Forward Previous Answers').item.json.prevEngineModel : undefined)\n  },\n  {\n    fieldLabel: \"Which hardware should process this conversion?\",\n    fieldName: \"acceleration\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: [\n        { option: \"Use platform default\" },\n        { option: \"Automatic\" },\n        { option: \"CPU\" }\n      ]\n    },\n    requiredField: true,\n    defaultValue: ($('Carry Forward Previous Answers').isExecuted ? $('Carry Forward Previous Answers').item.json.prevAcceleration : \"Use platform default\")\n  },\n  {\n    fieldLabel: \"Select Mode\",\n    fieldName: \"Select Mode\",\n    fieldType: \"radio\",\n    fieldOptions: {\n      values: [\n        { option: $('Populate Variables').item.json.modeNewConversion },\n        { option: $('Populate Variables').item.json.modeContinue },\n        { option: $('Populate Variables').item.json.modeKnit },\n        { option: $('Populate Variables').item.json.modeChangeVoice },\n        { option: $('Populate Variables').item.json.modeSample }\n      ]\n    },\n    requiredField: true,\n    defaultValue: ($('Carry Forward Previous Answers').isExecuted ? $('Carry Forward Previous Answers').item.json.prevMode : undefined)\n  },\n  {\n    fieldLabel: \"🔁🧶🎙️ Which document? (Continue, Knit, Change Voice only)\",\n    fieldName: \"document\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: $('Aggregate Document List').item.json.documents.filter(d => d.doc && d.doc.docFolder).map(d => ({ option: d.doc.originalFilename }))\n    },\n    defaultValue: ($('Carry Forward Previous Answers').isExecuted ? $('Carry Forward Previous Answers').item.json.prevDocument : undefined)\n  },\n  {\n    fieldLabel: \"🔊 Sample Video only: phrase for the voice to say\",\n    fieldName: \"samplePhrase\",\n    fieldType: \"textarea\",\n    defaultValue: ($('Carry Forward Previous Answers').isExecuted ? $('Carry Forward Previous Answers').item.json.prevSamplePhrase : \"This is what {voice} sounds like. The North Wind and the Sun were disputing which was the stronger, when a traveler came along wrapped in a warm cloak. They agreed that the one who first succeeded in making the traveler take his cloak off should be considered stronger than the other. Then the North Wind blew as hard as he could, but the more he blew the more closely did the traveler fold his cloak around him; and at last the North Wind gave up the attempt. Then the Sun shone out warmly, and immediately the traveler took off his cloak. And so the North Wind was obliged to confess that the Sun was the stronger of the two.\")\n  }\n] }}",
         "options": {}
       },
       "id": "acce9165-d58d-4f15-9ea4-1b95bf19e3b1",
@@ -3620,14 +3620,6 @@
       ]
     },
     {
-      "id": "d0691af2-9098-4bec-b7aa-e632e7d88be1",
-      "name": "Set Transcription Engine",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -10336,
-        -32
-      ],
       "parameters": {
         "assignments": {
           "assignments": [
@@ -3644,18 +3636,19 @@
               "type": "string"
             }
           ]
-        }
-      }
+        },
+        "options": {}
+      },
+      "id": "d0691af2-9098-4bec-b7aa-e632e7d88be1",
+      "name": "Set Transcription Engine",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -10336,
+        -32
+      ]
     },
     {
-      "id": "09530317-db43-4a1e-8f68-1e4abf8fc804",
-      "name": "Fetch Ollama Models",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.3,
-      "position": [
-        -9888,
-        -112
-      ],
       "parameters": {
         "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/ollama-models",
         "authentication": "genericCredentialType",
@@ -3668,23 +3661,23 @@
           }
         }
       },
-      "onError": "continueRegularOutput",
+      "id": "09530317-db43-4a1e-8f68-1e4abf8fc804",
+      "name": "Fetch Ollama Models",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -9888,
+        -112
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "dT2rDdHX1TfPrVi1",
           "name": "D2V Webhook Shared Secret"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
-      "id": "e4288a06-9f3d-4fed-b887-d06d523c4029",
-      "name": "Set Transcription Model",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -9216,
-        -32
-      ],
       "parameters": {
         "assignments": {
           "assignments": [
@@ -3695,18 +3688,19 @@
               "type": "string"
             }
           ]
-        }
-      }
+        },
+        "options": {}
+      },
+      "id": "e4288a06-9f3d-4fed-b887-d06d523c4029",
+      "name": "Set Transcription Model",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -9216,
+        -32
+      ]
     },
     {
-      "id": "342db9c8-3fc8-46f6-9101-4eed9608a5a0",
-      "name": "Fetch Claude Models",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.3,
-      "position": [
-        -9888,
-        -272
-      ],
       "parameters": {
         "url": "https://endoflife.date/api/v1/products/claude/",
         "options": {
@@ -3717,17 +3711,17 @@
           }
         }
       },
-      "onError": "continueRegularOutput"
-    },
-    {
-      "id": "725b3b26-b5cb-4b6e-88c4-6fa2fe0e4a55",
-      "name": "Fetch Codex Models",
+      "id": "342db9c8-3fc8-46f6-9101-4eed9608a5a0",
+      "name": "Fetch Claude Models",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
         -9888,
-        -32
+        -272
       ],
+      "onError": "continueRegularOutput"
+    },
+    {
       "parameters": {
         "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/codex-models",
         "authentication": "genericCredentialType",
@@ -3740,23 +3734,23 @@
           }
         }
       },
-      "onError": "continueRegularOutput",
+      "id": "725b3b26-b5cb-4b6e-88c4-6fa2fe0e4a55",
+      "name": "Fetch Codex Models",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -9888,
+        -32
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "dT2rDdHX1TfPrVi1",
           "name": "D2V Webhook Shared Secret"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
-      "id": "6b205559-ae2e-4afb-8066-f12e5af481ff",
-      "name": "Detect Video Encoder Support",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        -11568,
-        -288
-      ],
       "parameters": {
         "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/clip",
         "authentication": "genericCredentialType",
@@ -3766,7 +3760,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "={{ 'export PATH=' + $('Populate Variables').item.json.ffmpegPath + ':$PATH; ( [ -c /dev/dri/renderD128 ] && ffmpeg -hide_banner -loglevel error -y -vaapi_device /dev/dri/renderD128 -f lavfi -i color=black:s=64x64:d=0.05 -vf format=nv12,hwupload -frames:v 1 -c:v h264_vaapi -f null - ) >/dev/null 2>&1 && printf \"vaapi=available\\\\n\" || printf \"vaapi=unavailable\\\\n\"; ffmpeg -hide_banner -loglevel error -y -f lavfi -i color=black:s=64x64:d=0.05 -frames:v 1 -c:v h264_videotoolbox -f null - >/dev/null 2>&1 && printf \"videotoolbox=available\\\\n\" || printf \"videotoolbox=unavailable\\\\n\"' }}"
+              "value": "={{ 'export PATH=' + $('Populate Variables').item.json.ffmpegPath + ':$PATH; ( [ -c /dev/dri/renderD128 ] && ffmpeg -hide_banner -loglevel error -y -vaapi_device /dev/dri/renderD128 -f lavfi -i color=black:s=64x64:d=0.05 -vf format=nv12,hwupload -frames:v 1 -c:v h264_vaapi -f null - ) >/dev/null 2>&1 && printf \"vaapi=available\\\\n\" || printf \"vaapi=unavailable\\\\n\"; ffmpeg -hide_banner -loglevel error -y -f lavfi -i color=black:s=64x64:d=0.05 -frames:v 1 -c:v h264_videotoolbox -f null - >/dev/null 2>&1 && printf \"videotoolbox=available\\\\n\" || printf \"videotoolbox=unavailable\\\\n\"; ffmpeg -hide_banner -loglevel error -y -f lavfi -i color=black:s=64x64:d=0.05 -frames:v 1 -c:v h264_nvenc -f null - >/dev/null 2>&1 && printf \"nvenc=available\\\\n\" || printf \"nvenc=unavailable\\\\n\"' }}"
             }
           ]
         },
@@ -3774,6 +3768,14 @@
           "timeout": 30000
         }
       },
+      "id": "6b205559-ae2e-4afb-8066-f12e5af481ff",
+      "name": "Detect Video Encoder Support",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -11568,
+        -288
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "dT2rDdHX1TfPrVi1",
@@ -3782,16 +3784,7 @@
       }
     },
     {
-      "id": "57e3bebe-7be4-41db-a534-974d7c39ac2d",
-      "name": "Route Video Encoder",
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.4,
-      "position": [
-        -11344,
-        -288
-      ],
       "parameters": {
-        "mode": "rules",
         "rules": {
           "values": [
             {
@@ -3843,6 +3836,31 @@
               },
               "renameOutput": true,
               "outputKey": "VideoToolbox"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "encoder-nvenc-capability",
+                    "leftValue": "={{ $json.stdout.includes('nvenc=available') }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "NVENC"
             }
           ]
         },
@@ -3850,19 +3868,18 @@
           "fallbackOutput": "extra",
           "renameFallbackOutput": "Software"
         }
-      }
+      },
+      "id": "57e3bebe-7be4-41db-a534-974d7c39ac2d",
+      "name": "Route Video Encoder",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -11344,
+        -288
+      ]
     },
     {
-      "id": "63881f19-7ff1-4921-8e5a-e1ee7094189d",
-      "name": "Configure VA-API Encoding",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.5,
-      "position": [
-        -11120,
-        -448
-      ],
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -3899,19 +3916,18 @@
         },
         "includeOtherFields": true,
         "options": {}
-      }
-    },
-    {
-      "id": "459f2bf0-35b3-4189-af66-6ebc16c8f205",
-      "name": "Configure VideoToolbox Encoding",
+      },
+      "id": "63881f19-7ff1-4921-8e5a-e1ee7094189d",
+      "name": "Configure VA-API Encoding",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
         -11120,
-        -288
-      ],
+        -448
+      ]
+    },
+    {
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -3948,19 +3964,18 @@
         },
         "includeOtherFields": true,
         "options": {}
-      }
-    },
-    {
-      "id": "66dfebb0-e576-404b-baa6-7028b63802e8",
-      "name": "Configure Software Encoding",
+      },
+      "id": "459f2bf0-35b3-4189-af66-6ebc16c8f205",
+      "name": "Configure VideoToolbox Encoding",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
         -11120,
-        -128
-      ],
+        -288
+      ]
+    },
+    {
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -3997,19 +4012,18 @@
         },
         "includeOtherFields": true,
         "options": {}
-      }
-    },
-    {
-      "id": "a384ed17-49c2-4da2-8309-4f3ffc45c949",
-      "name": "Store Video Encoding Configuration",
+      },
+      "id": "66dfebb0-e576-404b-baa6-7028b63802e8",
+      "name": "Configure Software Encoding",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -10896,
-        -288
-      ],
+        -11120,
+        -128
+      ]
+    },
+    {
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -4046,17 +4060,17 @@
         },
         "includeOtherFields": true,
         "options": {}
-      }
+      },
+      "id": "a384ed17-49c2-4da2-8309-4f3ffc45c949",
+      "name": "Store Video Encoding Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -10896,
+        -288
+      ]
     },
     {
-      "id": "35ee5d6a-4c8f-4921-ace6-bad64c2de7ec",
-      "name": "Document Required For This Mode?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -10672,
-        96
-      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -4090,17 +4104,17 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "35ee5d6a-4c8f-4921-ace6-bad64c2de7ec",
+      "name": "Document Required For This Mode?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -10672,
+        96
+      ]
     },
     {
-      "id": "1eff5ca9-c147-4540-a9b4-3204d81aaa37",
-      "name": "Error Message [\"Document Required\"]",
-      "type": "n8n-nodes-base.form",
-      "typeVersion": 2.5,
-      "position": [
-        -9552,
-        450
-      ],
       "parameters": {
         "formFields": {
           "values": []
@@ -4109,17 +4123,17 @@
           "formDescription": "Please select a document to continue. Click Submit below to go back and choose one."
         }
       },
-      "webhookId": "d861e662-2ea0-4d6f-8360-19782fb6376e"
+      "id": "1eff5ca9-c147-4540-a9b4-3204d81aaa37",
+      "name": "Error Message [\"Document Required\"]",
+      "webhookId": "d861e662-2ea0-4d6f-8360-19782fb6376e",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.5,
+      "position": [
+        -9552,
+        464
+      ]
     },
     {
-      "id": "afebf543-896e-4d0d-9b55-28bc671674e3",
-      "name": "Carry Forward Previous Answers",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        -10500,
-        300
-      ],
       "parameters": {
         "assignments": {
           "assignments": [
@@ -4146,21 +4160,27 @@
               "name": "prevSamplePhrase",
               "value": "={{ $('Select Mode').item.json.samplePhrase }}",
               "type": "string"
+            },
+            {
+              "id": "cfpa-5",
+              "name": "prevAcceleration",
+              "value": "={{ ({ platformDefault: 'Use platform default', automatic: 'Automatic', cpu: 'CPU' })[$('Select Mode').item.json.acceleration] }}",
+              "type": "string"
             }
           ]
         },
         "options": {}
-      }
+      },
+      "id": "afebf543-896e-4d0d-9b55-28bc671674e3",
+      "name": "Carry Forward Previous Answers",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -10496,
+        304
+      ]
     },
     {
-      "id": "6451f073-e748-4a53-a1ea-df5c76190b83",
-      "name": "Preserve PDF Binary",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.5,
-      "position": [
-        -8944,
-        832
-      ],
       "parameters": {
         "assignments": {
           "assignments": [
@@ -4174,9 +4194,22 @@
         },
         "includeOtherFields": true,
         "options": {}
-      }
+      },
+      "id": "6451f073-e748-4a53-a1ea-df5c76190b83",
+      "name": "Preserve PDF Binary",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -8944,
+        832
+      ]
     },
     {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
       "id": "6724ea5c-9848-40ec-9634-d0403604fad0",
       "name": "Merge PDF Binary Before Save",
       "type": "n8n-nodes-base.merge",
@@ -4184,25 +4217,10 @@
       "position": [
         -10976,
         832
-      ],
-      "parameters": {
-        "mode": "combine",
-        "combineBy": "combineByPosition",
-        "options": {}
-      }
+      ]
     },
     {
-      "id": "aae715ac-7fd9-4ef0-9b9c-fc477adf678c",
-      "name": "Select Mode",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.5,
-      "position": [
-        -11568,
-        250
-      ],
       "parameters": {
-        "mode": "manual",
-        "includeOtherFields": false,
         "assignments": {
           "assignments": [
             {
@@ -4228,23 +4246,34 @@
               "name": "samplePhrase",
               "type": "string",
               "value": "={{ $('Receive Headless API Request').isExecuted ? $('Receive Headless API Request').item.json.body.samplePhrase : $json.samplePhrase }}"
+            },
+            {
+              "id": "hl-sm-5",
+              "name": "acceleration",
+              "type": "string",
+              "value": "={{ $('Receive Headless API Request').isExecuted ? ($('Receive Headless API Request').item.json.body.acceleration || 'platformDefault') : ({ 'Use platform default': 'platformDefault', 'Automatic': 'automatic', 'CPU': 'cpu' })[$json.acceleration] }}"
+            },
+            {
+              "id": "hl-sm-6",
+              "name": "resolvedAcceleration",
+              "type": "string",
+              "value": "={{ (() => { const preference = $('Receive Headless API Request').isExecuted ? ($('Receive Headless API Request').item.json.body.acceleration || 'platformDefault') : ({ 'Use platform default': 'platformDefault', 'Automatic': 'automatic', 'CPU': 'cpu' })[$json.acceleration]; if (preference !== 'platformDefault') return preference; const platformDefault = ($('Read Platform Default Acceleration').item.json.stdout || '').trim(); return platformDefault === 'cpu' ? 'cpu' : 'automatic'; })() }}"
             }
           ]
-        }
-      }
-    },
-    {
-      "id": "ab384d6a-4942-48c8-bd93-28e8f4434904",
-      "name": "Select Default Voice",
+        },
+        "options": {}
+      },
+      "id": "aae715ac-7fd9-4ef0-9b9c-fc477adf678c",
+      "name": "Select Mode",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -8944,
-        900
-      ],
+        -11568,
+        256
+      ]
+    },
+    {
       "parameters": {
-        "mode": "manual",
-        "includeOtherFields": false,
         "assignments": {
           "assignments": [
             {
@@ -4260,21 +4289,20 @@
               "value": "={{ $binary[Object.keys($binary)[0]] }}"
             }
           ]
-        }
-      }
-    },
-    {
-      "id": "15b36e34-3b9a-4d59-bc72-17242380f4ac",
-      "name": "Page Knitting Configuration",
+        },
+        "options": {}
+      },
+      "id": "ab384d6a-4942-48c8-bd93-28e8f4434904",
+      "name": "Select Default Voice",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -12208,
-        1700
-      ],
+        -8944,
+        912
+      ]
+    },
+    {
       "parameters": {
-        "mode": "manual",
-        "includeOtherFields": false,
         "assignments": {
           "assignments": [
             {
@@ -4296,21 +4324,20 @@
               "value": "={{ $('Receive Headless API Request').isExecuted ? $('Receive Headless API Request').item.json.body.voice : $json.voice }}"
             }
           ]
-        }
-      }
-    },
-    {
-      "id": "f12d565f-a290-44ab-977c-42251e9410b1",
-      "name": "Change Voice Configuration",
+        },
+        "options": {}
+      },
+      "id": "15b36e34-3b9a-4d59-bc72-17242380f4ac",
+      "name": "Page Knitting Configuration",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -12160,
-        1830
-      ],
+        -12208,
+        1712
+      ]
+    },
+    {
       "parameters": {
-        "mode": "manual",
-        "includeOtherFields": false,
         "assignments": {
           "assignments": [
             {
@@ -4332,21 +4359,20 @@
               "value": "={{ $('Receive Headless API Request').isExecuted ? ({ wholePage: 'The entire page (starts converting right away)', selectedText: 'Selected text (continue to the next page to choose the exact words)' })[$('Receive Headless API Request').item.json.body.target] : $json.target }}"
             }
           ]
-        }
-      }
-    },
-    {
-      "id": "d667bff0-07bf-4f8f-8061-f830a06d9818",
-      "name": "Change Voice Text Selection",
+        },
+        "options": {}
+      },
+      "id": "f12d565f-a290-44ab-977c-42251e9410b1",
+      "name": "Change Voice Configuration",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.5,
       "position": [
-        -11712,
-        1830
-      ],
+        -12160,
+        1840
+      ]
+    },
+    {
       "parameters": {
-        "mode": "manual",
-        "includeOtherFields": false,
         "assignments": {
           "assignments": [
             {
@@ -4356,18 +4382,19 @@
               "value": "={{ $('Receive Headless API Request').isExecuted ? $('Receive Headless API Request').item.json.body.textToChange : $json.textToChange }}"
             }
           ]
-        }
-      }
+        },
+        "options": {}
+      },
+      "id": "d667bff0-07bf-4f8f-8061-f830a06d9818",
+      "name": "Change Voice Text Selection",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -11712,
+        1840
+      ]
     },
     {
-      "id": "7d867dbf-f67f-4ce8-ae8e-1022b8b3accb",
-      "name": "Receive Headless API Request",
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2.2,
-      "position": [
-        -12240,
-        2200
-      ],
       "parameters": {
         "httpMethod": "POST",
         "path": "d2v-headless",
@@ -4375,7 +4402,6 @@
         "responseMode": "responseNode",
         "options": {
           "binaryPropertyName": "data",
-          "responseData": "={{ $json.body.mode }}",
           "responseHeaders": {
             "entries": [
               {
@@ -4386,7 +4412,15 @@
           }
         }
       },
+      "id": "7d867dbf-f67f-4ce8-ae8e-1022b8b3accb",
+      "name": "Receive Headless API Request",
       "webhookId": "62d563c5-f2ab-4fa3-8529-dd52c60e00a2",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        -12240,
+        2208
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "dT2rDdHX1TfPrVi1",
@@ -4395,14 +4429,6 @@
       }
     },
     {
-      "id": "2cf0503b-38da-46ba-b392-ff50dd209dcb",
-      "name": "Is Headless Request?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -9500,
-        200
-      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -4425,17 +4451,17 @@
           "combinator": "and"
         },
         "options": {}
-      }
-    },
-    {
-      "id": "0cf071ab-39a5-4fca-849a-6c406921ab6c",
-      "name": "Is Headless Request (Voice Page)?",
+      },
+      "id": "2cf0503b-38da-46ba-b392-ff50dd209dcb",
+      "name": "Is Headless Request?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -7900,
-        -200
-      ],
+        -9504,
+        208
+      ]
+    },
+    {
       "parameters": {
         "conditions": {
           "options": {
@@ -4458,17 +4484,17 @@
           "combinator": "and"
         },
         "options": {}
-      }
-    },
-    {
-      "id": "66d5c1d6-2814-4df5-b849-4d5dedcfadf0",
-      "name": "Is Headless Request (Knit Page)?",
+      },
+      "id": "0cf071ab-39a5-4fca-849a-6c406921ab6c",
+      "name": "Is Headless Request (Voice Page)?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -7900,
-        0
-      ],
+        -7904,
+        -208
+      ]
+    },
+    {
       "parameters": {
         "conditions": {
           "options": {
@@ -4491,17 +4517,17 @@
           "combinator": "and"
         },
         "options": {}
-      }
-    },
-    {
-      "id": "804c8c2e-b8e8-46fb-9e45-c3281a393308",
-      "name": "Is Headless Request (Change Voice Page)?",
+      },
+      "id": "66d5c1d6-2814-4df5-b849-4d5dedcfadf0",
+      "name": "Is Headless Request (Knit Page)?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -7900,
-        200
-      ],
+        -7904,
+        0
+      ]
+    },
+    {
       "parameters": {
         "conditions": {
           "options": {
@@ -4524,17 +4550,17 @@
           "combinator": "and"
         },
         "options": {}
-      }
-    },
-    {
-      "id": "d1b74b8c-f27a-4414-bc21-5f0d07e1ed27",
-      "name": "Is Headless Request (Change Voice Text)?",
+      },
+      "id": "804c8c2e-b8e8-46fb-9e45-c3281a393308",
+      "name": "Is Headless Request (Change Voice Page)?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -7900,
-        400
-      ],
+        -7904,
+        208
+      ]
+    },
+    {
       "parameters": {
         "conditions": {
           "options": {
@@ -4557,17 +4583,17 @@
           "combinator": "and"
         },
         "options": {}
-      }
-    },
-    {
-      "id": "5e823013-a4be-481d-b6ea-8b12266fd2dc",
-      "name": "Is Headless (No PDF File)?",
+      },
+      "id": "d1b74b8c-f27a-4414-bc21-5f0d07e1ed27",
+      "name": "Is Headless Request (Change Voice Text)?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        -7088,
-        -100
-      ],
+        -7904,
+        400
+      ]
+    },
+    {
       "parameters": {
         "conditions": {
           "options": {
@@ -4590,31 +4616,30 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "5e823013-a4be-481d-b6ea-8b12266fd2dc",
+      "name": "Is Headless (No PDF File)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -7088,
+        -96
+      ]
     },
     {
+      "parameters": {
+        "errorMessage": "No PDF file was found for this document."
+      },
       "id": "9e8915de-a7f6-40a0-8c68-faad25dba52a",
       "name": "Fail: No PDF File Found",
       "type": "n8n-nodes-base.stopAndError",
       "typeVersion": 1,
       "position": [
         -7088,
-        -250
-      ],
-      "parameters": {
-        "errorType": "errorMessage",
-        "errorMessage": "No PDF file was found for this document."
-      }
+        -256
+      ]
     },
     {
-      "id": "2ce1e062-c545-45ea-a005-ecc0fc98c0b7",
-      "name": "Is Headless (No Documents)?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -9552,
-        130
-      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -4637,31 +4662,30 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "2ce1e062-c545-45ea-a005-ecc0fc98c0b7",
+      "name": "Is Headless (No Documents)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -9552,
+        144
+      ]
     },
     {
+      "parameters": {
+        "errorMessage": "No documents have been uploaded yet."
+      },
       "id": "db6f5ddb-8340-4dd3-945e-32828f1ff6f3",
       "name": "Fail: No Documents Found",
       "type": "n8n-nodes-base.stopAndError",
       "typeVersion": 1,
       "position": [
         -9552,
-        -20
-      ],
-      "parameters": {
-        "errorType": "errorMessage",
-        "errorMessage": "No documents have been uploaded yet."
-      }
+        -16
+      ]
     },
     {
-      "id": "b8c5198b-766c-41d4-9155-6e2a9bcc05aa",
-      "name": "Is Headless (Document Required)?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -9552,
-        600
-      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -4684,31 +4708,30 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "b8c5198b-766c-41d4-9155-6e2a9bcc05aa",
+      "name": "Is Headless (Document Required)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -9552,
+        608
+      ]
     },
     {
+      "parameters": {
+        "errorMessage": "This mode requires selecting a document, but the \"document\" field was empty or did not match an existing document."
+      },
       "id": "2b0ec6b7-2fef-4ea1-8f10-e81113831923",
       "name": "Fail: Document Required",
       "type": "n8n-nodes-base.stopAndError",
       "typeVersion": 1,
       "position": [
         -9552,
-        750
-      ],
-      "parameters": {
-        "errorType": "errorMessage",
-        "errorMessage": "This mode requires selecting a document, but the \"document\" field was empty or did not match an existing document."
-      }
+        752
+      ]
     },
     {
-      "id": "bbe4678f-bd9a-4be4-8516-5aa2e1f4199e",
-      "name": "Is Headless (No Pages Processed)?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -7648,
-        1100
-      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -4731,31 +4754,30 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "bbe4678f-bd9a-4be4-8516-5aa2e1f4199e",
+      "name": "Is Headless (No Pages Processed)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -7648,
+        1104
+      ]
     },
     {
+      "parameters": {
+        "errorMessage": "This document has no processed pages yet, so this mode cannot run."
+      },
       "id": "780359ca-604e-43b2-a0d5-cac877ce7491",
       "name": "Fail: No Pages Processed Yet",
       "type": "n8n-nodes-base.stopAndError",
       "typeVersion": 1,
       "position": [
         -7648,
-        1250
-      ],
-      "parameters": {
-        "errorType": "errorMessage",
-        "errorMessage": "This document has no processed pages yet, so this mode cannot run."
-      }
+        1264
+      ]
     },
     {
-      "id": "8f1085e9-e381-4c10-bb9e-fd61a3088f83",
-      "name": "Is Headless (Not Enough Pages)?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -6304,
-        940
-      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -4778,31 +4800,30 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "8f1085e9-e381-4c10-bb9e-fd61a3088f83",
+      "name": "Is Headless (Not Enough Pages)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -6304,
+        944
+      ]
     },
     {
+      "parameters": {
+        "errorMessage": "Not enough single pages are available to knit together."
+      },
       "id": "ba8bddab-1c7a-4059-8b54-3f9b072ca402",
       "name": "Fail: Not Enough Pages To Knit",
       "type": "n8n-nodes-base.stopAndError",
       "typeVersion": 1,
       "position": [
         -6304,
-        1090
-      ],
-      "parameters": {
-        "errorType": "errorMessage",
-        "errorMessage": "Not enough single pages are available to knit together."
-      }
+        1104
+      ]
     },
     {
-      "id": "f0ab5f3f-3c9a-42a0-bb3c-f136f77b48d4",
-      "name": "Is Headless (Text Not Found)?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -10800,
-        1770
-      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -4825,9 +4846,20 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "f0ab5f3f-3c9a-42a0-bb3c-f136f77b48d4",
+      "name": "Is Headless (Text Not Found)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -10800,
+        1776
+      ]
     },
     {
+      "parameters": {
+        "errorMessage": "The requested text was not found in this page's transcript."
+      },
       "id": "fc01fa14-f4ea-4570-a705-f7bf6fab675d",
       "name": "Fail: Text Not Found",
       "type": "n8n-nodes-base.stopAndError",
@@ -4835,21 +4867,9 @@
       "position": [
         -10800,
         1920
-      ],
-      "parameters": {
-        "errorType": "errorMessage",
-        "errorMessage": "The requested text was not found in this page's transcript."
-      }
+      ]
     },
     {
-      "id": "6f6febec-d71e-43a1-8cdb-8fccf665d202",
-      "name": "Is Headless (Page Not Found)?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -11472,
-        1770
-      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -4872,9 +4892,20 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "6f6febec-d71e-43a1-8cdb-8fccf665d202",
+      "name": "Is Headless (Page Not Found)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -11472,
+        1776
+      ]
     },
     {
+      "parameters": {
+        "errorMessage": "The requested page selection does not match an existing processed page."
+      },
       "id": "5d7737f0-f0f6-407a-95f8-6cd9023b3c3e",
       "name": "Fail: Page Not Found",
       "type": "n8n-nodes-base.stopAndError",
@@ -4882,21 +4913,9 @@
       "position": [
         -11472,
         1920
-      ],
-      "parameters": {
-        "errorType": "errorMessage",
-        "errorMessage": "The requested page selection does not match an existing processed page."
-      }
+      ]
     },
     {
-      "id": "92660ab4-e967-4487-9bca-70e06a62a306",
-      "name": "Has Uploaded File?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -9552,
-        -400
-      ],
       "parameters": {
         "conditions": {
           "options": {
@@ -4919,55 +4938,62 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "92660ab4-e967-4487-9bca-70e06a62a306",
+      "name": "Has Uploaded File?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -9552,
+        -400
+      ]
     },
     {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ '/home/node/project/temp/' + $('Receive Headless API Request').item.binary[Object.keys($('Receive Headless API Request').item.binary)[0]].fileName }}",
+        "dataPropertyName": "={{ Object.keys($('Receive Headless API Request').item.binary)[0] }}",
+        "options": {}
+      },
       "id": "a1f4cd98-7742-4503-8278-2a61a9685109",
       "name": "Save Headless Upload to Disk",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
         -9552,
-        -550
-      ],
-      "parameters": {
-        "operation": "write",
-        "fileName": "={{ '/home/node/project/temp/' + $('Receive Headless API Request').item.binary[Object.keys($('Receive Headless API Request').item.binary)[0]].fileName }}",
-        "dataPropertyName": "={{ Object.keys($('Receive Headless API Request').item.binary)[0] }}",
-        "options": {}
-      }
+        -544
+      ]
     },
     {
+      "parameters": {
+        "fileSelector": "={{ '/home/node/project/temp/' + $('Receive Headless API Request').item.binary[Object.keys($('Receive Headless API Request').item.binary)[0]].fileName }}",
+        "options": {}
+      },
       "id": "f36490a2-f885-460f-b18b-b239cf4f3b5f",
       "name": "Read Headless Upload from Disk",
       "type": "n8n-nodes-base.readWriteFile",
       "typeVersion": 1.1,
       "position": [
-        -8200,
-        -200
-      ],
-      "parameters": {
-        "fileSelector": "={{ '/home/node/project/temp/' + $('Receive Headless API Request').item.binary[Object.keys($('Receive Headless API Request').item.binary)[0]].fileName }}",
-        "options": {}
-      }
+        -8208,
+        -208
+      ]
     },
     {
-      "id": "2856e2ff-165d-4d82-9e8e-224e0250280d",
-      "name": "Receive Status Check Request",
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2.2,
-      "position": [
-        -12200,
-        -800
-      ],
       "parameters": {
-        "httpMethod": "GET",
         "path": "d2v-headless-status",
         "authentication": "headerAuth",
         "responseMode": "responseNode",
         "options": {}
       },
+      "id": "2856e2ff-165d-4d82-9e8e-224e0250280d",
+      "name": "Receive Status Check Request",
       "webhookId": "8176433a-5e24-4172-9e9d-8205c9930b10",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        -12208,
+        -800
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "dT2rDdHX1TfPrVi1",
@@ -4976,53 +5002,37 @@
       }
     },
     {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { jobId: $('Receive Status Check Request').item.json.query.jobId, status: 'done' } }}",
+        "options": {}
+      },
       "id": "f73600c1-84fc-441e-a2f6-4efa24d92a50",
       "name": "Respond Job Done",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
         -11600,
-        -860
-      ],
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ { jobId: $('Receive Status Check Request').item.json.query.jobId, status: 'done' } }}",
-        "options": {}
-      }
+        -864
+      ]
     },
     {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { jobId: $('Receive Status Check Request').item.json.query.jobId, status: $json.status } }}",
+        "options": {}
+      },
       "id": "d2111a3f-b5cf-4103-be38-67b73a28d2bb",
       "name": "Respond Job Not Done",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
         -11600,
-        -740
-      ],
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ { jobId: $('Receive Status Check Request').item.json.query.jobId, status: $json.status } }}",
-        "options": {},
-        "parameters": {
-          "responseBody": "={{ { jobId: $('Receive Status Check Request').item.json.query.jobId, status: $json.status } }}"
-        }
-      }
+        -736
+      ]
     },
     {
-      "id": "0396282a-e4a2-41a1-9ff6-b37f286f2d40",
-      "name": "Compute Job Info",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        0,
-        0
-      ],
       "parameters": {
-        "mode": "manual",
-        "includeOtherFields": true,
-        "options": {
-          "stripBinary": false
-        },
         "assignments": {
           "assignments": [
             {
@@ -5038,10 +5048,27 @@
               "value": "={{ $json.body.mode }}"
             }
           ]
+        },
+        "includeOtherFields": true,
+        "options": {
+          "stripBinary": false
         }
-      }
+      },
+      "id": "0396282a-e4a2-41a1-9ff6-b37f286f2d40",
+      "name": "Compute Job Info",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ]
     },
     {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { jobId: $json.jobId, mode: $json.mode } }}",
+        "options": {}
+      },
       "id": "99166f2d-e359-425f-8abd-1d1441294c17",
       "name": "Respond with Job Info",
       "type": "n8n-nodes-base.respondToWebhook",
@@ -5049,25 +5076,14 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ { jobId: $json.jobId, mode: $json.mode } }}"
-      }
+      ]
     },
     {
-      "id": "a046bc7e-a7af-4840-b48f-585134a2fd0b",
-      "name": "Is Headless (Sample Phrase Required)?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        0,
-        0
-      ],
       "parameters": {
         "conditions": {
           "options": {
             "caseSensitive": true,
+            "leftValue": "",
             "typeValidation": "strict",
             "version": 3
           },
@@ -5085,9 +5101,20 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "a046bc7e-a7af-4840-b48f-585134a2fd0b",
+      "name": "Is Headless (Sample Phrase Required)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        0
+      ]
     },
     {
+      "parameters": {
+        "errorMessage": "This mode requires a samplePhrase, but the \"samplePhrase\" field was empty."
+      },
       "id": "82d0c6d7-8808-4dc1-ac06-20f49b9eda0f",
       "name": "Fail: Sample Phrase Required",
       "type": "n8n-nodes-base.stopAndError",
@@ -5095,23 +5122,10 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "errorType": "errorMessage",
-        "errorMessage": "This mode requires a samplePhrase, but the \"samplePhrase\" field was empty."
-      }
+      ]
     },
     {
-      "id": "035a9400-a6e7-4f15-84e4-f2ae4ddb6cc7",
-      "name": "Set Started Marker",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        0,
-        0
-      ],
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -5132,9 +5146,24 @@
         "options": {
           "stripBinary": false
         }
-      }
+      },
+      "id": "035a9400-a6e7-4f15-84e4-f2ae4ddb6cc7",
+      "name": "Set Started Marker",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ]
     },
     {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "startedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
       "id": "f7285acb-6fd0-4593-b63d-04ce5b23485b",
       "name": "Convert Started Marker to File",
       "type": "n8n-nodes-base.convertToFile",
@@ -5142,16 +5171,14 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "toText",
-        "sourceProperty": "startedMarkerContent",
-        "options": {
-          "encoding": "utf8"
-        }
-      }
+      ]
     },
     {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Started Marker').item.json.startedMarkerPath }}",
+        "options": {}
+      },
       "id": "3e809556-95ee-46df-8980-8d64f8c69860",
       "name": "Write Started Marker",
       "type": "n8n-nodes-base.readWriteFile",
@@ -5159,24 +5186,10 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "write",
-        "fileName": "={{ $('Set Started Marker').item.json.startedMarkerPath }}",
-        "options": {}
-      }
+      ]
     },
     {
-      "id": "30057eca-05cf-49a9-9729-de814e6f102c",
-      "name": "Set Failed Marker (No PDF File)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        0,
-        0
-      ],
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -5197,9 +5210,24 @@
         "options": {
           "stripBinary": false
         }
-      }
+      },
+      "id": "30057eca-05cf-49a9-9729-de814e6f102c",
+      "name": "Set Failed Marker (No PDF File)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ]
     },
     {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
       "id": "a6839b92-1dbd-43f9-9c8c-bd6521db5ae7",
       "name": "Convert Failed Marker to File (No PDF File)",
       "type": "n8n-nodes-base.convertToFile",
@@ -5207,16 +5235,14 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "toText",
-        "sourceProperty": "failedMarkerContent",
-        "options": {
-          "encoding": "utf8"
-        }
-      }
+      ]
     },
     {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (No PDF File)').item.json.failedMarkerPath }}",
+        "options": {}
+      },
       "id": "c658bb88-b36f-470a-9c34-5451872644a4",
       "name": "Write Failed Marker (No PDF File)",
       "type": "n8n-nodes-base.readWriteFile",
@@ -5224,24 +5250,10 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "write",
-        "fileName": "={{ $('Set Failed Marker (No PDF File)').item.json.failedMarkerPath }}",
-        "options": {}
-      }
+      ]
     },
     {
-      "id": "909cc447-a51c-4af2-85e7-7482a6b959cc",
-      "name": "Set Failed Marker (No Documents)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        0,
-        0
-      ],
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -5262,9 +5274,24 @@
         "options": {
           "stripBinary": false
         }
-      }
+      },
+      "id": "909cc447-a51c-4af2-85e7-7482a6b959cc",
+      "name": "Set Failed Marker (No Documents)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ]
     },
     {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
       "id": "c9e5dc28-ad24-4fdd-bc53-f312bca59325",
       "name": "Convert Failed Marker to File (No Documents)",
       "type": "n8n-nodes-base.convertToFile",
@@ -5272,16 +5299,14 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "toText",
-        "sourceProperty": "failedMarkerContent",
-        "options": {
-          "encoding": "utf8"
-        }
-      }
+      ]
     },
     {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (No Documents)').item.json.failedMarkerPath }}",
+        "options": {}
+      },
       "id": "dd51fb1d-10a4-4910-94ee-aad4d693264c",
       "name": "Write Failed Marker (No Documents)",
       "type": "n8n-nodes-base.readWriteFile",
@@ -5289,24 +5314,10 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "write",
-        "fileName": "={{ $('Set Failed Marker (No Documents)').item.json.failedMarkerPath }}",
-        "options": {}
-      }
+      ]
     },
     {
-      "id": "d66a5970-05b9-4f3b-be75-397e300475a6",
-      "name": "Set Failed Marker (Document Required)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        0,
-        0
-      ],
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -5327,9 +5338,24 @@
         "options": {
           "stripBinary": false
         }
-      }
+      },
+      "id": "d66a5970-05b9-4f3b-be75-397e300475a6",
+      "name": "Set Failed Marker (Document Required)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ]
     },
     {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
       "id": "6e2bdb15-0f97-49c1-a80b-b92e73715e99",
       "name": "Convert Failed Marker to File (Document Required)",
       "type": "n8n-nodes-base.convertToFile",
@@ -5337,16 +5363,14 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "toText",
-        "sourceProperty": "failedMarkerContent",
-        "options": {
-          "encoding": "utf8"
-        }
-      }
+      ]
     },
     {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (Document Required)').item.json.failedMarkerPath }}",
+        "options": {}
+      },
       "id": "625011cc-457a-4348-90b1-847e7392d0bb",
       "name": "Write Failed Marker (Document Required)",
       "type": "n8n-nodes-base.readWriteFile",
@@ -5354,24 +5378,10 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "write",
-        "fileName": "={{ $('Set Failed Marker (Document Required)').item.json.failedMarkerPath }}",
-        "options": {}
-      }
+      ]
     },
     {
-      "id": "2756f8d9-b733-4532-8ab9-96dabc61761d",
-      "name": "Set Failed Marker (No Pages Processed)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        0,
-        0
-      ],
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -5392,9 +5402,24 @@
         "options": {
           "stripBinary": false
         }
-      }
+      },
+      "id": "2756f8d9-b733-4532-8ab9-96dabc61761d",
+      "name": "Set Failed Marker (No Pages Processed)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ]
     },
     {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
       "id": "3250ed90-e822-4e4b-af1e-e93d1444ab87",
       "name": "Convert Failed Marker to File (No Pages Processed)",
       "type": "n8n-nodes-base.convertToFile",
@@ -5402,16 +5427,14 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "toText",
-        "sourceProperty": "failedMarkerContent",
-        "options": {
-          "encoding": "utf8"
-        }
-      }
+      ]
     },
     {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (No Pages Processed)').item.json.failedMarkerPath }}",
+        "options": {}
+      },
       "id": "c46ea802-80fe-45e7-935f-703b9c61f353",
       "name": "Write Failed Marker (No Pages Processed)",
       "type": "n8n-nodes-base.readWriteFile",
@@ -5419,24 +5442,10 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "write",
-        "fileName": "={{ $('Set Failed Marker (No Pages Processed)').item.json.failedMarkerPath }}",
-        "options": {}
-      }
+      ]
     },
     {
-      "id": "7f3c3d2f-0cc6-48c1-9f44-f7d19c2854aa",
-      "name": "Set Failed Marker (Not Enough Pages)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        0,
-        0
-      ],
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -5457,9 +5466,24 @@
         "options": {
           "stripBinary": false
         }
-      }
+      },
+      "id": "7f3c3d2f-0cc6-48c1-9f44-f7d19c2854aa",
+      "name": "Set Failed Marker (Not Enough Pages)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ]
     },
     {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
       "id": "7e32109a-e132-4411-8acc-d8e8ebdedc99",
       "name": "Convert Failed Marker to File (Not Enough Pages)",
       "type": "n8n-nodes-base.convertToFile",
@@ -5467,16 +5491,14 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "toText",
-        "sourceProperty": "failedMarkerContent",
-        "options": {
-          "encoding": "utf8"
-        }
-      }
+      ]
     },
     {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (Not Enough Pages)').item.json.failedMarkerPath }}",
+        "options": {}
+      },
       "id": "70ceeb0c-7b2a-453b-86cd-2b150ab23d6a",
       "name": "Write Failed Marker (Not Enough Pages)",
       "type": "n8n-nodes-base.readWriteFile",
@@ -5484,24 +5506,10 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "write",
-        "fileName": "={{ $('Set Failed Marker (Not Enough Pages)').item.json.failedMarkerPath }}",
-        "options": {}
-      }
+      ]
     },
     {
-      "id": "094e7e3e-41fb-4562-85c9-8815d7adab75",
-      "name": "Set Failed Marker (Text Not Found)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        0,
-        0
-      ],
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -5522,9 +5530,24 @@
         "options": {
           "stripBinary": false
         }
-      }
+      },
+      "id": "094e7e3e-41fb-4562-85c9-8815d7adab75",
+      "name": "Set Failed Marker (Text Not Found)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ]
     },
     {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
       "id": "65e50306-aacd-4c69-9419-5a2fdd056168",
       "name": "Convert Failed Marker to File (Text Not Found)",
       "type": "n8n-nodes-base.convertToFile",
@@ -5532,16 +5555,14 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "toText",
-        "sourceProperty": "failedMarkerContent",
-        "options": {
-          "encoding": "utf8"
-        }
-      }
+      ]
     },
     {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (Text Not Found)').item.json.failedMarkerPath }}",
+        "options": {}
+      },
       "id": "4fbdeb81-43aa-4840-b2ab-c8d02074adf2",
       "name": "Write Failed Marker (Text Not Found)",
       "type": "n8n-nodes-base.readWriteFile",
@@ -5549,24 +5570,10 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "write",
-        "fileName": "={{ $('Set Failed Marker (Text Not Found)').item.json.failedMarkerPath }}",
-        "options": {}
-      }
+      ]
     },
     {
-      "id": "2f015f66-e701-42fc-8fc6-63b4f072057f",
-      "name": "Set Failed Marker (Page Not Found)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        0,
-        0
-      ],
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -5587,9 +5594,24 @@
         "options": {
           "stripBinary": false
         }
-      }
+      },
+      "id": "2f015f66-e701-42fc-8fc6-63b4f072057f",
+      "name": "Set Failed Marker (Page Not Found)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ]
     },
     {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
       "id": "1176adcb-9260-4d05-ba4d-0d4da8ee4425",
       "name": "Convert Failed Marker to File (Page Not Found)",
       "type": "n8n-nodes-base.convertToFile",
@@ -5597,16 +5619,14 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "toText",
-        "sourceProperty": "failedMarkerContent",
-        "options": {
-          "encoding": "utf8"
-        }
-      }
+      ]
     },
     {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (Page Not Found)').item.json.failedMarkerPath }}",
+        "options": {}
+      },
       "id": "dddaaee6-5e92-4f55-a8e1-8119ea8eaf1c",
       "name": "Write Failed Marker (Page Not Found)",
       "type": "n8n-nodes-base.readWriteFile",
@@ -5614,24 +5634,10 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "write",
-        "fileName": "={{ $('Set Failed Marker (Page Not Found)').item.json.failedMarkerPath }}",
-        "options": {}
-      }
+      ]
     },
     {
-      "id": "e4697843-53ab-4e8a-af75-fb642f17aab0",
-      "name": "Set Failed Marker (Sample Phrase Required)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        0,
-        0
-      ],
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -5652,9 +5658,24 @@
         "options": {
           "stripBinary": false
         }
-      }
+      },
+      "id": "e4697843-53ab-4e8a-af75-fb642f17aab0",
+      "name": "Set Failed Marker (Sample Phrase Required)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ]
     },
     {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
       "id": "32c8b46a-8502-419a-801b-80552d18c1a2",
       "name": "Convert Failed Marker to File (Sample Phrase Required)",
       "type": "n8n-nodes-base.convertToFile",
@@ -5662,16 +5683,14 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "toText",
-        "sourceProperty": "failedMarkerContent",
-        "options": {
-          "encoding": "utf8"
-        }
-      }
+      ]
     },
     {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (Sample Phrase Required)').item.json.failedMarkerPath }}",
+        "options": {}
+      },
       "id": "659c4076-ef22-470f-ae50-bdd7e6f9728e",
       "name": "Write Failed Marker (Sample Phrase Required)",
       "type": "n8n-nodes-base.readWriteFile",
@@ -5679,14 +5698,13 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "write",
-        "fileName": "={{ $('Set Failed Marker (Sample Phrase Required)').item.json.failedMarkerPath }}",
-        "options": {}
-      }
+      ]
     },
     {
+      "parameters": {
+        "fileSelector": "={{ $('Populate Variables').item.json.tempDir + '/' + $json.docFolder + '/' + $('Populate Variables').item.json.documentMetaFileName }}",
+        "options": {}
+      },
       "id": "07bae81d-64ac-4e97-a29b-fce0f345d305",
       "name": "Check Existing Document?",
       "type": "n8n-nodes-base.readWriteFile",
@@ -5695,26 +5713,14 @@
         0,
         0
       ],
-      "parameters": {
-        "operation": "read",
-        "fileSelector": "={{ $('Populate Variables').item.json.tempDir + '/' + $json.docFolder + '/' + $('Populate Variables').item.json.documentMetaFileName }}",
-        "options": {}
-      },
       "onError": "continueErrorOutput"
     },
     {
-      "id": "e3ebf4fe-1f93-473f-b7c5-53a3dbb22a46",
-      "name": "Is Overwrite Confirmed?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        0,
-        0
-      ],
       "parameters": {
         "conditions": {
           "options": {
             "caseSensitive": true,
+            "leftValue": "",
             "typeValidation": "strict",
             "version": 3
           },
@@ -5732,9 +5738,20 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "e3ebf4fe-1f93-473f-b7c5-53a3dbb22a46",
+      "name": "Is Overwrite Confirmed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        0
+      ]
     },
     {
+      "parameters": {
+        "errorMessage": "This document already has existing content. Set overwrite to true in the request to replace it."
+      },
       "id": "15938729-7501-495d-9f42-c69069abd79a",
       "name": "Fail: Document Already Exists",
       "type": "n8n-nodes-base.stopAndError",
@@ -5742,23 +5759,10 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "errorType": "errorMessage",
-        "errorMessage": "This document already has existing content. Set overwrite to true in the request to replace it."
-      }
+      ]
     },
     {
-      "id": "fe7e93de-fd73-4d77-b1e1-eb51fb10b7ec",
-      "name": "Set Failed Marker (Document Already Exists)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        0,
-        0
-      ],
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -5779,9 +5783,24 @@
         "options": {
           "stripBinary": false
         }
-      }
+      },
+      "id": "fe7e93de-fd73-4d77-b1e1-eb51fb10b7ec",
+      "name": "Set Failed Marker (Document Already Exists)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ]
     },
     {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
       "id": "878cdf3c-7ed0-4176-ac5e-21c9f71fffa5",
       "name": "Convert Failed Marker to File (Document Already Exists)",
       "type": "n8n-nodes-base.convertToFile",
@@ -5789,16 +5808,14 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "toText",
-        "sourceProperty": "failedMarkerContent",
-        "options": {
-          "encoding": "utf8"
-        }
-      }
+      ]
     },
     {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (Document Already Exists)').item.json.failedMarkerPath }}",
+        "options": {}
+      },
       "id": "30f1962a-a443-4a89-a131-2c51497a4280",
       "name": "Write Failed Marker (Document Already Exists)",
       "type": "n8n-nodes-base.readWriteFile",
@@ -5806,22 +5823,9 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "write",
-        "fileName": "={{ $('Set Failed Marker (Document Already Exists)').item.json.failedMarkerPath }}",
-        "options": {}
-      }
+      ]
     },
     {
-      "id": "4e45e952-37b3-4200-ab87-3f0ae7f1afc3",
-      "name": "Check Job State",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.3,
-      "position": [
-        0,
-        0
-      ],
       "parameters": {
         "url": "=http://host.docker.internal:5679/webhook/clip",
         "authentication": "genericCredentialType",
@@ -5839,6 +5843,14 @@
           "timeout": 3600000
         }
       },
+      "id": "4e45e952-37b3-4200-ab87-3f0ae7f1afc3",
+      "name": "Check Job State",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        0,
+        0
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "dT2rDdHX1TfPrVi1",
@@ -5847,16 +5859,7 @@
       }
     },
     {
-      "id": "b9c8eb6c-44ca-4731-85eb-00d209e496bf",
-      "name": "Parse Job State",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        0,
-        0
-      ],
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -5874,19 +5877,18 @@
           ]
         },
         "options": {}
-      }
-    },
-    {
-      "id": "f72228ce-4b1c-42ad-a3a2-24bad2d09568",
-      "name": "Job State Router",
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.5,
+      },
+      "id": "b9c8eb6c-44ca-4731-85eb-00d209e496bf",
+      "name": "Parse Job State",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
       "position": [
         0,
         0
-      ],
+      ]
+    },
+    {
       "parameters": {
-        "mode": "rules",
         "rules": {
           "values": [
             {
@@ -5894,7 +5896,8 @@
                 "options": {
                   "caseSensitive": true,
                   "leftValue": "",
-                  "typeValidation": "strict"
+                  "typeValidation": "strict",
+                  "version": 1
                 },
                 "conditions": [
                   {
@@ -5914,7 +5917,8 @@
                 "options": {
                   "caseSensitive": true,
                   "leftValue": "",
-                  "typeValidation": "strict"
+                  "typeValidation": "strict",
+                  "version": 1
                 },
                 "conditions": [
                   {
@@ -5934,9 +5938,22 @@
         "options": {
           "fallbackOutput": "extra"
         }
-      }
+      },
+      "id": "f72228ce-4b1c-42ad-a3a2-24bad2d09568",
+      "name": "Job State Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.5,
+      "position": [
+        0,
+        0
+      ]
     },
     {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { jobId: $('Receive Status Check Request').item.json.query.jobId, status: 'failed', message: $json.message } }}",
+        "options": {}
+      },
       "id": "72bcda0b-fd4c-42e9-8327-0e759c9058e8",
       "name": "Respond Job Failed",
       "type": "n8n-nodes-base.respondToWebhook",
@@ -5944,22 +5961,9 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ { jobId: $('Receive Status Check Request').item.json.query.jobId, status: 'failed', message: $json.message } }}",
-        "options": {}
-      }
+      ]
     },
     {
-      "id": "d66e5bd5-2f7c-4070-9c65-5d3f1b9812df",
-      "name": "Ensure Job Output Folder Exists",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.3,
-      "position": [
-        0,
-        0
-      ],
       "parameters": {
         "url": "=http://host.docker.internal:5679/webhook/clip",
         "authentication": "genericCredentialType",
@@ -5977,6 +5981,14 @@
           "timeout": 3600000
         }
       },
+      "id": "d66e5bd5-2f7c-4070-9c65-5d3f1b9812df",
+      "name": "Ensure Job Output Folder Exists",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        0,
+        0
+      ],
       "credentials": {
         "httpHeaderAuth": {
           "id": "dT2rDdHX1TfPrVi1",
@@ -5985,16 +5997,7 @@
       }
     },
     {
-      "id": "e53a12cc-6414-4ba6-b15f-cfa2df76ac52",
-      "name": "Restore Document Folder Fields",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        0,
-        0
-      ],
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -6012,21 +6015,22 @@
           ]
         },
         "options": {}
-      }
-    },
-    {
-      "id": "5b9924e9-0b84-4269-a5b8-ada28d69fa2a",
-      "name": "Is Headless (Mode Required)?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
+      },
+      "id": "e53a12cc-6414-4ba6-b15f-cfa2df76ac52",
+      "name": "Restore Document Folder Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
       "position": [
         0,
         0
-      ],
+      ]
+    },
+    {
       "parameters": {
         "conditions": {
           "options": {
             "caseSensitive": true,
+            "leftValue": "",
             "typeValidation": "strict",
             "version": 3
           },
@@ -6044,19 +6048,18 @@
           "combinator": "and"
         },
         "options": {}
-      }
-    },
-    {
-      "id": "aa8a83bd-bd6e-4035-8b39-17f25a3bc07f",
-      "name": "Set Failed Marker (Mode Required)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      },
+      "id": "5b9924e9-0b84-4269-a5b8-ada28d69fa2a",
+      "name": "Is Headless (Mode Required)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
       "position": [
         0,
         0
-      ],
+      ]
+    },
+    {
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -6077,9 +6080,24 @@
         "options": {
           "stripBinary": false
         }
-      }
+      },
+      "id": "aa8a83bd-bd6e-4035-8b39-17f25a3bc07f",
+      "name": "Set Failed Marker (Mode Required)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ]
     },
     {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
       "id": "cde64079-9ab9-4c0e-9ed2-27dd8190e071",
       "name": "Convert Failed Marker to File (Mode Required)",
       "type": "n8n-nodes-base.convertToFile",
@@ -6087,16 +6105,14 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "toText",
-        "sourceProperty": "failedMarkerContent",
-        "options": {
-          "encoding": "utf8"
-        }
-      }
+      ]
     },
     {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (Mode Required)').item.json.failedMarkerPath }}",
+        "options": {}
+      },
       "id": "f2655e22-7803-4973-957b-070df15176e3",
       "name": "Write Failed Marker (Mode Required)",
       "type": "n8n-nodes-base.readWriteFile",
@@ -6104,14 +6120,12 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "write",
-        "fileName": "={{ $('Set Failed Marker (Mode Required)').item.json.failedMarkerPath }}",
-        "options": {}
-      }
+      ]
     },
     {
+      "parameters": {
+        "errorMessage": "A mode is required, and must be one of \"new\", \"continue\", \"knit\", \"changeVoice\", or \"sample\"."
+      },
       "id": "00d924e7-5ff8-44e1-b0fb-a891910aff48",
       "name": "Fail: Mode Required",
       "type": "n8n-nodes-base.stopAndError",
@@ -6119,25 +6133,14 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "errorType": "errorMessage",
-        "errorMessage": "A mode is required, and must be one of \"new\", \"continue\", \"knit\", \"changeVoice\", or \"sample\"."
-      }
+      ]
     },
     {
-      "id": "9b85a095-f30b-47f6-9e01-17d7bd100626",
-      "name": "Is Headless (Knit Pages Required)?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        0,
-        0
-      ],
       "parameters": {
         "conditions": {
           "options": {
             "caseSensitive": true,
+            "leftValue": "",
             "typeValidation": "strict",
             "version": 3
           },
@@ -6155,19 +6158,18 @@
           "combinator": "and"
         },
         "options": {}
-      }
-    },
-    {
-      "id": "609d75d2-d60d-468c-bab4-8108ba0ac8bc",
-      "name": "Set Failed Marker (Knit Pages Required)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      },
+      "id": "9b85a095-f30b-47f6-9e01-17d7bd100626",
+      "name": "Is Headless (Knit Pages Required)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
       "position": [
         0,
         0
-      ],
+      ]
+    },
+    {
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -6188,9 +6190,24 @@
         "options": {
           "stripBinary": false
         }
-      }
+      },
+      "id": "609d75d2-d60d-468c-bab4-8108ba0ac8bc",
+      "name": "Set Failed Marker (Knit Pages Required)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ]
     },
     {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
       "id": "62830ef9-9a71-4b64-8a07-f07684629e73",
       "name": "Convert Failed Marker to File (Knit Pages Required)",
       "type": "n8n-nodes-base.convertToFile",
@@ -6198,16 +6215,14 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "toText",
-        "sourceProperty": "failedMarkerContent",
-        "options": {
-          "encoding": "utf8"
-        }
-      }
+      ]
     },
     {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (Knit Pages Required)').item.json.failedMarkerPath }}",
+        "options": {}
+      },
       "id": "aa90a19e-daee-47ab-8dda-e31365dc69cb",
       "name": "Write Failed Marker (Knit Pages Required)",
       "type": "n8n-nodes-base.readWriteFile",
@@ -6215,14 +6230,12 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "write",
-        "fileName": "={{ $('Set Failed Marker (Knit Pages Required)').item.json.failedMarkerPath }}",
-        "options": {}
-      }
+      ]
     },
     {
+      "parameters": {
+        "errorMessage": "Knit mode requires both leftPage and rightPage."
+      },
       "id": "907c3664-8c49-4af5-b428-86cb9ad3168b",
       "name": "Fail: Knit Pages Required",
       "type": "n8n-nodes-base.stopAndError",
@@ -6230,25 +6243,14 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "errorType": "errorMessage",
-        "errorMessage": "Knit mode requires both leftPage and rightPage."
-      }
+      ]
     },
     {
-      "id": "98139fa5-62e8-4ca2-9e00-bb972e5f79e2",
-      "name": "Is Headless (Page Selection Required)?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        0,
-        0
-      ],
       "parameters": {
         "conditions": {
           "options": {
             "caseSensitive": true,
+            "leftValue": "",
             "typeValidation": "strict",
             "version": 3
           },
@@ -6266,19 +6268,18 @@
           "combinator": "and"
         },
         "options": {}
-      }
-    },
-    {
-      "id": "36a87f87-5f0f-4822-b99b-c32f1bcc6a8a",
-      "name": "Set Failed Marker (Page Selection Required)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      },
+      "id": "98139fa5-62e8-4ca2-9e00-bb972e5f79e2",
+      "name": "Is Headless (Page Selection Required)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
       "position": [
         0,
         0
-      ],
+      ]
+    },
+    {
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -6299,9 +6300,24 @@
         "options": {
           "stripBinary": false
         }
-      }
+      },
+      "id": "36a87f87-5f0f-4822-b99b-c32f1bcc6a8a",
+      "name": "Set Failed Marker (Page Selection Required)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ]
     },
     {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
       "id": "105685ea-b933-4980-8fb1-e40a356f0572",
       "name": "Convert Failed Marker to File (Page Selection Required)",
       "type": "n8n-nodes-base.convertToFile",
@@ -6309,16 +6325,14 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "toText",
-        "sourceProperty": "failedMarkerContent",
-        "options": {
-          "encoding": "utf8"
-        }
-      }
+      ]
     },
     {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (Page Selection Required)').item.json.failedMarkerPath }}",
+        "options": {}
+      },
       "id": "24ad26e3-fd9b-4cb5-bb9d-18a5a64f4af5",
       "name": "Write Failed Marker (Page Selection Required)",
       "type": "n8n-nodes-base.readWriteFile",
@@ -6326,14 +6340,12 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "write",
-        "fileName": "={{ $('Set Failed Marker (Page Selection Required)').item.json.failedMarkerPath }}",
-        "options": {}
-      }
+      ]
     },
     {
+      "parameters": {
+        "errorMessage": "Convert single page requires both pageSelection and a valid target (\"wholePage\" or \"selectedText\")."
+      },
       "id": "8b201a4c-b34e-46d1-abfb-5101a318dd65",
       "name": "Fail: Page Selection Required",
       "type": "n8n-nodes-base.stopAndError",
@@ -6341,25 +6353,14 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "errorType": "errorMessage",
-        "errorMessage": "Convert single page requires both pageSelection and a valid target (\"wholePage\" or \"selectedText\")."
-      }
+      ]
     },
     {
-      "id": "8bbab34b-4585-4ccf-a10c-4ebe4bbe8a79",
-      "name": "Is Headless (Text To Change Required)?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        0,
-        0
-      ],
       "parameters": {
         "conditions": {
           "options": {
             "caseSensitive": true,
+            "leftValue": "",
             "typeValidation": "strict",
             "version": 3
           },
@@ -6377,19 +6378,18 @@
           "combinator": "and"
         },
         "options": {}
-      }
-    },
-    {
-      "id": "2f99e310-8a05-4c1a-95bd-e8065d3dcec1",
-      "name": "Set Failed Marker (Text To Change Required)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      },
+      "id": "8bbab34b-4585-4ccf-a10c-4ebe4bbe8a79",
+      "name": "Is Headless (Text To Change Required)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
       "position": [
         0,
         0
-      ],
+      ]
+    },
+    {
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -6410,9 +6410,24 @@
         "options": {
           "stripBinary": false
         }
-      }
+      },
+      "id": "2f99e310-8a05-4c1a-95bd-e8065d3dcec1",
+      "name": "Set Failed Marker (Text To Change Required)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ]
     },
     {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
       "id": "8ff65b82-2bd6-4442-987b-a665fce0723a",
       "name": "Convert Failed Marker to File (Text To Change Required)",
       "type": "n8n-nodes-base.convertToFile",
@@ -6420,16 +6435,14 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "toText",
-        "sourceProperty": "failedMarkerContent",
-        "options": {
-          "encoding": "utf8"
-        }
-      }
+      ]
     },
     {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (Text To Change Required)').item.json.failedMarkerPath }}",
+        "options": {}
+      },
       "id": "d6d25a7e-b3d2-44c7-9d00-99e108ef72e2",
       "name": "Write Failed Marker (Text To Change Required)",
       "type": "n8n-nodes-base.readWriteFile",
@@ -6437,14 +6450,12 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "write",
-        "fileName": "={{ $('Set Failed Marker (Text To Change Required)').item.json.failedMarkerPath }}",
-        "options": {}
-      }
+      ]
     },
     {
+      "parameters": {
+        "errorMessage": "Selected text requires a textToChange phrase."
+      },
       "id": "8bcc757e-33a1-46d5-891c-7b81d0e6131a",
       "name": "Fail: Text To Change Required",
       "type": "n8n-nodes-base.stopAndError",
@@ -6452,25 +6463,14 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "errorType": "errorMessage",
-        "errorMessage": "Selected text requires a textToChange phrase."
-      }
+      ]
     },
     {
-      "id": "2f4e4a60-732c-4d13-bb18-01f83a865ef4",
-      "name": "Is Headless (Voice Required)?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        0,
-        0
-      ],
       "parameters": {
         "conditions": {
           "options": {
             "caseSensitive": true,
+            "leftValue": "",
             "typeValidation": "strict",
             "version": 3
           },
@@ -6488,19 +6488,18 @@
           "combinator": "and"
         },
         "options": {}
-      }
-    },
-    {
-      "id": "0ce9708e-4bec-4ccb-9375-24e7043462d9",
-      "name": "Set Failed Marker (Voice Required)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      },
+      "id": "2f4e4a60-732c-4d13-bb18-01f83a865ef4",
+      "name": "Is Headless (Voice Required)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
       "position": [
         0,
         0
-      ],
+      ]
+    },
+    {
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -6521,9 +6520,24 @@
         "options": {
           "stripBinary": false
         }
-      }
+      },
+      "id": "0ce9708e-4bec-4ccb-9375-24e7043462d9",
+      "name": "Set Failed Marker (Voice Required)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ]
     },
     {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
       "id": "070a8f97-bc1a-4e77-852d-d8342d76e63b",
       "name": "Convert Failed Marker to File (Voice Required)",
       "type": "n8n-nodes-base.convertToFile",
@@ -6531,16 +6545,14 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "toText",
-        "sourceProperty": "failedMarkerContent",
-        "options": {
-          "encoding": "utf8"
-        }
-      }
+      ]
     },
     {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (Voice Required)').item.json.failedMarkerPath }}",
+        "options": {}
+      },
       "id": "d5e0c7c3-0feb-4346-b890-4d5b50a71c22",
       "name": "Write Failed Marker (Voice Required)",
       "type": "n8n-nodes-base.readWriteFile",
@@ -6548,14 +6560,12 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "write",
-        "fileName": "={{ $('Set Failed Marker (Voice Required)').item.json.failedMarkerPath }}",
-        "options": {}
-      }
+      ]
     },
     {
+      "parameters": {
+        "errorMessage": "This mode requires a voice."
+      },
       "id": "e57c2691-90c8-44c0-94a8-0c4b296bf4b7",
       "name": "Fail: Voice Required",
       "type": "n8n-nodes-base.stopAndError",
@@ -6563,25 +6573,14 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "errorType": "errorMessage",
-        "errorMessage": "This mode requires a voice."
-      }
+      ]
     },
     {
-      "id": "37cfb7c5-07a0-41cc-8e7b-8a3fb0c7df60",
-      "name": "Is Headless (Engine Required)?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        0,
-        0
-      ],
       "parameters": {
         "conditions": {
           "options": {
             "caseSensitive": true,
+            "leftValue": "",
             "typeValidation": "strict",
             "version": 3
           },
@@ -6599,19 +6598,18 @@
           "combinator": "and"
         },
         "options": {}
-      }
-    },
-    {
-      "id": "22d67ca7-fe94-43c4-a147-245d567215db",
-      "name": "Set Failed Marker (Engine Required)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      },
+      "id": "37cfb7c5-07a0-41cc-8e7b-8a3fb0c7df60",
+      "name": "Is Headless (Engine Required)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
       "position": [
         0,
         0
-      ],
+      ]
+    },
+    {
       "parameters": {
-        "mode": "manual",
         "assignments": {
           "assignments": [
             {
@@ -6632,9 +6630,24 @@
         "options": {
           "stripBinary": false
         }
-      }
+      },
+      "id": "22d67ca7-fe94-43c4-a147-245d567215db",
+      "name": "Set Failed Marker (Engine Required)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ]
     },
     {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "failedMarkerContent",
+        "options": {
+          "encoding": "utf8"
+        }
+      },
       "id": "863eedca-0c60-4b8c-b868-a7927c23b85f",
       "name": "Convert Failed Marker to File (Engine Required)",
       "type": "n8n-nodes-base.convertToFile",
@@ -6642,16 +6655,14 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "toText",
-        "sourceProperty": "failedMarkerContent",
-        "options": {
-          "encoding": "utf8"
-        }
-      }
+      ]
     },
     {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $('Set Failed Marker (Engine Required)').item.json.failedMarkerPath }}",
+        "options": {}
+      },
       "id": "ffd14780-d177-4e63-9e6f-ad6b49d7d6e5",
       "name": "Write Failed Marker (Engine Required)",
       "type": "n8n-nodes-base.readWriteFile",
@@ -6659,14 +6670,12 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "operation": "write",
-        "fileName": "={{ $('Set Failed Marker (Engine Required)').item.json.failedMarkerPath }}",
-        "options": {}
-      }
+      ]
     },
     {
+      "parameters": {
+        "errorMessage": "This mode requires an engineModel."
+      },
       "id": "1749e5b3-6461-4d90-90cd-f805c5258d87",
       "name": "Fail: Engine Required",
       "type": "n8n-nodes-base.stopAndError",
@@ -6674,25 +6683,14 @@
       "position": [
         0,
         0
-      ],
-      "parameters": {
-        "errorType": "errorMessage",
-        "errorMessage": "This mode requires an engineModel."
-      }
+      ]
     },
     {
-      "id": "50fa1d70-2115-4015-b8ae-c813ad2fa0a6",
-      "name": "Is Headless (New Conversion File Required)?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        0,
-        0
-      ],
       "parameters": {
         "conditions": {
           "options": {
             "caseSensitive": true,
+            "leftValue": "",
             "typeValidation": "strict",
             "version": 3
           },
@@ -6710,46 +6708,46 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "50fa1d70-2115-4015-b8ae-c813ad2fa0a6",
+      "name": "Is Headless (New Conversion File Required)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        0
+      ]
     },
     {
-      "id": "8f88e3b6-e80f-4e38-ab5d-4c7b809cfc99",
-      "name": "Validate Required Parameters",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        150,
-        -80
-      ],
       "parameters": {
-        "mode": "manual",
-        "includeOtherFields": true,
-        "options": {},
         "assignments": {
           "assignments": [
             {
               "id": "vrp-1",
               "name": "validationError",
               "type": "string",
-              "value": "={{ $('Receive Headless API Request').isExecuted ? (() => { const body = $('Receive Headless API Request').item.json.body; const mode = body.mode; const hasFile = Object.keys($('Receive Headless API Request').item.binary || {}).length > 0; if (!['new', 'continue', 'knit', 'changeVoice', 'sample'].includes(mode)) { return 'mode is required and must be one of: new, continue, knit, changeVoice, sample'; } if (mode === 'sample') { return body.samplePhrase ? '' : 'samplePhrase is required for sample mode'; } if (!body.voice) return 'voice is required'; if (['new', 'continue', 'knit'].includes(mode) && !body.engineModel) return 'engineModel is required'; if (mode === 'new') { if (!hasFile) return 'a file upload is required for new mode'; } else if (!body.document) { return 'document is required for this mode'; } if (mode === 'knit' && (!body.leftPage || !body.rightPage)) { return 'leftPage and rightPage are required for knit mode'; } if (mode === 'changeVoice') { if (!body.pageSelection || !body.target) return 'pageSelection and target are required for changeVoice mode'; if (body.target === 'selectedText' && !body.textToChange) return 'textToChange is required when target is selectedText'; } return ''; })() : '' }}"
+              "value": "={{ $('Receive Headless API Request').isExecuted ? (() => { const body = $('Receive Headless API Request').item.json.body; const mode = body.mode; const hasFile = Object.keys($('Receive Headless API Request').item.binary || {}).length > 0; if (!['new', 'continue', 'knit', 'changeVoice', 'sample'].includes(mode)) { return 'mode is required and must be one of: new, continue, knit, changeVoice, sample'; } if (body.acceleration && !['platformDefault', 'automatic', 'cpu'].includes(body.acceleration)) { return 'acceleration must be one of: platformDefault, automatic, cpu'; } if (mode === 'sample') { return body.samplePhrase ? '' : 'samplePhrase is required for sample mode'; } if (!body.voice) return 'voice is required'; if (['new', 'continue', 'knit'].includes(mode) && !body.engineModel) return 'engineModel is required'; if (mode === 'new') { if (!hasFile) return 'a file upload is required for new mode'; } else if (!body.document) { return 'document is required for this mode'; } if (mode === 'knit' && (!body.leftPage || !body.rightPage)) { return 'leftPage and rightPage are required for knit mode'; } if (mode === 'changeVoice') { if (!body.pageSelection || !body.target) return 'pageSelection and target are required for changeVoice mode'; if (body.target === 'selectedText' && !body.textToChange) return 'textToChange is required when target is selectedText'; } return ''; })() : '' }}"
             }
           ]
-        }
-      }
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "8f88e3b6-e80f-4e38-ab5d-4c7b809cfc99",
+      "name": "Validate Required Parameters",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        160,
+        -80
+      ]
     },
     {
-      "id": "dedf23e1-5c51-4f42-a87e-23c849b0854c",
-      "name": "Is Headless (Request Invalid)?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        300,
-        -80
-      ],
       "parameters": {
         "conditions": {
           "options": {
             "caseSensitive": true,
+            "leftValue": "",
             "typeValidation": "strict",
             "version": 3
           },
@@ -6767,17 +6765,17 @@
           "combinator": "and"
         },
         "options": {}
-      }
+      },
+      "id": "dedf23e1-5c51-4f42-a87e-23c849b0854c",
+      "name": "Is Headless (Request Invalid)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        304,
+        -80
+      ]
     },
     {
-      "id": "3bf419ba-67d3-41b9-bdcf-a861b47177e5",
-      "name": "Respond Bad Request",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.4,
-      "position": [
-        450,
-        -160
-      ],
       "parameters": {
         "respondWith": "json",
         "responseBody": "={{ { error: $json.validationError } }}",
@@ -6792,21 +6790,177 @@
             ]
           }
         }
-      }
+      },
+      "id": "3bf419ba-67d3-41b9-bdcf-a861b47177e5",
+      "name": "Respond Bad Request",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        464,
+        -160
+      ]
     },
     {
+      "parameters": {
+        "errorMessage": "={{ $('Validate Required Parameters').item.json.validationError }}"
+      },
       "id": "b69bbf55-1a7b-4392-8ef7-aa4df44841b8",
       "name": "Fail: Invalid Headless Request",
       "type": "n8n-nodes-base.stopAndError",
       "typeVersion": 1,
       "position": [
-        600,
+        608,
         -160
-      ],
+      ]
+    },
+    {
       "parameters": {
-        "errorType": "errorMessage",
-        "errorMessage": "={{ $('Validate Required Parameters').item.json.validationError }}"
+        "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/clip",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "command",
+              "value": "printf '%s' \"$D2V_PLATFORM_DEFAULT_ACCELERATION\""
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "9e037cdc-b1c9-4887-b413-a5122e4ab9e6",
+      "name": "Read Platform Default Acceleration",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -10672,
+        -288
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dT2rDdHX1TfPrVi1",
+          "name": "D2V Webhook Shared Secret"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "nvenc-backend",
+              "name": "videoEncoderBackend",
+              "value": "nvenc",
+              "type": "string"
+            },
+            {
+              "id": "nvenc-device",
+              "name": "ffmpegHardwareDeviceArgs",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "nvenc-filter",
+              "name": "ffmpegVideoFilterSuffix",
+              "value": ",format=yuv420p",
+              "type": "string"
+            },
+            {
+              "id": "nvenc-clip",
+              "name": "ffmpegVideoEncoderArgs",
+              "value": "-c:v h264_nvenc -preset p5 -rc vbr -cq 24 -b:v 0",
+              "type": "string"
+            },
+            {
+              "id": "nvenc-final",
+              "name": "ffmpegFinalVideoEncoderArgs",
+              "value": "-c:v h264_nvenc -preset p5 -rc vbr -cq 24 -b:v 0",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "c94c0de9-826d-47a3-9f24-54e28ec21640",
+      "name": "Configure NVENC Encoding",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        -11120,
+        32
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/clip",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "command",
+              "value": "={{ $('Select Mode').item.json.resolvedAcceleration === 'cpu' ? '$D2V_START_CPU_TTS_COMMAND && for attempt in $(seq 1 180); do curl -sf http://127.0.0.1:8882/health > /dev/null && exit 0; sleep 1; done; echo \"CPU text-to-speech did not answer its health check within 180 seconds\" >&2; exit 1' : 'true' }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "349d84ac-a321-430e-8dee-bcd6283147f3",
+      "name": "Start CPU Text-to-Speech When Selected",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -416,
+        -96
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dT2rDdHX1TfPrVi1",
+          "name": "D2V Webhook Shared Secret"
+        }
       }
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/clip",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "command",
+              "value": "={{ $('Select Mode').item.json.resolvedAcceleration === 'cpu' ? '$D2V_STOP_CPU_TTS_COMMAND' : 'true' }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "7da8eea7-103a-4465-bde9-39c5ef612a82",
+      "name": "Stop CPU Text-to-Speech When Selected",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3008,
+        352
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dT2rDdHX1TfPrVi1",
+          "name": "D2V Webhook Shared Secret"
+        }
+      },
+      "onError": "continueRegularOutput"
     }
   ],
   "pinData": {},
@@ -7137,17 +7291,6 @@
         [
           {
             "node": "Extract Normalized Transcription from Text File",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Extract Normalized Transcription from Text File": {
-      "main": [
-        [
-          {
-            "node": "Request TTS with Timestamps",
             "type": "main",
             "index": 0
           }
@@ -8368,17 +8511,6 @@
         ]
       ]
     },
-    "Detect Video Encoder Support": {
-      "main": [
-        [
-          {
-            "node": "Route Video Encoder",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Route Video Encoder": {
       "main": [
         [
@@ -8397,7 +8529,14 @@
         ],
         [
           {
-            "node": "Configure Software Encoding",
+            "node": "Configure NVENC Encoding",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Store Video Encoding Configuration",
             "type": "main",
             "index": 0
           }
@@ -8416,17 +8555,6 @@
       ]
     },
     "Configure VideoToolbox Encoding": {
-      "main": [
-        [
-          {
-            "node": "Store Video Encoding Configuration",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Configure Software Encoding": {
       "main": [
         [
           {
@@ -8482,17 +8610,6 @@
         [
           {
             "node": "Select Mode Page",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Store Video Encoding Configuration": {
-      "main": [
-        [
-          {
-            "node": "Fetch Ollama Models",
             "type": "main",
             "index": 0
           }
@@ -9867,6 +9984,94 @@
           }
         ]
       ]
+    },
+    "Store Video Encoding Configuration": {
+      "main": [
+        [
+          {
+            "node": "Read Platform Default Acceleration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Platform Default Acceleration": {
+      "main": [
+        [
+          {
+            "node": "Fetch Ollama Models",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detect Video Encoder Support": {
+      "main": [
+        [
+          {
+            "node": "Configure Software Encoding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configure Software Encoding": {
+      "main": [
+        [
+          {
+            "node": "Route Video Encoder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configure NVENC Encoding": {
+      "main": [
+        [
+          {
+            "node": "Store Video Encoding Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Normalized Transcription from Text File": {
+      "main": [
+        [
+          {
+            "node": "Start CPU Text-to-Speech When Selected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start CPU Text-to-Speech When Selected": {
+      "main": [
+        [
+          {
+            "node": "Request TTS with Timestamps",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Request Final Video Assembly": {
+      "main": [
+        [
+          {
+            "node": "Stop CPU Text-to-Speech When Selected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -9879,88 +10084,88 @@
     "availableInMCP": true,
     "saveExecutionProgress": true
   },
-  "versionId": "2eb6df8c-c792-419a-9cda-1dc11a066266",
+  "versionId": "5b2a100e-f985-4ee4-aa41-9732e854d98b",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "0d58a7a3f156139856be42466a14e05f00173514ac9794a8494b09c53ea173a0",
+    "instanceId": "b32aa4a304393161a5917c0e39ea5a4df2f2a6e973dfb06f73854940521bd52f",
     "aiBuilderAssisted": true,
     "builderVariant": "mcp"
   },
   "nodeGroups": [
     {
-      "id": "7f1af08c-ed64-4b89-97b0-e5b89d398384",
+      "id": "1237be1a-76a1-49ed-b856-2b0cf7530eb4",
       "name": "Document Picker",
-      "nodeNames": [
-        "Extract Document Meta List",
-        "Parse Document Meta Item",
-        "Aggregate Document List"
+      "nodeIds": [
+        "4111729b-35c2-44dd-9859-0deaa165ef1d",
+        "734c2b6d-f299-408a-be07-8bae061bcdb8",
+        "525340d7-fcd6-45e5-bf7e-5504e89b4d1c"
       ]
     },
     {
-      "id": "a0a16b29-a03f-463e-b853-a4fc11a41a55",
+      "id": "7805b436-794b-418b-a677-2db841eee677",
       "name": "Document Folder Setup",
-      "nodeNames": [
-        "Build Document Meta JSON",
-        "Convert Document Meta to File",
-        "Save Document Meta to Disk"
+      "nodeIds": [
+        "b4bdb253-3ff9-4172-a060-a8406a61500d",
+        "fef73ddb-2548-4a3b-a9b6-06a59065a841",
+        "110186cf-3ed6-4512-b27e-b79f403cf7d3"
       ]
     },
     {
-      "id": "35799d9f-5588-44b8-8556-0bf238dd9a4e",
+      "id": "0c035f77-9eaf-438a-9329-3b25e222d2a9",
       "name": "New Conversion - PDF Upload & Page Extraction",
-      "nodeNames": [
-        "Extract Images from PDF",
-        "Unzip Images",
-        "Send Images One by One"
+      "nodeIds": [
+        "a6c61e91-f96d-42ae-9ee8-145f77258e41",
+        "c0aba882-7fa6-46e7-a7e2-e3cb421f4c95",
+        "5dd1bf69-114c-48c6-8c86-3e53422b476c"
       ]
     },
     {
-      "id": "3aff9f6c-a739-4079-a257-dd74f2abde95",
+      "id": "cea38fe3-41f1-4519-9c1b-87f4cba878b2",
       "name": "Transcript Normalization & Word Map",
-      "nodeNames": [
-        "Request Transcript Normalization",
-        "Assemble Normalized Text and Configure Word Map",
-        "Convert Normalized Transcription to Text File",
-        "Convert Word Map to File",
-        "Save Word Map to Disk",
-        "Set Doc Prefix",
-        "Create Normalized Temporary Text File on Disk"
+      "nodeIds": [
+        "0e5f6212-20e6-4acb-961e-ed28a51afdd6",
+        "5f6fa4e9-18da-4512-b1f2-93376fdab3a0",
+        "837a24a3-e583-4fbe-8e1a-5b17ae35e099",
+        "96280d0d-3829-42a5-8322-a6ad126e24eb",
+        "d8a9e5a9-de94-46a6-8eec-0ade0f39b774",
+        "5ff896cf-3123-4e77-8278-b2755807fa97",
+        "9ac766e8-fef2-462f-9834-d27e5d4dc1a2"
       ]
     },
     {
-      "id": "698472ee-8313-41a8-9fb5-42bff875238c",
+      "id": "140e40ba-c22c-4681-a7e2-760b595a4077",
       "name": "TTS & Clip Assembly",
-      "nodeNames": [
-        "Request TTS with Timestamps",
-        "Convert Base64 to Audio File",
-        "Read Word Map from Disk",
-        "Create Temporary Audio File on Disk",
-        "Extract Word Map from File",
-        "Add Page Index to Audio Timestamps",
-        "Convert Timestamps to File",
-        "Save Timestamps to Disk",
-        "Merge Audio File & Timestamps"
+      "nodeIds": [
+        "0e416aa8-3241-4e14-8bce-4d9dc133d91d",
+        "e88f9b03-a71a-4b8e-9b24-bf1612abcdcf",
+        "d5a067ce-d69a-40a0-a872-b631a2f5fbf7",
+        "2d844c92-584d-498e-b943-70c9ce934f51",
+        "8f0d9b8e-22a5-4498-ab7c-653655b23891",
+        "6af65ae0-d648-4f2a-9536-e6ad53759884",
+        "7fb9918c-40ba-4776-b5f4-ba7ebb09277d",
+        "0a861c0e-859b-4849-a6e6-efc437699497",
+        "0a85c2c1-4ed6-4fd9-9e1f-a2b9ea0b8eae"
       ]
     },
     {
-      "id": "81e2464d-7509-42ce-aa19-173e35d0816b",
+      "id": "fbcefd51-3eb0-4f7c-95f9-9ce5f66d5784",
       "name": "Voice Fetching & Sample Setup",
-      "nodeNames": [
-        "Ensure Sample Folder Exists"
+      "nodeIds": [
+        "996a93e7-6dd0-469c-8ecb-d0cd23bf7ddf"
       ]
     },
     {
-      "id": "72a96016-e7c7-4fb4-b07e-2f056a08d175",
+      "id": "353c970b-8f59-4ecd-9f1c-5c5f3f1f2e90",
       "name": "Finalization & Video Assembly",
-      "nodeNames": [
-        "Generate Subtitle File and Video Chapters",
-        "Generate Final Subtitles",
-        "Convert Chapters to File",
-        "Convert Subtitles to File",
-        "Save Chapters to Disk",
-        "Save Subtitles to Disk",
-        "Merge Subtitles & Chapters",
-        "Request Final Video Assembly"
+      "nodeIds": [
+        "511103b3-8179-475c-a0a7-8a856f1c8dd7",
+        "ec91e12f-1e66-46df-8ed2-f77195e93742",
+        "a5b82290-809d-415f-83b7-cdbb34575e7a",
+        "8de182f8-3454-4498-a737-47ab2ecabf38",
+        "5932d857-856b-4307-a922-eae4f4a9b499",
+        "43a9add9-c4e6-41f8-8a1e-41ae735171a2",
+        "46c88e05-2bfd-4c0b-9ec8-dc9c841fc635",
+        "a1aa3900-7c65-4216-9b0b-e6965f3dc6e5"
       ]
     }
   ],
