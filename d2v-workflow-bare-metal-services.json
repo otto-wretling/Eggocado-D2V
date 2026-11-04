@@ -68,7 +68,7 @@
         "url": "http://127.0.0.1:11434/api/generate",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{JSON.stringify({model: $json.body.model, prompt: $json.body.prompt, images: [$json.body.imageBase64], stream: false})}}",
+        "jsonBody": "={{ JSON.stringify({ model: $json.body.model, prompt: $json.body.prompt, images: [$json.body.imageBase64], stream: false, options: { num_gpu: $json.body.useCpu ? 0 : -1 } }) }}",
         "options": {
           "response": {
             "response": {
@@ -890,7 +890,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": true
   },
-  "versionId": "6e54935e-dce9-4760-bb39-5821fcadcec2",
+  "versionId": "52b36ab1-32b0-4910-a098-644bdadb4884",
   "meta": {
     "instanceId": "dfec3cc7cdeb4a0fdfa22be74916fb569537c1cfe54fb5b223dad1bcc3407b77",
     "aiBuilderAssisted": true,

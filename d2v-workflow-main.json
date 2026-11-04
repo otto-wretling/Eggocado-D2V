@@ -118,7 +118,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n    model: $('Set Transcription Model').item.json.transcriptionModel,\n    prompt: [\n      \"You are a precise document transcription assistant. Look at this page visually and transcribe all text exactly as it appears, from top to bottom, left to right. Rules:\",\n      \"1. Transcribe all text verbatim — preserve numbers, symbols, currencies, dates, codes, and abbreviations exactly as written.\",\n      \"2. If there are charts, graphs, or diagrams, describe them in plain natural language within the flow of the text. If there are images or photographs, describe them in plain natural language but place the description at the end of the transcription, including where on the page the image appears, for example: 'The image in the top left displays...'.\",\n      \"3. Ignore page numbers, headers, and footers unless critical to understanding the content.\",\n      \"4. Do not use Markdown formatting, bullet points, or stage directions. Return only plain text.\",\n      \"5. Do not summarize, explain, skip, or shorten any text.\",\n      \"6. End every sentence with a period.\",\n      \"7. For tables, first write one sentence summarizing what the table contains. Then transcribe each data row by pairing each cell with its column header, in the format \\\"Header: Value.\\\" for every column in that row, left to right. Repeat this for every row until the entire table is transcribed. Do not skip any rows or columns.\"\n    ].join(\"\\n\"),\n    imageBase64: $json.imageBase64\n  }) }}",
+        "jsonBody": "={{ JSON.stringify({\n    model: $('Set Transcription Model').item.json.transcriptionModel,\n    prompt: [\n      \"You are a precise document transcription assistant. Look at this page visually and transcribe all text exactly as it appears, from top to bottom, left to right. Rules:\",\n      \"1. Transcribe all text verbatim — preserve numbers, symbols, currencies, dates, codes, and abbreviations exactly as written.\",\n      \"2. If there are charts, graphs, or diagrams, describe them in plain natural language within the flow of the text. If there are images or photographs, describe them in plain natural language but place the description at the end of the transcription, including where on the page the image appears, for example: 'The image in the top left displays...'.\",\n      \"3. Ignore page numbers, headers, and footers unless critical to understanding the content.\",\n      \"4. Do not use Markdown formatting, bullet points, or stage directions. Return only plain text.\",\n      \"5. Do not summarize, explain, skip, or shorten any text.\",\n      \"6. End every sentence with a period.\",\n      \"7. For tables, first write one sentence summarizing what the table contains. Then transcribe each data row by pairing each cell with its column header, in the format \\\"Header: Value.\\\" for every column in that row, left to right. Repeat this for every row until the entire table is transcribed. Do not skip any rows or columns.\"\n    ].join(\"\\n\"),\n    imageBase64: $json.imageBase64,\n    useCpu: $('Select Mode').item.json.resolvedAcceleration === 'cpu'\n  }) }}",
         "options": {
           "batching": {
             "batch": {
@@ -1426,7 +1426,7 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({\n    model: $('Set Transcription Model').item.json.transcriptionModel,\n    imageBase64: $json.imageBase64,\n    prompt: [\n      \"You are given two consecutive page transcriptions from a document and a combined image showing both pages side by side. Merge them into one transcription following these rules:\",\n      \"1. Assume all transcribed text is completely correct. Do not change, correct, or paraphrase any words.\",\n      \"2. Reorder the text if necessary so it reads naturally across the full double-page spread, left to right, top to bottom, as a reader would experience it.\",\n      \"3. Always place image descriptions at the end of the transcription, including where on the spread the image appears, for example: 'The image in the top left displays...'. Descriptions of charts, graphs, tables, and other visual data should remain where they appear in the reading order.\",\n      \"4. Only rewrite descriptions of images, charts, graphs, or tables that clearly span both pages and can be better described when seen as a whole.\",\n      \"5. If data values on one page lack labels because the legend or column headers appear on the other page, use those labels to identify all unlabeled values across both pages.\",\n      \"6. Preserve all numbers, names, dates, abbreviations, and symbols exactly as written.\",\n      \"7. Return only the merged transcription as plain text, nothing else.\",\n      \"Left page:\",\n      $('Extract Left Page Transcription from File').item.json.text,\n      \"Right page:\",\n      $('Extract Right Page Transcription from File').item.json.text\n    ].join(\"\\n\")\n  }) }}",
+        "jsonBody": "={{ JSON.stringify({\n    model: $('Set Transcription Model').item.json.transcriptionModel,\n    imageBase64: $json.imageBase64,\n    useCpu: $('Select Mode').item.json.resolvedAcceleration === 'cpu',\n    prompt: [\n      \"You are given two consecutive page transcriptions from a document and a combined image showing both pages side by side. Merge them into one transcription following these rules:\",\n      \"1. Assume all transcribed text is completely correct. Do not change, correct, or paraphrase any words.\",\n      \"2. Reorder the text if necessary so it reads naturally across the full double-page spread, left to right, top to bottom, as a reader would experience it.\",\n      \"3. Always place image descriptions at the end of the transcription, including where on the spread the image appears, for example: 'The image in the top left displays...'. Descriptions of charts, graphs, tables, and other visual data should remain where they appear in the reading order.\",\n      \"4. Only rewrite descriptions of images, charts, graphs, or tables that clearly span both pages and can be better described when seen as a whole.\",\n      \"5. If data values on one page lack labels because the legend or column headers appear on the other page, use those labels to identify all unlabeled values across both pages.\",\n      \"6. Preserve all numbers, names, dates, abbreviations, and symbols exactly as written.\",\n      \"7. Return only the merged transcription as plain text, nothing else.\",\n      \"Left page:\",\n      $('Extract Left Page Transcription from File').item.json.text,\n      \"Right page:\",\n      $('Extract Right Page Transcription from File').item.json.text\n    ].join(\"\\n\")\n  }) }}",
         "options": {
           "timeout": 3600000
         }
@@ -6961,6 +6961,40 @@
         }
       },
       "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/clip",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "command",
+              "value": "={{ $('Select Mode').item.json.resolvedAcceleration === 'cpu' && $('Set Transcription Engine').item.json.engineKey === 'ollama' ? \"curl -s -o /dev/null http://127.0.0.1:11434/api/generate -d '\" + JSON.stringify({ model: $('Set Transcription Model').item.json.transcriptionModel, keep_alive: 0 }) + \"'\" : 'true' }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "4f3aa0de-dc72-4af3-aef0-1dc1749878de",
+      "name": "Unload Ollama Model After CPU Conversion",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3232,
+        352
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dT2rDdHX1TfPrVi1",
+          "name": "D2V Webhook Shared Secret"
+        }
+      },
+      "onError": "continueRegularOutput"
     }
   ],
   "pinData": {},
@@ -10072,6 +10106,17 @@
           }
         ]
       ]
+    },
+    "Stop CPU Text-to-Speech When Selected": {
+      "main": [
+        [
+          {
+            "node": "Unload Ollama Model After CPU Conversion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -10084,7 +10129,7 @@
     "availableInMCP": true,
     "saveExecutionProgress": true
   },
-  "versionId": "5b2a100e-f985-4ee4-aa41-9732e854d98b",
+  "versionId": "75aac657-f89e-4621-afb7-b4eca3c4d1ed",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "b32aa4a304393161a5917c0e39ea5a4df2f2a6e973dfb06f73854940521bd52f",
