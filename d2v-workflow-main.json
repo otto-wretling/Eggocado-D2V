@@ -7370,7 +7370,7 @@
     },
     {
       "parameters": {
-        "errorMessage": "={{ typeof $json.error === 'string' ? $json.error : ($json.error?.message ?? JSON.stringify($json.error)) }}"
+        "errorMessage": "={{ typeof $json.error === 'string' ? $json.error : /^\\d{3} - \\{/.test($json.error?.message ?? '') ? ($json.error.message.replace(/^\\d{3} - /, '').parseJson().message ?? $json.error.message) : ($json.error?.message ?? JSON.stringify($json.error)) }}"
       },
       "id": "8fde03fd-3b90-45ee-bd93-a1b5470c0170",
       "name": "Fail: Conversion Stage Failed",
@@ -10855,7 +10855,7 @@
     "saveExecutionProgress": true,
     "errorWorkflow": "jRt9vIy3bcnOSxi5"
   },
-  "versionId": "ecf47484-8348-4809-ac63-b4a0e509204f",
+  "versionId": "a2bb7194-ea34-4e6f-bcca-9109c897d472",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "b32aa4a304393161a5917c0e39ea5a4df2f2a6e973dfb06f73854940521bd52f",

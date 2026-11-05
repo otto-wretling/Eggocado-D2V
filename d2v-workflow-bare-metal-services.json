@@ -85,7 +85,8 @@
       "position": [
         224,
         224
-      ]
+      ],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -190,7 +191,8 @@
       "position": [
         224,
         448
-      ]
+      ],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -332,7 +334,8 @@
       "position": [
         1344,
         672
-      ]
+      ],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -474,7 +477,8 @@
       "position": [
         1344,
         896
-      ]
+      ],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -599,6 +603,23 @@
         448,
         1344
       ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ message: /^\\d{3} - \\{/.test($json.error?.message ?? '') ? ($json.error.message.replace(/^\\d{3} - /, '').parseJson().error ?? $json.error.message) : ($json.error?.message ?? String($json.error)) }) }}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "id": "d6b9cda1-405d-47ce-a44e-3e26fd3c4c97",
+      "name": "Return Service Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        672,
+        336
+      ]
     }
   ],
   "pinData": {},
@@ -644,6 +665,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Return Service Error",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -674,6 +702,13 @@
         [
           {
             "node": "Return TTS Output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return Service Error",
             "type": "main",
             "index": 0
           }
@@ -754,6 +789,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Return Service Error",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -831,6 +873,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Return Service Error",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -890,7 +939,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": true
   },
-  "versionId": "52b36ab1-32b0-4910-a098-644bdadb4884",
+  "versionId": "70e868db-0f78-4d78-b2ed-264bda9c09b7",
   "meta": {
     "instanceId": "dfec3cc7cdeb4a0fdfa22be74916fb569537c1cfe54fb5b223dad1bcc3407b77",
     "aiBuilderAssisted": true,
