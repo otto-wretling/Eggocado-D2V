@@ -10,6 +10,8 @@ let
   };
   dockerDesktopIntegrationCommands = [ "chmod" "install" "mkdir" "mv" "rm" "stat" "test" ];
   dockerDesktopCli = "/usr/bin/docker";
+  publicRegistryDockerConfiguration = pkgs.writeText "docker-config.json" "{}";
+  dockerConfigurationStateDirectory = "eggocado-d2v-docker";
 in
 {
   imports = [ nixos.linuxHost ];
@@ -62,9 +64,12 @@ in
           ConditionUser = cfg.user;
           StartLimitIntervalSec = 0;
         };
+        environment.DOCKER_CONFIG = "%S/${dockerConfigurationStateDirectory}";
         serviceConfig = {
           Type = "oneshot";
           RemainAfterExit = true;
+          StateDirectory = dockerConfigurationStateDirectory;
+          ExecStartPre = "${pkgs.coreutils}/bin/install -m 644 ${publicRegistryDockerConfiguration} %S/${dockerConfigurationStateDirectory}/config.json";
           ExecStart = "${dockerDesktopCli} compose up --detach --force-recreate";
           Restart = "on-failure";
           RestartSec = 5;
