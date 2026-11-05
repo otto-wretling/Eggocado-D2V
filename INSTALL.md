@@ -28,7 +28,7 @@ On Windows, D2V runs in a [NixOS-WSL](https://github.com/nix-community/NixOS-WSL
 
    The template's `configuration.nix` sets `wsl.defaultUser = "nixos"`, NixOS-WSL's default user. If your distribution uses a different user name, set it there before running `nixos-rebuild`. On a machine with a CPU only, also set `eggocado-d2v.kokoro.torchVariant = "cpu";` there for a smaller Kokoro-FastAPI environment.
 
-4. In Docker Desktop, open **Settings > Resources > WSL Integration**, turn on the NixOS-WSL distribution, and select **Apply**. See [Docker Desktop WSL 2 backend on Windows](https://docs.docker.com/desktop/features/wsl/) for details.
+4. In Docker Desktop, open **Settings > Resources > WSL Integration**, turn on the NixOS-WSL distribution, and select **Apply**. See [Docker Desktop WSL 2 backend on Windows](https://docs.docker.com/desktop/features/wsl/) for details. Once integration is on, `/usr/bin/docker` exists inside the distribution. If it is still missing a minute later, follow [Docker Desktop: "WSL integration with distro unexpectedly stopped"](#docker-desktop-wsl-integration-with-distro-unexpectedly-stopped).
 
 5. Inside the distribution, clone this repo to `~/Documents/GitHub/Eggocado-D2V`, where the services run from:
 
@@ -140,11 +140,10 @@ The nemo-normalizer image is built from `./nemo-normalizer/` on first run. This 
 ## Importing the workflows
 
 1. Open Docker n8n at `http://localhost:5678`, complete the one-time owner account setup if prompted
-2. Import `d2v-workflow-main.json` and publish it
-3. Open the main workflow's **Settings** and set **Error Workflow** to `d2v-workflow-main` itself. When a conversion fails, its `Conversion Failed` trigger marks the job as `failed` for the status endpoint and stops the CPU Kokoro-FastAPI instance
-4. Open bare-metal n8n at `http://localhost:5679`, complete its own one-time owner account setup
-5. Import `d2v-workflow-bare-metal-services.json`
-6. Activate both workflows
+2. Import `d2v-workflow-main.json` and save it
+3. Open bare-metal n8n at `http://localhost:5679`, complete its own one-time owner account setup
+4. Import `d2v-workflow-bare-metal-services.json` and save it
+5. Continue with [Securing the bare-metal webhook](#securing-the-bare-metal-webhook), which ends with publishing both workflows. n8n publishes a workflow once every node has its credential.
 
 ## Securing the bare-metal webhook
 
@@ -156,8 +155,9 @@ The bare-metal instance runs arbitrary shell commands sent to it by the main wor
    - Save it (call it e.g. "D2V Webhook Shared Secret")
 2. Open each webhook trigger node in the bare-metal workflow (`Get Request for Assembling Clip`, `Receive Prompt`, `Receive TTS Request`, `Receive Claude Prompt`, `Receive Codex Prompt`, `Receive Ollama Models Request`, `Receive Codex Models Request`) and set **Authentication** to **Header Auth**, selecting the credential you just created.
 3. In the **main n8n** (`localhost:5678`), create a **matching** Header Auth credential with the **same header name and value** as step 1.
-4. Attach that credential to every node that calls the bare-metal instance: `Request Image Transcription`, `Request Clip Assembly`, `Request Final Video Assembly`, `Request TTS with Timestamps`, `Knit Images`, `Knit Transcriptions`, `Ensure Base Folders Exist`, `Ensure Document Folder Exists`, `Ensure Output Folder Exists`, `Ensure Sample Folder Exists`, `Ensure Job Output Folder Exists`, `Fetch Ollama Models`, `Fetch Codex Models`, `Detect Video Encoder Support`, `Read Platform Default Acceleration`, `Start CPU Text-to-Speech When Selected`, `Start CPU Text-to-Speech for Voice List`, `Stop CPU Text-to-Speech When Selected`, `Unload Ollama Model After CPU Conversion`, `Check Job State`, `Record Failure and Stop CPU Text-to-Speech`. For each, set the node's **Authentication** to **Generic Credential Type → Header Auth** and pick the credential. (`Fetch Claude Models` calls `endoflife.date`'s public API directly.)
-5. Save both workflows.
+4. Attach that credential to every node that calls the bare-metal instance: `Request Image Transcription`, `Request Clip Assembly`, `Request Final Video Assembly`, `Request TTS with Timestamps`, `Knit Images`, `Knit Transcriptions`, `Ensure Base Folders Exist`, `Ensure Document Folder Exists`, `Ensure Output Folder Exists`, `Ensure Sample Folder Exists`, `Ensure Job Output Folder Exists`, `Fetch Ollama Models`, `Fetch Codex Models`, `Detect Video Encoder Support`, `Read Platform Default Acceleration`, `Start CPU Text-to-Speech When Selected`, `Start CPU Text-to-Speech for Voice List`, `Stop CPU Text-to-Speech When Selected`, `Unload Ollama Model After CPU Conversion`, `Check Job State`, `Record Failure and Stop CPU Text-to-Speech`. For each, set the node's **Authentication** to **Generic Credential Type → Header Auth** and pick the credential. (`Fetch Claude Models` calls `endoflife.date`'s public API directly.) Also pick it in the main workflow's two webhook triggers, `Receive Headless API Request` and `Receive Status Check Request`, which check the same header on headless API requests. The imported nodes already have their authentication set, and n8n selects the credential as you open each node when it is the only Header Auth credential.
+5. Save and publish both workflows.
+6. Open the main workflow's **Settings** and set **Error Workflow** to `d2v-workflow-main` itself. When a conversion fails, its `Conversion Failed` trigger marks the job as `failed` for the status endpoint and stops the CPU Kokoro-FastAPI instance.
 
 Verify it's working:
 
