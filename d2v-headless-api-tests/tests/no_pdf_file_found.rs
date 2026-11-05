@@ -1,32 +1,26 @@
-use std::time::Duration;
+use d2v_headless_api_tests::{
+    assert_request_fails_with_message_containing, existing_document_fields, job_id_for_document,
+    mode, Config, TemporarilyMovedPath, DEFAULT_VOICE, FAILURE_POLL_TIMEOUT,
+    SHARED_DOCUMENT_FILENAME,
+};
 
-use d2v_headless_api_tests::{start_job, Config, Field, JobStatus, TemporarilyMovedPath};
+const MISSING_PDF_MESSAGE_FRAGMENT: &str = "PDF";
 
 #[test]
 fn continuing_a_document_with_its_pdf_missing_fails_with_clear_message() {
     let config = Config::from_env();
-    let document_filename = "d2v-rust-suite-new-conversion.pdf";
-    let pdf_path = format!("{}/{document_filename}", config.job_temp_dir("d2v-rust-suite-new-conversion"));
+    let pdf_path = format!(
+        "{}/{SHARED_DOCUMENT_FILENAME}",
+        config.job_temp_dir(&job_id_for_document(SHARED_DOCUMENT_FILENAME))
+    );
 
     let _pdf_backup_guard = TemporarilyMovedPath::move_aside_if_present(&pdf_path)
         .unwrap_or_else(|| panic!("expected {pdf_path} to exist before this test moved it aside"));
 
-    let started_job = start_job(
+    assert_request_fails_with_message_containing(
         &config,
-        &[
-            Field::Text("mode", "continue"),
-            Field::Text("document", document_filename),
-            Field::Text("engineModel", &config.engine_model),
-            Field::Text("voice", "af_heart"),
-        ],
+        &existing_document_fields(&config, mode::CONTINUE, SHARED_DOCUMENT_FILENAME, DEFAULT_VOICE),
+        FAILURE_POLL_TIMEOUT,
+        MISSING_PDF_MESSAGE_FRAGMENT,
     );
-
-    let job_status =
-        d2v_headless_api_tests::poll_status(&config, &started_job.job_id, Duration::from_secs(60));
-    match job_status {
-        JobStatus::Failed(message) => {
-            assert!(message.contains("PDF"));
-        }
-        other => panic!("expected Failed, got {other:?}"),
-    }
 }

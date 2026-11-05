@@ -4,6 +4,10 @@
 
 - No code comments. Name functions, variables, and types so the code explains itself; a reader should never need a comment to understand what something does or why.
 - A self-documenting name states what it actually checks or does, not a generic verb. `verify_srt` tells a reader unfamiliar with the project nothing; `assert_srt_has_well_formed_cues` does. Prefer the specific claim over the generic action every time.
+- Declare every literal value that carries meaning as a named constant or variable: timeouts, poll intervals, ports, addresses, URLs, paths, file names, voice IDs, document names, expected messages and thresholds. The name documents what the value is for. Declare it once, in the narrowest shared place every user can reach, and refer to it from there.
+- Define anything used in more than one place once, in a shared location, and reuse it: helpers, request field sets, polling loops, assertions and constants. Shared test code lives in `d2v-headless-api-tests/src/lib.rs`; a value or helper used by a single test file lives at the top of that file.
+- Give every item the narrowest visibility that still lets each user reach it: private unless another module or crate uses it, and `pub` only for what another crate imports. The compiler reports unused private items, so narrow visibility is what catches dead code. Shared code keeps its single shared definition at the narrowest visibility all its users can reach.
+- Code compiles with zero errors and zero warnings. `d2v-headless-api-tests/Cargo.toml` sets `[lints.rust] warnings = "deny"`, which turns every warning into a build failure; fix the cause of a warning, and keep that setting in place.
 
 ## Testing
 

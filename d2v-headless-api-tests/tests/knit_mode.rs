@@ -1,48 +1,13 @@
-use std::time::Duration;
-
 use d2v_headless_api_tests::{
-    assert_video_decodes_without_errors, assert_video_duration_within_range,
-    assert_video_has_audio_and_video_streams, ensure_document_converted, start_job,
-    wait_for_file_size_to_stabilize, Config, Field, JobStatus, CONVERSION_TIMEOUT,
+    assert_request_produces_a_playable_document_video, ensure_document_converted, knit_fields,
+    Config, FIRST_PAGE, SECOND_PAGE, SHARED_DOCUMENT_FILENAME,
 };
 
 #[test]
 fn knitting_pages_one_and_two_produces_an_updated_playable_video() {
     let config = Config::from_env();
-    ensure_document_converted(
-        &config,
-        "d2v-rust-suite-new-conversion.pdf",
-        "d2v-rust-suite-new-conversion",
-    );
+    ensure_document_converted(&config, SHARED_DOCUMENT_FILENAME);
 
-    let started_job = start_job(
-        &config,
-        &[
-            Field::Text("mode", "knit"),
-            Field::Text("document", "d2v-rust-suite-new-conversion.pdf"),
-            Field::Text("engineModel", &config.engine_model),
-            Field::Text("leftPage", "1"),
-            Field::Text("rightPage", "2"),
-            Field::Text("voice", "af_heart"),
-        ],
-    );
-
-    assert_eq!(started_job.mode.as_deref(), Some("knit"));
-    assert_eq!(started_job.job_id, "d2v-rust-suite-new-conversion");
-
-    let job_status = d2v_headless_api_tests::poll_status(
-        &config,
-        &started_job.job_id,
-        CONVERSION_TIMEOUT,
-    );
-    assert_eq!(job_status, JobStatus::Done);
-
-    let video_path = format!(
-        "{}/final_video.mp4",
-        config.job_output_dir(&started_job.job_id)
-    );
-    wait_for_file_size_to_stabilize(&video_path, Duration::from_secs(30));
-    assert_video_has_audio_and_video_streams(&video_path);
-    assert_video_duration_within_range(&video_path, 10.0, 600.0);
-    assert_video_decodes_without_errors(&video_path);
+    let fields = knit_fields(&config, SHARED_DOCUMENT_FILENAME, FIRST_PAGE, SECOND_PAGE);
+    assert_request_produces_a_playable_document_video(&config, &fields);
 }
