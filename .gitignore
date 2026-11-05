@@ -1,6 +1,8 @@
-/temp
+/temp/*
+!/temp/.gitkeep
 .DS_Store
-/output
+/output/*
+!/output/.gitkeep
 .env.mcp
 .env.mcp.baremetal
 .mcp.json
