@@ -5078,7 +5078,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ { jobId: $json.jobId, mode: $json.mode } }}",
+        "responseBody": "={{ { jobId: $('Compute Job Info').item.json.jobId, mode: $('Compute Job Info').item.json.mode, executionId: $execution.id } }}",
         "options": {}
       },
       "id": "99166f2d-e359-425f-8abd-1d1441294c17",
@@ -10102,7 +10102,7 @@
       "main": [
         [
           {
-            "node": "Has Uploaded File?",
+            "node": "Populate Variables",
             "type": "main",
             "index": 0
           }
@@ -10124,7 +10124,7 @@
       "main": [
         [
           {
-            "node": "Populate Variables",
+            "node": "Respond with Job Info",
             "type": "main",
             "index": 0
           }
@@ -10532,7 +10532,7 @@
         ],
         [
           {
-            "node": "Respond with Job Info",
+            "node": "Has Uploaded File?",
             "type": "main",
             "index": 0
           }

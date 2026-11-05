@@ -44,7 +44,10 @@ fn poll_status_noting_whether_cpu_kokoro_answered(config: &Config, job_id: &str)
             Ok(JobStatus::Failed(message)) => {
                 return (JobStatus::Failed(message), cpu_kokoro_answered)
             }
-            Ok(JobStatus::NotFound | JobStatus::Processing) | Err(_) => {}
+            Ok(JobStatus::NotFound) => panic!(
+                "job {job_id} wrote its started marker, but the status endpoint reports not_found"
+            ),
+            Ok(JobStatus::Processing) | Err(_) => {}
         }
 
         if poll_started_at.elapsed() > CONVERSION_TIMEOUT {

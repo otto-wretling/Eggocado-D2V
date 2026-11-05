@@ -1,4 +1,5 @@
 use std::env;
+use std::os::unix::fs::PermissionsExt;
 use std::process::Command;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
@@ -133,6 +134,8 @@ pub struct StartJobResponse {
     #[serde(rename = "jobId")]
     pub job_id: String,
     pub mode: Option<String>,
+    #[serde(rename = "executionId")]
+    pub execution_id: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -169,7 +172,7 @@ pub enum Field<'a> {
     },
 }
 
-pub fn start_job_expecting_bad_request(config: &Config, fields: &[Field]) -> String {
+fn send_start_request(config: &Config, fields: &[Field]) -> (reqwest::StatusCode, String) {
     let http_client = reqwest::blocking::Client::new();
     let mut multipart_form = reqwest::blocking::multipart::Form::new();
 
@@ -202,6 +205,28 @@ pub fn start_job_expecting_bad_request(config: &Config, fields: &[Field]) -> Str
     let response_body_text = http_response
         .text()
         .expect("failed to read start-job response body");
+    (http_status, response_body_text)
+}
+
+fn started_marker_path(config: &Config, job_id: &str) -> String {
+    format!("{}/.started", config.job_output_dir(job_id))
+}
+
+fn assert_started_marker_names_the_responding_execution(config: &Config, started_job: &StartJobResponse) {
+    let job_id = &started_job.job_id;
+    let marker_path = started_marker_path(config, job_id);
+    let marker_contents = std::fs::read_to_string(&marker_path).unwrap_or_else(|e| {
+        panic!("the start request for job {job_id} succeeded, but {marker_path} is unreadable: {e}")
+    });
+    assert_eq!(
+        marker_contents.lines().last(),
+        Some(format!("execution {}", started_job.execution_id).as_str()),
+        "{marker_path} names a different execution than the one that answered the start request"
+    );
+}
+
+pub fn start_job_expecting_bad_request(config: &Config, fields: &[Field]) -> String {
+    let (http_status, response_body_text) = send_start_request(config, fields);
     assert_eq!(
         http_status.as_u16(),
         400,
@@ -219,47 +244,59 @@ pub fn start_job_expecting_bad_request(config: &Config, fields: &[Field]) -> Str
     error_response.error
 }
 
+pub fn start_job_expecting_server_error(config: &Config, fields: &[Field]) -> String {
+    let (http_status, response_body_text) = send_start_request(config, fields);
+    assert_eq!(
+        http_status.as_u16(),
+        500,
+        "expected HTTP 500 Internal Server Error, got {http_status}: {response_body_text}"
+    );
+    response_body_text
+}
+
 pub fn start_job(config: &Config, fields: &[Field]) -> StartJobResponse {
-    let http_client = reqwest::blocking::Client::new();
-    let mut multipart_form = reqwest::blocking::multipart::Form::new();
-
-    for field in fields {
-        multipart_form = match field {
-            Field::Text(name, value) => multipart_form.text(name.to_string(), value.to_string()),
-            Field::File {
-                name,
-                filename,
-                mime,
-                bytes,
-            } => {
-                let file_part = reqwest::blocking::multipart::Part::bytes(bytes.clone())
-                    .file_name(filename.to_string())
-                    .mime_str(mime)
-                    .expect("invalid mime type");
-                multipart_form.part(name.to_string(), file_part)
-            }
-        };
-    }
-
-    let http_response = http_client
-        .post(format!("{}/webhook/d2v-headless", config.base_url))
-        .header("x-webhook-secret", &config.secret)
-        .multipart(multipart_form)
-        .send()
-        .expect("failed to send start-job request");
-
-    let http_status = http_response.status();
-    let response_body_text = http_response
-        .text()
-        .expect("failed to read start-job response body");
+    let (http_status, response_body_text) = send_start_request(config, fields);
     assert!(
         http_status.is_success(),
         "start_job got HTTP {http_status}: {response_body_text}"
     );
 
-    serde_json::from_str(&response_body_text).unwrap_or_else(|parse_error| {
-        panic!("failed to parse start-job response: {parse_error}\nbody: {response_body_text}")
-    })
+    let started_job: StartJobResponse = serde_json::from_str(&response_body_text)
+        .unwrap_or_else(|parse_error| {
+            panic!("failed to parse start-job response: {parse_error}\nbody: {response_body_text}")
+        });
+    assert_started_marker_names_the_responding_execution(config, &started_job);
+    started_job
+}
+
+pub struct ReadOnlyDirectory {
+    path: String,
+}
+
+impl ReadOnlyDirectory {
+    pub fn create(path: &str) -> Self {
+        std::fs::create_dir_all(path).unwrap_or_else(|e| panic!("failed to create {path}: {e}"));
+        std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o555))
+            .unwrap_or_else(|e| panic!("failed to make {path} read-only: {e}"));
+        Self {
+            path: path.to_string(),
+        }
+    }
+}
+
+impl Drop for ReadOnlyDirectory {
+    fn drop(&mut self) {
+        let _ = std::fs::set_permissions(&self.path, std::fs::Permissions::from_mode(0o755));
+        let _ = std::fs::remove_dir_all(&self.path);
+    }
+}
+
+pub fn assert_job_has_no_started_marker(config: &Config, job_id: &str) {
+    let marker_path = started_marker_path(config, job_id);
+    assert!(
+        !std::path::Path::new(&marker_path).exists(),
+        "{marker_path} exists"
+    );
 }
 
 pub fn check_status_once(config: &Config, job_id: &str) -> Result<JobStatus, reqwest::Error> {
@@ -316,7 +353,10 @@ pub fn poll_status(config: &Config, job_id: &str, timeout: Duration) -> JobStatu
         match check_status_once(config, job_id) {
             Ok(JobStatus::Done) => return JobStatus::Done,
             Ok(JobStatus::Failed(message)) => return JobStatus::Failed(message),
-            Ok(JobStatus::NotFound | JobStatus::Processing) | Err(_) => {}
+            Ok(JobStatus::NotFound) => panic!(
+                "job {job_id} wrote its started marker, but the status endpoint reports not_found"
+            ),
+            Ok(JobStatus::Processing) | Err(_) => {}
         }
 
         if poll_started_at.elapsed() > timeout {

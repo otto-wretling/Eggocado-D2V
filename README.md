@@ -26,7 +26,7 @@ Every mode is also reachable over HTTP, for scripting or automation, without the
 
 | Endpoint | Method | What it does |
 |---|---|---|
-| `/webhook/d2v-headless` | POST | Validates the request, then either starts a job and returns `{jobId, mode}`, or returns `400` with `{error}` if a required parameter is missing or invalid. The job keeps running in the background |
+| `/webhook/d2v-headless` | POST | Validates the request, then either starts a job and returns `{jobId, mode, executionId}` once the job has written its `output/<jobId>/.started` marker, returns `400` with `{error}` if a required parameter is missing or invalid, or returns `500` if the job fails before writing that marker. The job keeps running in the background |
 | `/webhook/d2v-headless-status?jobId=...` | GET | Polls a job, returning `{jobId, status}`, where `status` is `not_found`, `processing`, `done`, or `failed` (with a `message` field) |
 
 Both endpoints require the same `x-webhook-secret` header value as the one set up in [INSTALL.md](INSTALL.md#securing-the-bare-metal-webhook) (the main n8n instance's own Header Auth credential, reused here). A start request is `multipart/form-data`. The returned `jobId` is the document name, slugified, except Sample Video mode, which uses `sample-<n8n execution id>`.
@@ -66,7 +66,7 @@ curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
   -F "data=@/path/to/my-document.pdf;type=application/pdf"
 ```
 
-Returns `{"jobId":"my-document","mode":"new"}` immediately. `overwrite=true` is only needed when `document` names a document that was already converted; omitting `document` entirely falls back to the literal job ID `document`.
+Returns `{"jobId":"my-document","mode":"new","executionId":"1234"}` as soon as the job has started. `overwrite=true` is only needed when `document` names a document that was already converted; omitting `document` entirely falls back to the literal job ID `document`.
 
 Continue converting entire document:
 
@@ -126,7 +126,7 @@ curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
   -F "samplePhrase=Hello, this is a sample of my voice."
 ```
 
-Returns `{"jobId":"sample-1234","mode":"sample"}`, where `1234` is the n8n execution ID — each sample request gets its own job, so concurrent calls never collide.
+Returns `{"jobId":"sample-1234","mode":"sample","executionId":"1234"}`, where `1234` is the n8n execution ID — each sample request gets its own job, so concurrent calls never collide.
 
 A request with a missing or invalid required parameter, e.g. `knit` without `leftPage`/`rightPage`, returns `400` instead of starting a job:
 
@@ -151,7 +151,7 @@ curl "$D2V_BASE_URL/webhook/d2v-headless-status?jobId=my-document" \
 
 | `status` | Meaning |
 |---|---|
-| `not_found` | No job with this `jobId` has ever started (or its output was deleted) |
+| `not_found` | No job with this `jobId` has ever started (or its output was deleted). Once a start request returns its `jobId`, that job reports one of the other statuses |
 | `processing` | The job has started and is still running |
 | `done` | The job finished; `output/<jobId>/final_video.mp4` and `.srt` are ready |
 | `failed` | The job started but could not finish; `message` has the reason |

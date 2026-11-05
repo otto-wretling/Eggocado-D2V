@@ -1,11 +1,44 @@
 use std::time::Duration;
 
 use d2v_headless_api_tests::{
-    discard_all_backups, ensure_document_converted, move_entries_aside_except, start_job,
-    start_job_expecting_bad_request, Config, Field, JobStatus, CONVERSION_TIMEOUT,
+    assert_job_has_no_started_marker, check_status_once, discard_all_backups,
+    ensure_document_converted, move_entries_aside_except, start_job,
+    start_job_expecting_bad_request, start_job_expecting_server_error, Config, Field, JobStatus,
+    ReadOnlyDirectory, CONVERSION_TIMEOUT,
 };
 
 const FAILURE_POLL_TIMEOUT: Duration = Duration::from_secs(60);
+
+#[test]
+fn start_request_fails_when_the_job_output_folder_is_unwritable() {
+    let config = Config::from_env();
+    let document_filename = "d2v-rust-suite-unwritable-output-folder.pdf";
+    let job_id = "d2v-rust-suite-unwritable-output-folder";
+    let _unwritable_job_output_folder = ReadOnlyDirectory::create(&config.job_output_dir(job_id));
+
+    start_job_expecting_server_error(
+        &config,
+        &[
+            Field::Text("mode", "new"),
+            Field::Text("document", document_filename),
+            Field::Text("engineModel", &config.engine_model),
+            Field::Text("voice", "af_heart"),
+            Field::Text("overwrite", "true"),
+            Field::File {
+                name: "data",
+                filename: document_filename,
+                mime: "application/pdf",
+                bytes: d2v_headless_api_tests::generate_test_pdf(),
+            },
+        ],
+    );
+
+    assert_job_has_no_started_marker(&config, job_id);
+    assert_eq!(
+        check_status_once(&config, job_id).expect("failed to check status"),
+        JobStatus::NotFound
+    );
+}
 
 #[test]
 fn missing_mode_fails_with_clear_message() {

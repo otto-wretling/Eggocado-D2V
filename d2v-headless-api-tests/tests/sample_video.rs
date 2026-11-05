@@ -1,7 +1,7 @@
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 
-use d2v_headless_api_tests::{start_job, Config, Field, CONVERSION_TIMEOUT};
+use d2v_headless_api_tests::{check_status_once, start_job, Config, Field, JobStatus, CONVERSION_TIMEOUT};
 
 #[test]
 fn sample_video_with_a_phrase_produces_at_least_one_voice_clip() {
@@ -21,7 +21,8 @@ fn sample_video_with_a_phrase_produces_at_least_one_voice_clip() {
     assert_eq!(started_job.mode.as_deref(), Some("sample"));
     assert!(started_job.job_id.starts_with("sample-"));
 
-    let job_temp_dir = config.job_temp_dir(&started_job.job_id);
+    let job_id = &started_job.job_id;
+    let job_temp_dir = config.job_temp_dir(job_id);
     let poll_started_at = Instant::now();
     let poll_timeout = CONVERSION_TIMEOUT;
 
@@ -38,6 +39,16 @@ fn sample_video_with_a_phrase_produces_at_least_one_voice_clip() {
 
         if any_voice_clip_exists {
             return;
+        }
+
+        match check_status_once(&config, job_id) {
+            Ok(JobStatus::Failed(message)) => {
+                panic!("sample job {job_id} failed before producing a voice clip: {message}")
+            }
+            Ok(JobStatus::NotFound) => panic!(
+                "sample job {job_id} wrote its started marker, but the status endpoint reports not_found"
+            ),
+            Ok(JobStatus::Done | JobStatus::Processing) | Err(_) => {}
         }
 
         if poll_started_at.elapsed() > poll_timeout {
