@@ -5150,7 +5150,7 @@
               "id": "ssm-2",
               "name": "startedMarkerContent",
               "type": "string",
-              "value": "={{ new Date().toISOString() }}"
+              "value": "={{ new Date().toISOString() + '\\nexecution ' + $execution.id }}"
             }
           ]
         },
@@ -7440,6 +7440,50 @@
       "position": [
         -9920,
         368
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dT2rDdHX1TfPrVi1",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "e5133e0d-8c7b-4bed-a92a-9029b56febcd",
+      "name": "Conversion Failed",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -12240,
+        -1104
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:5679/webhook/clip",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "command",
+              "value": "={{ \"started=$(grep -lx 'execution \" + $json.execution.id + \"' output/*/.started 2>/dev/null | head -n 1); if [ -n \\\"$started\\\" ]; then failed=\\\"$(dirname \\\"$started\\\")/.failed\\\"; [ -n \\\"$(find \\\"$failed\\\" -newer \\\"$started\\\" 2>/dev/null)\\\" ] || echo \" + ($json.execution.error?.message || 'The conversion failed.').base64Encode() + \" | base64 -d > \\\"$failed\\\"; fi; $D2V_STOP_CPU_TTS_COMMAND\" }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "66afd69b-b83c-428c-8dcb-2359432bd133",
+      "name": "Record Failure and Stop CPU Text-to-Speech",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -12016,
+        -1104
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -10787,6 +10831,17 @@
           }
         ]
       ]
+    },
+    "Conversion Failed": {
+      "main": [
+        [
+          {
+            "node": "Record Failure and Stop CPU Text-to-Speech",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -10797,9 +10852,10 @@
     "timezone": "Europe/Stockholm",
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": true,
-    "saveExecutionProgress": true
+    "saveExecutionProgress": true,
+    "errorWorkflow": "jRt9vIy3bcnOSxi5"
   },
-  "versionId": "b57dcee5-7de4-4906-8779-5a2da5c1c7c1",
+  "versionId": "ecf47484-8348-4809-ac63-b4a0e509204f",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "b32aa4a304393161a5917c0e39ea5a4df2f2a6e973dfb06f73854940521bd52f",

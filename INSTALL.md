@@ -140,10 +140,11 @@ The nemo-normalizer image is built from `./nemo-normalizer/` on first run. This 
 ## Importing the workflows
 
 1. Open Docker n8n at `http://localhost:5678`, complete the one-time owner account setup if prompted
-2. Import `d2v-workflow-main.json`
-3. Open bare-metal n8n at `http://localhost:5679`, complete its own one-time owner account setup
-4. Import `d2v-workflow-bare-metal-services.json`
-5. Activate both workflows
+2. Import `d2v-workflow-main.json` and publish it
+3. Open the main workflow's **Settings** and set **Error Workflow** to `d2v-workflow-main` itself. When a conversion fails, its `Conversion Failed` trigger marks the job as `failed` for the status endpoint and stops the CPU Kokoro-FastAPI instance
+4. Open bare-metal n8n at `http://localhost:5679`, complete its own one-time owner account setup
+5. Import `d2v-workflow-bare-metal-services.json`
+6. Activate both workflows
 
 ## Securing the bare-metal webhook
 
@@ -155,7 +156,7 @@ The bare-metal instance runs arbitrary shell commands sent to it by the main wor
    - Save it (call it e.g. "D2V Webhook Shared Secret")
 2. Open each webhook trigger node in the bare-metal workflow (`Get Request for Assembling Clip`, `Receive Prompt`, `Receive TTS Request`, `Receive Claude Prompt`, `Receive Codex Prompt`, `Receive Ollama Models Request`, `Receive Codex Models Request`) and set **Authentication** to **Header Auth**, selecting the credential you just created.
 3. In the **main n8n** (`localhost:5678`), create a **matching** Header Auth credential with the **same header name and value** as step 1.
-4. Attach that credential to every node that calls the bare-metal instance: `Request Image Transcription`, `Request Clip Assembly`, `Request Final Video Assembly`, `Request TTS with Timestamps`, `Knit Images`, `Knit Transcriptions`, `Ensure Base Folders Exist`, `Ensure Document Folder Exists`, `Ensure Output Folder Exists`, `Ensure Sample Folder Exists`, `Fetch Ollama Models`, `Fetch Codex Models`. For each, set the node's **Authentication** to **Generic Credential Type → Header Auth** and pick the credential. (`Fetch Claude Models` calls `endoflife.date`'s public API directly.)
+4. Attach that credential to every node that calls the bare-metal instance: `Request Image Transcription`, `Request Clip Assembly`, `Request Final Video Assembly`, `Request TTS with Timestamps`, `Knit Images`, `Knit Transcriptions`, `Ensure Base Folders Exist`, `Ensure Document Folder Exists`, `Ensure Output Folder Exists`, `Ensure Sample Folder Exists`, `Ensure Job Output Folder Exists`, `Fetch Ollama Models`, `Fetch Codex Models`, `Detect Video Encoder Support`, `Read Platform Default Acceleration`, `Start CPU Text-to-Speech When Selected`, `Start CPU Text-to-Speech for Voice List`, `Stop CPU Text-to-Speech When Selected`, `Unload Ollama Model After CPU Conversion`, `Check Job State`, `Record Failure and Stop CPU Text-to-Speech`. For each, set the node's **Authentication** to **Generic Credential Type → Header Auth** and pick the credential. (`Fetch Claude Models` calls `endoflife.date`'s public API directly.)
 5. Save both workflows.
 
 Verify it's working:

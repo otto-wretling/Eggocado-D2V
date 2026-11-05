@@ -14,6 +14,7 @@
 
 ## n8n Workflow Preferences
 
+- Keep every Docker n8n node in the single `d2v-workflow-main` workflow, including error handling: its `Conversion Failed` Error Trigger runs because the workflow names itself as its own Error Workflow. Ask the user before creating any other workflow.
 - Do not suggest Execute Command nodes or Code nodes in n8n workflows. Use built-in nodes only. Expressions inside node fields (e.g. Edit Fields) are fine.
 - Do not edit the exported workflow JSON file directly, and do not make workflow edits by clicking through the n8n UI in the browser (slow and error-prone: CodeMirror's auto-bracket-closing can silently corrupt expression edits). Make all workflow edits using the n8n MCP tool (e.g. `n8n_update_partial_workflow`). Use the browser only for live testing and verification of a running workflow, never for making edits.
 - In the browser, open the Docker n8n at `http://127.0.0.1:5678` and the bare-metal n8n at `http://localhost:5679`. Browsers scope cookies by host and ignore the port, and both instances use the same session cookie, so two instances on one host name sign each other out. Separate host names keep both signed in at once.
