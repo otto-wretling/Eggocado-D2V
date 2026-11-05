@@ -5,18 +5,17 @@ use d2v_headless_api_tests::{
     assert_job_finishes, assert_job_has_no_started_marker,
     assert_request_fails_with_message_containing, change_voice_fields, change_voice_target,
     check_status_once, discard_all_backups, ensure_document_converted, field,
-    is_first_page_or_document_source, job_id_for_document, knit_fields, mode,
+    is_document_source, is_first_page_or_document_source, job_id_for_document, knit_fields, mode,
     move_entries_aside_except, new_conversion_fields, replacing_field,
     start_job_expecting_bad_request, start_job_expecting_server_error, start_new_conversion,
-    unique_document_filename, uploaded_document_fields, wait_for_path_to_exist, without_fields,
-    Config, Field, JobStatus, ReadOnlyDirectory, CONVERSION_TIMEOUT, FAILURE_POLL_TIMEOUT,
+    unique_document_filename, uploaded_document_fields, without_fields,
+    Config, Field, JobStatus, ReadOnlyDirectory, FAILURE_POLL_TIMEOUT,
     FIRST_PAGE, SECOND_PAGE, SHARED_DOCUMENT_FILENAME,
 };
 
 const VALIDATION_PROBE_DOCUMENT_FILENAME: &str = "d2v-rust-suite-validation-probe.pdf";
 const UNWRITABLE_OUTPUT_DOCUMENT_FILENAME: &str = "d2v-rust-suite-unwritable-output-folder.pdf";
 const OVERWRITE_PRECONDITION_DOCUMENT_FILENAME: &str = "d2v-rust-suite-overwrite-precondition.pdf";
-const NO_PAGES_YET_DOCUMENT_NAME_PREFIX: &str = "d2v-rust-suite-no-pages-yet-precondition";
 const TOO_FEW_PAGES_DOCUMENT_NAME_PREFIX: &str = "d2v-rust-suite-too-few-pages-precondition";
 
 const INVALID_FIELD_VALUE: &str = "bogus";
@@ -24,8 +23,6 @@ const TEXT_ABSENT_FROM_TRANSCRIPT: &str = "zzzznotpresentzzzz";
 const NONEXISTENT_PAGE: u32 = 99;
 
 const OVERWRITE_PRECONDITION_HEAD_START: Duration = Duration::from_secs(5);
-const NO_PAGES_YET_PRECONDITION_HEAD_START: Duration = Duration::from_secs(1);
-const NO_PAGES_YET_FAILURE_TIMEOUT: Duration = Duration::from_secs(180);
 
 const TEXT_NOT_FOUND_MESSAGE_FRAGMENT: &str = "text";
 const PAGE_NOT_FOUND_MESSAGE_FRAGMENT: &str = "page";
@@ -166,21 +163,18 @@ fn change_voice_with_page_that_does_not_exist_fails_with_clear_message() {
 #[test]
 fn knit_mode_on_a_document_with_no_processed_pages_yet_fails_with_clear_message() {
     let config = Config::from_env();
-    let document_filename = unique_document_filename(NO_PAGES_YET_DOCUMENT_NAME_PREFIX);
+    ensure_document_converted(&config, SHARED_DOCUMENT_FILENAME);
 
-    start_new_conversion(&config, &document_filename);
-    sleep(NO_PAGES_YET_PRECONDITION_HEAD_START);
+    let _page_backups = move_entries_aside_except(
+        &config.job_temp_dir(&job_id_for_document(SHARED_DOCUMENT_FILENAME)),
+        is_document_source,
+    );
 
     assert_request_fails_with_message_containing(
         &config,
-        &knit_fields(&config, &document_filename, FIRST_PAGE, SECOND_PAGE),
-        NO_PAGES_YET_FAILURE_TIMEOUT,
+        &knit_fields(&config, SHARED_DOCUMENT_FILENAME, FIRST_PAGE, SECOND_PAGE),
+        FAILURE_POLL_TIMEOUT,
         NO_PROCESSED_PAGES_MESSAGE_FRAGMENT,
-    );
-
-    wait_for_path_to_exist(
-        &config.final_video_path(&job_id_for_document(&document_filename)),
-        CONVERSION_TIMEOUT,
     );
 }
 

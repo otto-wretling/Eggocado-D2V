@@ -15,6 +15,7 @@ pub const CONVERSION_TIMEOUT: Duration = Duration::from_secs(2 * 60 * 60);
 pub const FAILURE_POLL_TIMEOUT: Duration = Duration::from_secs(60);
 pub const SERVICE_RELEASE_TIMEOUT: Duration = Duration::from_secs(120);
 const FILE_SIZE_STABILIZE_TIMEOUT: Duration = Duration::from_secs(30);
+const STATUS_UNREACHABLE_TIMEOUT: Duration = Duration::from_secs(60);
 const STATUS_POLL_INITIAL_DELAY: Duration = Duration::from_secs(5);
 const STATUS_POLL_INTERVAL: Duration = Duration::from_secs(2);
 const CONDITION_POLL_INTERVAL: Duration = Duration::from_secs(2);
@@ -180,6 +181,8 @@ const FIXTURE_PAGE_MARGIN_MILLIMETERS: f32 = 20.0;
 
 const FFPROBE_PROGRAM: &str = "ffprobe";
 const FFMPEG_PROGRAM: &str = "ffmpeg";
+const VIDEO_INSPECTION_PROGRAMS: [&str; 2] = [FFPROBE_PROGRAM, FFMPEG_PROGRAM];
+const PROGRAM_VERSION_ARGUMENT: &str = "-version";
 const FFPROBE_JSON_REPORT_ARGUMENTS: [&str; 6] =
     ["-v", "error", "-show_format", "-show_streams", "-of", "json"];
 const FFMPEG_DECODE_CHECK_ARGUMENTS_BEFORE_INPUT: [&str; 3] = ["-v", "error", "-i"];
@@ -257,10 +260,13 @@ pub fn discard_all_backups(guards: Vec<TemporarilyMovedPath>) {
     }
 }
 
+pub fn is_document_source(entry_name: &str) -> bool {
+    entry_name == DOCUMENT_META_FILE_NAME || entry_name.ends_with(PDF_EXTENSION)
+}
+
 pub fn is_first_page_or_document_source(entry_name: &str) -> bool {
     entry_name.starts_with(&format!("{FIRST_PAGE}{PAGE_FILE_SEPARATOR}"))
-        || entry_name == DOCUMENT_META_FILE_NAME
-        || entry_name.ends_with(PDF_EXTENSION)
+        || is_document_source(entry_name)
 }
 
 pub fn page_clip_file_name(page: u32) -> String {
@@ -371,7 +377,19 @@ fn assert_start_request_passes_its_webhook_credential(config: &Config) {
     start_job_expecting_bad_request(config, &[]);
 }
 
+fn assert_video_inspection_programs_run() {
+    for program in VIDEO_INSPECTION_PROGRAMS {
+        let version_output = run_program(program, &[PROGRAM_VERSION_ARGUMENT]);
+        assert!(
+            version_output.status.success(),
+            "{program} {PROGRAM_VERSION_ARGUMENT} failed, and the tests inspect every finished video with it: {}",
+            String::from_utf8_lossy(&version_output.stderr)
+        );
+    }
+}
+
 fn assert_instances_are_ready_for_tests(config: &Config) {
+    assert_video_inspection_programs_run();
     assert_status_request_passes_every_credential_on_its_path(config);
     assert_start_request_passes_its_webhook_credential(config);
 }
@@ -705,13 +723,21 @@ pub fn check_status_once(config: &Config, job_id: &str) -> Result<JobStatus, req
     Ok(parse_job_status(status_response))
 }
 
+fn status_once_the_endpoint_answers(config: &Config, job_id: &str) -> JobStatus {
+    wait_for(
+        &format!("the status endpoint on {} to answer for job {job_id}", config.base_url),
+        STATUS_UNREACHABLE_TIMEOUT,
+        || check_status_once(config, job_id).ok(),
+    )
+}
+
 pub fn finished_status_of_started_job(config: &Config, job_id: &str) -> Option<JobStatus> {
-    match check_status_once(config, job_id) {
-        Ok(JobStatus::NotFound) => panic!(
+    match status_once_the_endpoint_answers(config, job_id) {
+        JobStatus::NotFound => panic!(
             "job {job_id} wrote its started marker, but the status endpoint reports not_found"
         ),
-        Ok(JobStatus::Processing) | Err(_) => None,
-        Ok(finished_status) => Some(finished_status),
+        JobStatus::Processing => None,
+        finished_status => Some(finished_status),
     }
 }
 
@@ -784,23 +810,22 @@ pub fn assert_request_produces_a_playable_document_video(config: &Config, fields
     assert_final_video_is_playable(config, &started_job.job_id, DOCUMENT_VIDEO_DURATION_SECONDS);
 }
 
-pub fn wait_until(
-    awaited_condition: &str,
-    timeout: Duration,
-    mut condition_holds: impl FnMut() -> bool,
-) {
+fn wait_for<T>(awaited_value: &str, timeout: Duration, mut attempt: impl FnMut() -> Option<T>) -> T {
     let wait_started_at = Instant::now();
 
-    while !condition_holds() {
+    loop {
+        if let Some(value) = attempt() {
+            return value;
+        }
         if wait_started_at.elapsed() > timeout {
-            panic!("waited {timeout:?} for {awaited_condition}");
+            panic!("waited {timeout:?} for {awaited_value}");
         }
         sleep(CONDITION_POLL_INTERVAL);
     }
 }
 
-pub fn wait_for_path_to_exist(path: &str, timeout: Duration) {
-    wait_until(&format!("{path} to appear"), timeout, || Path::new(path).exists());
+pub fn wait_until(awaited_condition: &str, timeout: Duration, mut condition_holds: impl FnMut() -> bool) {
+    wait_for(awaited_condition, timeout, || condition_holds().then_some(()))
 }
 
 pub fn something_listens_on(address: &str) -> bool {
@@ -890,12 +915,18 @@ pub fn generate_test_pdf() -> Vec<u8> {
     pdf_document.save(&PdfSaveOptions::default(), &mut Vec::new())
 }
 
-fn ffprobe(video_file_path: &str) -> serde_json::Value {
-    let ffprobe_output = Command::new(FFPROBE_PROGRAM)
-        .args(FFPROBE_JSON_REPORT_ARGUMENTS)
-        .arg(video_file_path)
+fn run_program(program: &str, arguments: &[&str]) -> std::process::Output {
+    Command::new(program)
+        .args(arguments)
         .output()
-        .unwrap_or_else(|e| panic!("failed to run {FFPROBE_PROGRAM}: {e}"));
+        .unwrap_or_else(|e| panic!("failed to run {program}: {e}"))
+}
+
+fn ffprobe(video_file_path: &str) -> serde_json::Value {
+    let ffprobe_output = run_program(
+        FFPROBE_PROGRAM,
+        &[FFPROBE_JSON_REPORT_ARGUMENTS.as_slice(), &[video_file_path]].concat(),
+    );
 
     assert!(
         ffprobe_output.status.success(),
@@ -939,12 +970,15 @@ fn assert_video_duration_within_range(
 }
 
 fn assert_video_decodes_without_errors(video_file_path: &str) {
-    let ffmpeg_decode_output = Command::new(FFMPEG_PROGRAM)
-        .args(FFMPEG_DECODE_CHECK_ARGUMENTS_BEFORE_INPUT)
-        .arg(video_file_path)
-        .args(FFMPEG_DECODE_CHECK_ARGUMENTS_AFTER_INPUT)
-        .output()
-        .unwrap_or_else(|e| panic!("failed to run {FFMPEG_PROGRAM}: {e}"));
+    let ffmpeg_decode_output = run_program(
+        FFMPEG_PROGRAM,
+        &[
+            FFMPEG_DECODE_CHECK_ARGUMENTS_BEFORE_INPUT.as_slice(),
+            &[video_file_path],
+            FFMPEG_DECODE_CHECK_ARGUMENTS_AFTER_INPUT.as_slice(),
+        ]
+        .concat(),
+    );
     assert!(
         ffmpeg_decode_output.status.success() && ffmpeg_decode_output.stderr.is_empty(),
         "{video_file_path} failed to decode cleanly: {}",
