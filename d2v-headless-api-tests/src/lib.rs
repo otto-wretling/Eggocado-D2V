@@ -3,6 +3,7 @@ use std::ops::RangeInclusive;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 use std::process::Command;
+use std::sync::Once;
 use std::thread::sleep;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
@@ -29,6 +30,9 @@ const WEBHOOK_SECRET_VARIABLE: &str = "D2V_WEBHOOK_SECRET";
 const PROJECT_ROOT_VARIABLE: &str = "D2V_PROJECT_ROOT";
 const ENGINE_MODEL_VARIABLE: &str = "D2V_ENGINE_MODEL";
 const OLLAMA_ENGINE_PREFIX: &str = "ollama:";
+
+const PREFLIGHT_PROBE_JOB_ID: &str = "d2v-rust-suite-preflight-probe";
+const STATUS_CHECK_NODE: &str = "Check Job State";
 
 const START_JOB_PATH: &str = "/webhook/d2v-headless";
 const JOB_STATUS_PATH: &str = "/webhook/d2v-headless-status";
@@ -288,6 +292,8 @@ impl Drop for ReadOnlyDirectory {
     }
 }
 
+static PREFLIGHT: Once = Once::new();
+
 pub struct Config {
     base_url: String,
     secret: String,
@@ -295,25 +301,32 @@ pub struct Config {
     engine_model: String,
 }
 
+fn required_environment_variable(name: &str, expected_value: &str) -> String {
+    env::var(name).unwrap_or_else(|_| panic!("{name} must be set to {expected_value}"))
+}
+
 impl Config {
     pub fn from_env() -> Self {
-        let base_url = env::var(BASE_URL_VARIABLE)
-            .unwrap_or_else(|_| panic!("{BASE_URL_VARIABLE} must be set (e.g. http://localhost:5678)"));
-        let secret = env::var(WEBHOOK_SECRET_VARIABLE).unwrap_or_else(|_| {
-            panic!("{WEBHOOK_SECRET_VARIABLE} must be set to the headless API's shared secret")
-        });
-        let project_root = env::var(PROJECT_ROOT_VARIABLE).unwrap_or_else(|_| {
-            panic!("{PROJECT_ROOT_VARIABLE} must be set to the Eggocado-D2V checkout containing {OUTPUT_FOLDER}/ and {TEMP_FOLDER}/")
-        });
-        let engine_model = env::var(ENGINE_MODEL_VARIABLE).unwrap_or_else(|_| {
-            panic!("{ENGINE_MODEL_VARIABLE} must be set to a transcription engine:model available on this instance (e.g. codex:gpt-5.6-sol, claude:claude-sonnet-5, or ollama:<model>)")
-        });
-        Config {
-            base_url,
-            secret,
-            project_root,
-            engine_model,
-        }
+        let config = Config {
+            base_url: required_environment_variable(
+                BASE_URL_VARIABLE,
+                "the main n8n instance's URL (e.g. http://localhost:5678)",
+            ),
+            secret: required_environment_variable(
+                WEBHOOK_SECRET_VARIABLE,
+                "the headless API's shared secret",
+            ),
+            project_root: required_environment_variable(
+                PROJECT_ROOT_VARIABLE,
+                &format!("the Eggocado-D2V checkout containing {OUTPUT_FOLDER}/ and {TEMP_FOLDER}/"),
+            ),
+            engine_model: required_environment_variable(
+                ENGINE_MODEL_VARIABLE,
+                "a transcription engine:model available on this instance (e.g. codex:gpt-5.6-sol, claude:claude-sonnet-5, or ollama:<model>)",
+            ),
+        };
+        PREFLIGHT.call_once(|| assert_instances_are_ready_for_tests(&config));
+        config
     }
 
     pub fn job_output_dir(&self, job_id: &str) -> String {
@@ -339,6 +352,28 @@ impl Config {
     pub fn ollama_model(&self) -> Option<&str> {
         self.engine_model.strip_prefix(OLLAMA_ENGINE_PREFIX)
     }
+}
+
+fn assert_status_request_passes_every_credential_on_its_path(config: &Config) {
+    let status_response = send_status_request(config, PREFLIGHT_PROBE_JOB_ID).unwrap_or_else(|e| {
+        panic!("failed to reach the status endpoint on {}: {e}", config.base_url)
+    });
+    let http_status = status_response.status();
+    let response_body_text = status_response.text().unwrap_or_default();
+    assert_eq!(
+        http_status,
+        StatusCode::OK,
+        "a status request answered {http_status}: {response_body_text}. It passes {WEBHOOK_SECRET_VARIABLE} through the main workflow's status webhook, its {STATUS_CHECK_NODE} call and the bare-metal webhook that call reaches, so one of their credentials is missing or the secret is wrong"
+    );
+}
+
+fn assert_start_request_passes_its_webhook_credential(config: &Config) {
+    start_job_expecting_bad_request(config, &[]);
+}
+
+fn assert_instances_are_ready_for_tests(config: &Config) {
+    assert_status_request_passes_every_credential_on_its_path(config);
+    assert_start_request_passes_its_webhook_credential(config);
 }
 
 pub fn job_id_for_document(document_filename: &str) -> String {
@@ -647,12 +682,19 @@ pub fn assert_job_has_no_started_marker(config: &Config, job_id: &str) {
     assert!(!Path::new(&marker_path).exists(), "{marker_path} exists");
 }
 
-pub fn check_status_once(config: &Config, job_id: &str) -> Result<JobStatus, reqwest::Error> {
-    let http_response = reqwest::blocking::Client::new()
+fn send_status_request(
+    config: &Config,
+    job_id: &str,
+) -> Result<reqwest::blocking::Response, reqwest::Error> {
+    reqwest::blocking::Client::new()
         .get(format!("{}{JOB_STATUS_PATH}", config.base_url))
         .query(&[(JOB_ID_QUERY_PARAMETER, job_id)])
         .header(WEBHOOK_SECRET_HEADER, &config.secret)
-        .send()?;
+        .send()
+}
+
+pub fn check_status_once(config: &Config, job_id: &str) -> Result<JobStatus, reqwest::Error> {
+    let http_response = send_status_request(config, job_id)?;
 
     let response_body_text = http_response.text()?;
     let status_response: StatusResponse = serde_json::from_str(&response_body_text)
