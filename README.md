@@ -38,13 +38,13 @@ Everything is driven through one n8n form. To start a run: open the `d2v-workflo
 
 ### Converting a new document
 
-Upload a new PDF and process every page start to finish.
+Upload a new PDF and process every page start to finish. Requires a PDF file; converting over a document that was already converted requires confirming the overwrite.
 
 Each document gets its own folder: `temp/{document}/` for intermediate files, `output/{document}/final_video.mp4` for the finished video.
 
 ### Continuing a conversion
 
-Resume an in-progress document, re-finalize the video, or pick up after an interruption.
+Resume an in-progress document, re-finalize the video, or pick up after an interruption. Requires the document's original PDF to still be present in its `temp/{document}/` folder.
 
 The workflow skips a page's stages when their output files already exist in `temp/{document}/`. To regenerate something, delete its files below, then run this mode:
 
@@ -62,15 +62,17 @@ The workflow skips a page's stages when their output files already exist in `tem
 
 ### Knitting pages together
 
-Merge two adjacent pages (e.g., a two-page spread) into a single narrated unit.
+Merge two adjacent pages (e.g., a two-page spread) into a single narrated unit. The two pages are combined into one double-width image, and their transcriptions are merged into one, reordered to read naturally across the full spread (image and chart descriptions move to the end, noting where they appear). The merged text is narrated once, producing a single clip that replaces the two individual page clips. Requires both pages to already be converted first, via New conversion or Continue — knitting a document with no processed pages yet, or a pair where one page hasn't been processed, fails.
+
+Every page's clip, knitted or not, renders on the same double-width canvas: a blurred, stretched copy of the page fills the width a knit would otherwise need, behind the sharp page centered on top. That keeps the whole video one consistent width throughout, so a knitted pair's naturally double-width clip drops in without resizing anything else.
 
 ### Changing voice on a page
 
-Re-narrate one page (or knitted pair) in a different voice: the whole page, or just a selected phrase.
+Re-narrate one page (or knitted pair) in a different voice: the whole page, or just a selected phrase. Requires the target page to already be converted; re-narrating a selected phrase additionally requires that exact phrase to appear in the page's transcript.
 
 ### Creating a sample video
 
-Generate a short demo clip for every available TTS voice, useful for picking one. Per-voice files live in `temp/sample/`.
+Generate a short demo clip for every available TTS voice, useful for picking one. Doesn't depend on any document, just the phrase each voice reads. Per-voice files live in `temp/sample/`.
 
 ---
 
