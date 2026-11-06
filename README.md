@@ -30,7 +30,7 @@ See [INSTALL.md](INSTALL.md) for all installation requirements.
 
 ## How to update
 
-See [UPDATE.md](UPDATE.md) for pulling in later changes: updating dependencies, refreshing the Docker services, and re-importing the n8n workflows when they change.
+See [UPDATE.md](UPDATE.md) for updating.
 
 ## Usage
 
