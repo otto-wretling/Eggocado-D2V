@@ -58,7 +58,7 @@ The workflow skips a page's stages when their output files already exist in `tem
 | Everything for one page | Delete all of that page's files in `temp/{document}/`, then run this mode |
 | Everything for the whole document | Delete `temp/{document}/`, then run this mode |
 
-> Deleting a page's narration audio also regenerates its timestamps and word map, since Kokoro produces all three from one call.
+> Deleting a page's narration audio also regenerates its timestamps and word map.
 
 ### Knitting pages together
 
