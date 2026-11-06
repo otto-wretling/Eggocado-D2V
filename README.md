@@ -26,7 +26,7 @@ Eggocado D2V converts a PDF document into a narrated video. Each page is transcr
 
 ## Setup
 
-See [INSTALL.md](INSTALL.md) for all installation requirements, including the one-time webhook security setup.
+See [INSTALL.md](INSTALL.md) for all installation requirements.
 
 ## How to update
 
