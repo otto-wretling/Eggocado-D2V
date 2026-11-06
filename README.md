@@ -38,7 +38,7 @@ Eggocado D2V can be operated using its built-in n8n form that guides the user to
 
 ### Converting a new document
 
-Upload a new PDF and process every page from start to finish.
+Use this mode to upload a new PDF and process every page from start to finish.
 
 Each document gets its own folder: `temp/{document}/` for intermediate files, and `output/{document}/` for the finished video. Converting a document with the same file name more than once overwrites output files in those folders.
 
@@ -46,7 +46,7 @@ If you would like to stop the conversion and continue later (e.g. a conversion o
 
 ### Continuing a conversion
 
-Resume an in-progress document, re-finalize the video, or pick up after an interruption. Requires the document's original PDF to still be present in its `temp/{document}/` folder.
+Use this mode to resume an in-progress document, make small changes to a video, or pick up after an interruption. This mode requires you to have started a [new conversion](#converting-a-new-document) or [converted a single page](#changing-voice-on-a-page) of a PDF. 
 
 The workflow skips a page's stages when their output files already exist in `temp/{document}/`. To regenerate something, delete its files below, then run this mode:
 
