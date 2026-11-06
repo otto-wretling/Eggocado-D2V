@@ -34,11 +34,11 @@ See [UPDATE.md](UPDATE.md) for how to update an installation to the latest relea
 
 ## Usage
 
-Everything is driven through one n8n form. To start a run: open the `d2v-workflow-main` workflow in the Docker n8n editor (`http://localhost:5678`) and click **📋 Execute** to open the form. The form walks you through picking a mode and filling in its fields one step at a time.
+Eggocado D2V can be operated using its built-in n8n form that guides the user to select mode, AI models, a PDF file, and other required data. To start a run: open the `d2v-workflow-main` workflow in the Docker n8n editor (`http://localhost:5678`) and click **📋 Execute** to open the form.
 
 ### Converting a new document
 
-Upload a new PDF and process every page start to finish.
+Upload a new PDF and process every page from start to finish.
 
 Each document gets its own folder: `temp/{document}/` for intermediate files, `output/{document}/final_video.mp4` for the finished video.
 
@@ -200,7 +200,7 @@ curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
 
 Returns `{"jobId":"sample-1234","mode":"sample","executionId":"1234"}`, where `1234` is the n8n execution ID — each sample request gets its own job, so concurrent calls never collide.
 
-A request with a missing or invalid required parameter, e.g. `knit` without `leftPage`/`rightPage`, returns `400` instead of starting a job:
+A request with a missing or invalid required parameter, e.g., `knit` without `leftPage`/`rightPage`, returns `400` instead of starting a job:
 
 ```bash
 curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
@@ -212,7 +212,7 @@ curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
 # 400 {"error":"leftPage and rightPage are required for knit mode"}
 ```
 
-Checking status, for any of the above:
+Checking status for any of the above:
 
 ```bash
 curl "$D2V_BASE_URL/webhook/d2v-headless-status?jobId=my-document" \
@@ -241,7 +241,7 @@ A job that was running when n8n stopped reports `failed` once n8n starts again: 
 
 ## Testing
 
-`d2v-headless-api-tests/` is a Rust integration test suite that exercises the headless API above end to end against a running instance: every mode's happy path, Continue mode, and every one of the API's documented failure cases, both the synchronous `400` ones and the asynchronous `failed` ones. There's no mocking: each test calls the real endpoints, polling the live status endpoint for the cases that run as a background job.
+`d2v-headless-api-tests/` is a Rust integration test suite that exercises the headless API above end-to-end against a running instance: every mode's happy path, Continue mode, and every one of the API's documented failure cases, both the synchronous `400` ones and the asynchronous `failed` ones. There's no mocking: each test calls the real endpoints, polling the live status endpoint for the cases that run as a background job.
 
 Set the four required environment variables, then run `cargo test` from that directory:
 
