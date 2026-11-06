@@ -42,6 +42,8 @@ Upload a new PDF and process every page from start to finish.
 
 Each document gets its own folder: `temp/{document}/` for intermediate files, and `output/{document}/` for the finished video. Converting a document with the same file name more than once overwrites output files in those folders.
 
+If you would like to stop the conversion and continue later (e.g. a conversion overnight that hasn't finished by the time you want to use the computer for other things), you can simply use the [continue mode](#continuing-a-conversion) to pick up the conversion from the same point where you left it.
+
 ### Continuing a conversion
 
 Resume an in-progress document, re-finalize the video, or pick up after an interruption. Requires the document's original PDF to still be present in its `temp/{document}/` folder.
