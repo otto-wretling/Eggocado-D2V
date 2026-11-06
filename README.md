@@ -6,21 +6,93 @@ Eggocado D2V converts a PDF document into a narrated video. Each page is transcr
 
 > **Language support:** English only, for now. Kokoro and some other TTS backends support additional languages, but the transcription prompt, text normalization, and the TTS call are all currently hardcoded for English.
 
-## Modes
+## Contents
 
-Everything is driven through one n8n form. To start a run: open the `d2v-workflow-main` workflow in the Docker n8n editor (`http://localhost:5678`) and click **📋 Execute** to open the form. The form walks you through picking a mode and filling in its fields one step at a time:
+- [Setup](#setup)
+- [How to update](#how-to-update)
+- [Usage](#usage)
+  - [Converting a new document](#converting-a-new-document)
+  - [Continuing a conversion](#continuing-a-conversion)
+  - [Knitting pages together](#knitting-pages-together)
+  - [Changing voice on a page](#changing-voice-on-a-page)
+  - [Creating a sample video](#creating-a-sample-video)
+  - [File glossary](#file-glossary)
+  - [Headless API](#headless-api)
+- [Testing](#testing)
+- [Architecture](#architecture)
+  - [Security note](#security-note)
+- [Credits](#credits)
+- [License](#license)
 
-| Mode | What it does |
+## Setup
+
+See [INSTALL.md](INSTALL.md) for all installation requirements, including the one-time webhook security setup.
+
+## How to update
+
+See [UPDATE.md](UPDATE.md) for pulling in later changes: updating dependencies, refreshing the Docker services, and re-importing the n8n workflows when they change.
+
+## Usage
+
+Everything is driven through one n8n form. To start a run: open the `d2v-workflow-main` workflow in the Docker n8n editor (`http://localhost:5678`) and click **📋 Execute** to open the form. The form walks you through picking a mode and filling in its fields one step at a time.
+
+### Converting a new document
+
+Upload a new PDF and process every page start to finish.
+
+Each document gets its own folder: `temp/{document}/` for intermediate files, `output/{document}/final_video.mp4` for the finished video.
+
+### Continuing a conversion
+
+Resume an in-progress document, re-finalize the video, or pick up after an interruption.
+
+The workflow skips a page's stages when their output files already exist in `temp/{document}/`. To regenerate something, delete its files below, then run this mode:
+
+| What you want to recreate | How |
 |---|---|
-| 🆕 Convert entire document | Upload a new PDF and process every page start to finish |
-| 🔁 Continue converting entire document | Resume an in-progress document, re-finalize the video, or pick up after an interruption |
-| 🧶 Knit Pages Together | Merge two adjacent pages (e.g., a two-page spread) into a single narrated unit |
-| 🎙️ Convert single page | Re-narrate one page (or knitted pair) in a different voice: the whole page, or just a selected phrase |
-| 🔊 Create Sample Video | Generate a short demo clip for every available TTS voice, useful for picking one |
+| The final video, its subtitles, or its chapters | Run this mode; finalization always rebuilds these from the current clips |
+| A page's clip | Delete `temp/{document}/{page}_clip.mp4`, then run this mode |
+| A page's narration audio | Delete `temp/{document}/{page}_audio.wav` and `temp/{document}/{page}_clip.mp4`, then run this mode |
+| The normalized text a page's narration audio is read from | Delete `temp/{document}/{page}_transcription_normalized.txt`, `temp/{document}/{page}_audio.wav`, and `temp/{document}/{page}_clip.mp4`, then run this mode |
+| A page's transcription | Delete `temp/{document}/{page}_transcription.txt`, `temp/{document}/{page}_transcription_normalized.txt`, `temp/{document}/{page}_audio.wav`, and `temp/{document}/{page}_clip.mp4`, then run this mode |
+| Everything for one page | Delete all of that page's files in `temp/{document}/`, then run this mode |
+| Everything for the whole document | Delete `temp/{document}/`, then run this mode |
+
+> Deleting a page's narration audio also regenerates its timestamps and word map, since Kokoro produces all three from one call.
+
+### Knitting pages together
+
+Merge two adjacent pages (e.g., a two-page spread) into a single narrated unit.
+
+### Changing voice on a page
+
+Re-narrate one page (or knitted pair) in a different voice: the whole page, or just a selected phrase.
+
+### Creating a sample video
+
+Generate a short demo clip for every available TTS voice, useful for picking one. Per-voice files live in `temp/sample/`.
+
+---
 
 Any mode can be combined with any other: knit two pages, then change voice on that pair, then resume and re-finalize, and it all stays consistent.
 
-## Headless API
+### File glossary
+
+Every file type the modes above create, in one place. Paths below are relative to the repo's main folder. Every per-page file lives in `temp/{document}/`, prefixed with its page number (or `{a}-{b}_knit_` for a knitted pair). The finished video's files live in `output/{document}/`.
+
+| Term | File | What it is |
+|---|---|---|
+| Page image | `temp/{document}/{page}_image.png` | The page rendered from the PDF |
+| Transcription | `temp/{document}/{page}_transcription.txt` | The page's text, read from its image by the transcription engine |
+| Normalized text | `temp/{document}/{page}_transcription_normalized.txt` | The transcription rewritten for speech |
+| Narration audio | `temp/{document}/{page}_audio.wav` | The page's narration, synthesized from the normalized text |
+| Timestamps | `temp/{document}/{page}_timestamps.json` | Word-level timing for the narration audio, produced in the same call as the narration audio |
+| Word map | `temp/{document}/{page}_wordmap.json` | The mapping between original and normalized words, used to build subtitles |
+| Clip | `temp/{document}/{page}_clip.mp4` | The page's image and narration audio, assembled into one short video |
+| Final video | `output/{document}/final_video.mp4` | Every clip in the document, concatenated with chapters |
+| Final subtitles | `output/{document}/final_video.srt` | The final video's subtitle file |
+
+### Headless API
 
 Every mode is also reachable over HTTP, for scripting or automation, without the n8n form:
 
@@ -167,6 +239,27 @@ A job that was running when n8n stopped reports `failed` once n8n starts again: 
 
 </details>
 
+## Testing
+
+`d2v-headless-api-tests/` is a Rust integration test suite that exercises the headless API above end to end against a running instance: every mode's happy path, Continue mode, and every one of the API's documented failure cases, both the synchronous `400` ones and the asynchronous `failed` ones. There's no mocking: each test calls the real endpoints, polling the live status endpoint for the cases that run as a background job.
+
+Set the four required environment variables, then run `cargo test` from that directory:
+
+```bash
+cd d2v-headless-api-tests
+D2V_BASE_URL=http://localhost:5678 \
+D2V_WEBHOOK_SECRET=<your webhook secret> \
+D2V_PROJECT_ROOT=/path/to/Eggocado-D2V \
+D2V_ENGINE_MODEL=<engine>:<model> \
+cargo test
+```
+
+`D2V_ENGINE_MODEL` is whichever transcription engine and model you have available (see [Transcription engines](INSTALL.md#transcription-engines)), for example `codex:gpt-5.6-sol`, `claude:claude-sonnet-5`, or `ollama:gemma4:31b`. The suite never hardcodes one, so it runs the same way regardless of which engine you use.
+
+Before its first test, each test file runs `ffprobe -version` and `ffmpeg -version`, which the tests use to inspect every finished video, and checks the credentials through the headless API itself: a status request with `D2V_WEBHOOK_SECRET` has to answer `200`, which passes the main workflow's status webhook, its `Check Job State` call and the bare-metal webhook that call reaches, and an empty start request has to answer the API's own `400`. A missing program or a refused credential on those paths fails every test in that file within a second. A job that reaches any other node with a missing credential reports `failed` at that node, and the test fails as soon as it sees that status. A test waiting on a job fails once the status endpoint stays unreachable for a minute.
+
+Tests run one at a time, enforced via that directory's own `.cargo/config.toml`, since they share the same `temp/`/`output/` folders and the single-worker Kokoro TTS service a real conversion would use. The same file builds the test binaries one at a time, so linking fits alongside the running services on a machine with 8 GB of memory, such as a default WSL distribution on a 16 GB PC. A full run takes a while: several tests wait for a multi-minute video conversion to complete.
+
 ## Architecture
 
 | Component | Port | Where | Role |
@@ -190,67 +283,6 @@ The Docker/host-process split exists because GPU-accelerated tools (ffmpeg hardw
 ### Security note
 
 The bare-metal n8n instance executes shell commands (ffmpeg, Ollama calls) sent to it by the Docker instance over HTTP. Both sides are gated by a shared-secret header (see [INSTALL.md](INSTALL.md) for setup): every request must include the matching secret to be accepted. That said, **this is a local single-user tool by design.** The security model blocks casual or opportunistic access: whoever holds the secret can run arbitrary shell commands on the host. If you choose to host the bare-metal service somewhere reachable beyond your own machine, that's possible, but the security implications are entirely your own responsibility.
-
-## Output
-
-Each document gets its own folder: `temp/{document}/` for intermediate files, `output/{document}/final_video.mp4` for the finished video. Sample Video mode's per-voice files live in `temp/sample/`.
-
-## Glossary
-
-Paths below are relative to the repo's main folder. Every per-page file lives in `temp/{document}/`, prefixed with its page number (or `{a}-{b}_knit_` for a knitted pair). The finished video's files live in `output/{document}/`.
-
-| Term | File | What it is |
-|---|---|---|
-| Page image | `temp/{document}/{page}_image.png` | The page rendered from the PDF |
-| Transcription | `temp/{document}/{page}_transcription.txt` | The page's text, read from its image by the transcription engine |
-| Normalized text | `temp/{document}/{page}_transcription_normalized.txt` | The transcription rewritten for speech |
-| Narration audio | `temp/{document}/{page}_audio.wav` | The page's narration, synthesized from the normalized text |
-| Timestamps | `temp/{document}/{page}_timestamps.json` | Word-level timing for the narration audio, produced in the same call as the narration audio |
-| Word map | `temp/{document}/{page}_wordmap.json` | The mapping between original and normalized words, used to build subtitles |
-| Clip | `temp/{document}/{page}_clip.mp4` | The page's image and narration audio, assembled into one short video |
-| Final video | `output/{document}/final_video.mp4` | Every clip in the document, concatenated with chapters |
-| Final subtitles | `output/{document}/final_video.srt` | The final video's subtitle file |
-
-## Reprocessing pages
-
-The workflow skips a page's stages when their output files already exist in `temp/{document}/`. To regenerate something, delete its files below, then run Continue mode.
-
-| What you want to recreate | How |
-|---|---|
-| The final video, its subtitles, or its chapters | Run Continue mode; finalization always rebuilds these from the current clips |
-| A page's clip | Delete `temp/{document}/{page}_clip.mp4`, then run Continue mode |
-| A page's narration audio | Delete `temp/{document}/{page}_audio.wav` and `temp/{document}/{page}_clip.mp4`, then run Continue mode |
-| The normalized text a page's narration audio is read from | Delete `temp/{document}/{page}_transcription_normalized.txt`, `temp/{document}/{page}_audio.wav`, and `temp/{document}/{page}_clip.mp4`, then run Continue mode |
-| A page's transcription | Delete `temp/{document}/{page}_transcription.txt`, `temp/{document}/{page}_transcription_normalized.txt`, `temp/{document}/{page}_audio.wav`, and `temp/{document}/{page}_clip.mp4`, then run Continue mode |
-| Everything for one page | Delete all of that page's files in `temp/{document}/`, then run Continue mode |
-| Everything for the whole document | Delete `temp/{document}/`, then run Continue mode |
-
-> Deleting a page's narration audio also regenerates its timestamps and word map, since Kokoro produces all three from one call.
-
-## Setup
-
-See [INSTALL.md](INSTALL.md) for all installation requirements, including the one-time webhook security setup.
-
-## Testing
-
-`d2v-headless-api-tests/` is a Rust integration test suite that exercises the headless API above end to end against a running instance: every mode's happy path, Continue mode, and every one of the API's documented failure cases, both the synchronous `400` ones and the asynchronous `failed` ones. There's no mocking: each test calls the real endpoints, polling the live status endpoint for the cases that run as a background job.
-
-Set the four required environment variables, then run `cargo test` from that directory:
-
-```bash
-cd d2v-headless-api-tests
-D2V_BASE_URL=http://localhost:5678 \
-D2V_WEBHOOK_SECRET=<your webhook secret> \
-D2V_PROJECT_ROOT=/path/to/Eggocado-D2V \
-D2V_ENGINE_MODEL=<engine>:<model> \
-cargo test
-```
-
-`D2V_ENGINE_MODEL` is whichever transcription engine and model you have available (see [Transcription engines](INSTALL.md#transcription-engines)), for example `codex:gpt-5.6-sol`, `claude:claude-sonnet-5`, or `ollama:gemma4:31b`. The suite never hardcodes one, so it runs the same way regardless of which engine you use.
-
-Before its first test, each test file runs `ffprobe -version` and `ffmpeg -version`, which the tests use to inspect every finished video, and checks the credentials through the headless API itself: a status request with `D2V_WEBHOOK_SECRET` has to answer `200`, which passes the main workflow's status webhook, its `Check Job State` call and the bare-metal webhook that call reaches, and an empty start request has to answer the API's own `400`. A missing program or a refused credential on those paths fails every test in that file within a second. A job that reaches any other node with a missing credential reports `failed` at that node, and the test fails as soon as it sees that status. A test waiting on a job fails once the status endpoint stays unreachable for a minute.
-
-Tests run one at a time, enforced via that directory's own `.cargo/config.toml`, since they share the same `temp/`/`output/` folders and the single-worker Kokoro TTS service a real conversion would use. The same file builds the test binaries one at a time, so linking fits alongside the running services on a machine with 8 GB of memory, such as a default WSL distribution on a 16 GB PC. A full run takes a while: several tests wait for a multi-minute video conversion to complete.
 
 ## Credits
 
