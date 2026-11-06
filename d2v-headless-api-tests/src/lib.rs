@@ -5,7 +5,7 @@ use std::path::Path;
 use std::process::Command;
 use std::sync::Once;
 use std::thread::sleep;
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant};
 
 use printpdf::*;
 use reqwest::StatusCode;
@@ -355,8 +355,44 @@ impl Config {
         format!("{}/{STARTED_MARKER_FILE_NAME}", self.job_output_dir(job_id))
     }
 
+    fn uploaded_document_path(&self, document_filename: &str) -> String {
+        format!("{}/{TEMP_FOLDER}/{document_filename}", self.project_root)
+    }
+
     pub fn ollama_model(&self) -> Option<&str> {
         self.engine_model.strip_prefix(OLLAMA_ENGINE_PREFIX)
+    }
+}
+
+pub struct JobFilesRemovedOnDrop {
+    paths: Vec<String>,
+}
+
+impl JobFilesRemovedOnDrop {
+    pub fn for_job(config: &Config, job_id: &str) -> Self {
+        Self {
+            paths: vec![config.job_output_dir(job_id), config.job_temp_dir(job_id)],
+        }
+    }
+
+    pub fn for_document(config: &Config, document_filename: &str) -> Self {
+        let mut job_files = Self::for_job(config, &job_id_for_document(document_filename));
+        job_files
+            .paths
+            .push(config.uploaded_document_path(document_filename));
+        job_files
+    }
+}
+
+impl Drop for JobFilesRemovedOnDrop {
+    fn drop(&mut self) {
+        for path in &self.paths {
+            let _ = if Path::new(path).is_dir() {
+                std::fs::remove_dir_all(path)
+            } else {
+                std::fs::remove_file(path)
+            };
+        }
     }
 }
 
@@ -417,14 +453,6 @@ pub fn job_id_for_document(document_filename: &str) -> String {
     } else {
         slug.to_string()
     }
-}
-
-pub fn unique_document_filename(document_name_prefix: &str) -> String {
-    let run_nonce = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .expect("system clock is before the Unix epoch")
-        .as_nanos();
-    format!("{document_name_prefix}-{run_nonce}{PDF_EXTENSION}")
 }
 
 fn page_selection_label(page: u32) -> String {

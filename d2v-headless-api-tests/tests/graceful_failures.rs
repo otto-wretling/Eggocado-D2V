@@ -4,19 +4,19 @@ use std::time::Duration;
 use d2v_headless_api_tests::{
     assert_job_finishes, assert_job_has_no_started_marker,
     assert_request_fails_with_message_containing, change_voice_fields, change_voice_target,
-    check_status_once, discard_all_backups, ensure_document_converted, field,
+    check_status_once, ensure_document_converted, field,
     is_document_source, is_first_page_or_document_source, job_id_for_document, knit_fields, mode,
     move_entries_aside_except, new_conversion_fields, replacing_field,
     start_job_expecting_bad_request, start_job_expecting_server_error, start_new_conversion,
-    unique_document_filename, uploaded_document_fields, without_fields,
-    Config, Field, JobStatus, ReadOnlyDirectory, FAILURE_POLL_TIMEOUT,
+    uploaded_document_fields, without_fields,
+    Config, Field, JobFilesRemovedOnDrop, JobStatus, ReadOnlyDirectory, FAILURE_POLL_TIMEOUT,
     FIRST_PAGE, SECOND_PAGE, SHARED_DOCUMENT_FILENAME,
 };
 
 const VALIDATION_PROBE_DOCUMENT_FILENAME: &str = "d2v-rust-suite-validation-probe.pdf";
 const UNWRITABLE_OUTPUT_DOCUMENT_FILENAME: &str = "d2v-rust-suite-unwritable-output-folder.pdf";
 const OVERWRITE_PRECONDITION_DOCUMENT_FILENAME: &str = "d2v-rust-suite-overwrite-precondition.pdf";
-const TOO_FEW_PAGES_DOCUMENT_NAME_PREFIX: &str = "d2v-rust-suite-too-few-pages-precondition";
+const TOO_FEW_PAGES_DOCUMENT_FILENAME: &str = "d2v-rust-suite-too-few-pages-precondition.pdf";
 
 const INVALID_FIELD_VALUE: &str = "bogus";
 const TEXT_ABSENT_FROM_TRANSCRIPT: &str = "zzzznotpresentzzzz";
@@ -181,24 +181,22 @@ fn knit_mode_on_a_document_with_no_processed_pages_yet_fails_with_clear_message(
 #[test]
 fn knit_mode_with_too_few_pages_fails_with_clear_message() {
     let config = Config::from_env();
-    let document_filename = unique_document_filename(TOO_FEW_PAGES_DOCUMENT_NAME_PREFIX);
+    let _job_files = JobFilesRemovedOnDrop::for_document(&config, TOO_FEW_PAGES_DOCUMENT_FILENAME);
 
-    let setup_job = start_new_conversion(&config, &document_filename);
+    let setup_job = start_new_conversion(&config, TOO_FEW_PAGES_DOCUMENT_FILENAME);
     assert_job_finishes(&config, &setup_job.job_id);
 
-    let temp_backups = move_entries_aside_except(
+    let _page_backups = move_entries_aside_except(
         &config.job_temp_dir(&setup_job.job_id),
         is_first_page_or_document_source,
     );
 
     assert_request_fails_with_message_containing(
         &config,
-        &knit_fields(&config, &document_filename, FIRST_PAGE, SECOND_PAGE),
+        &knit_fields(&config, TOO_FEW_PAGES_DOCUMENT_FILENAME, FIRST_PAGE, SECOND_PAGE),
         FAILURE_POLL_TIMEOUT,
         TOO_FEW_PAGES_MESSAGE_FRAGMENT,
     );
-
-    discard_all_backups(temp_backups);
 }
 
 #[test]
