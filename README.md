@@ -46,9 +46,9 @@ If you would like to stop the conversion and continue later (e.g. a conversion o
 
 ### Continuing a conversion
 
-Use this mode to resume an in-progress document, make small changes to a video, or pick up after an interruption. This mode requires you to have started a [new conversion](#converting-a-new-document) or [converted a single page](#convert-single-page) of a PDF.
+Use this mode to resume an in-progress document, make small changes to a video, or pick up after an interruption. This mode requires that you have started a [new conversion](#converting-a-new-document) or [converted a single page](#convert-single-page) of a PDF.
 
-The workflow skips a page's stages when their output files already exist in `temp/{document}/`. To regenerate something, delete its files below, then run this mode:
+This mode looks at what already exists in the `temp/{document}/` folder and skips anything that has already been created, thus allowing you to pick up from where you left off, or redoing one or more parts of a page (or multiple). To regenerate a specific part of a page's video, delete the appropriate files according to the table below and run this mode:
 
 | What you want to recreate | How |
 |---|---|
