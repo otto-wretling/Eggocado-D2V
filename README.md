@@ -54,9 +54,9 @@ This mode looks at what already exists in the `temp/{document}/` folder and skip
 |---|---|
 | Everything for the whole document | Run [Converting a New Document](#converting-a-new-document) with the same document name and confirm in the form that the document will be overwritten |
 | Everything for one page | Delete all of that page's files in `temp/{document}/`, then run this mode |
-| A page's transcription | Delete `temp/{document}/{page}_transcription.txt`, `temp/{document}/{page}_transcription_normalized.txt`, `temp/{document}/{page}_audio.wav`, and `temp/{document}/{page}_clip.mp4`, then run this mode |
-| The normalized text a page's narration audio is read from | Delete `temp/{document}/{page}_transcription_normalized.txt`, `temp/{document}/{page}_audio.wav`, and `temp/{document}/{page}_clip.mp4`, then run this mode |
-| A page's narration audio | Delete `temp/{document}/{page}_audio.wav` and `temp/{document}/{page}_clip.mp4`, then run this mode |
+| A page's transcription | Delete the following files and run this mode:<ul><li>`temp/{document}/{page}_audio.wav`</li><li>`temp/{document}/{page}_clip.mp4`</li><li>`temp/{document}/{page}_transcription.txt`</li><li>`temp/{document}/{page}_transcription_normalized.txt`</li></ul> |
+| The normalized text a page's narration audio is read from | Delete the following files and run this mode:<ul><li>`temp/{document}/{page}_audio.wav`</li><li>`temp/{document}/{page}_clip.mp4`</li><li>`temp/{document}/{page}_transcription_normalized.txt`</li></ul> |
+| A page's narration audio | Delete the following files and run this mode:<ul><li>`temp/{document}/{page}_audio.wav`</li><li>`temp/{document}/{page}_clip.mp4`</li></ul> |
 | A page's clip | Delete `temp/{document}/{page}_clip.mp4`, then run this mode |
 | The final video, its subtitles, or its chapters | Run this mode; it always rebuilds these files on each run |
 
