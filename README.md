@@ -14,7 +14,7 @@ Eggocado D2V converts a PDF document into a narrated video. Each page is transcr
   - [Converting a new document](#converting-a-new-document)
   - [Continuing a conversion](#continuing-a-conversion)
   - [Knitting pages together](#knitting-pages-together)
-  - [Changing voice on a page](#changing-voice-on-a-page)
+  - [Convert single page](#convert-single-page)
   - [Creating a sample video](#creating-a-sample-video)
   - [File glossary](#file-glossary)
   - [Headless API](#headless-api)
@@ -46,7 +46,7 @@ If you would like to stop the conversion and continue later (e.g. a conversion o
 
 ### Continuing a conversion
 
-Use this mode to resume an in-progress document, make small changes to a video, or pick up after an interruption. This mode requires you to have started a [new conversion](#converting-a-new-document) or [converted a single page](#changing-voice-on-a-page) of a PDF. 
+Use this mode to resume an in-progress document, make small changes to a video, or pick up after an interruption. This mode requires you to have started a [new conversion](#converting-a-new-document) or [converted a single page](#convert-single-page) of a PDF.
 
 The workflow skips a page's stages when their output files already exist in `temp/{document}/`. To regenerate something, delete its files below, then run this mode:
 
@@ -68,7 +68,7 @@ Merge two adjacent pages (e.g., a two-page spread) into a single narrated unit. 
 
 Every page's clip, knitted or not, renders on the same double-width canvas: a blurred, stretched copy of the page fills the width a knit would otherwise need, behind the sharp page centered on top. That keeps the whole video one consistent width throughout, so a knitted pair's naturally double-width clip drops in without resizing anything else.
 
-### Changing voice on a page
+### Convert single page
 
 Re-narrate one page (or knitted pair) in a different voice: the whole page, or just a selected phrase. Requires the target page to already be converted; re-narrating a selected phrase additionally requires that exact phrase to appear in the page's transcript.
 
