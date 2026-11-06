@@ -9,7 +9,7 @@ Eggocado D2V converts a PDF document into a narrated video. Each page is transcr
 ## Contents
 
 - [Installation](#installation)
-- [How to update](#how-to-update)
+- [Updating](#updating)
 - [Usage](#usage)
   - [Converting a new document](#converting-a-new-document)
   - [Continuing a conversion](#continuing-a-conversion)
@@ -28,7 +28,7 @@ Eggocado D2V converts a PDF document into a narrated video. Each page is transcr
 
 See [INSTALL.md](INSTALL.md) for how to get started.
 
-## How to update
+## Updating
 
 See [UPDATE.md](UPDATE.md) for how to update an installation to the latest release.
 
