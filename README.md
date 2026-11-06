@@ -2,9 +2,9 @@
 
 Eggocado D2V converts a PDF document into a narrated video. Each page is transcribed by a vision-language model, normalized for speech, synthesized to audio, and assembled into a video clip. Clips are concatenated into a final video with subtitles and chapters.
 
-> **Platform support:** macOS (Apple Silicon), Linux/NixOS, and Windows through NixOS-WSL. See [Windows](INSTALL.md#windows) in INSTALL.md.
+> **Platform support:** Windows, Linux(NixOS), and macOS (Apple Silicon) are officially supported.
 
-> **Language support:** English only, for now. Kokoro and some other TTS backends support additional languages, but the transcription prompt, text normalization, and the TTS call are all currently hardcoded for English.
+> **Language support:** English is the only officially supported language. Additional languages may work without issues using Kokoro or other TTS backends. However, until more languages are officially supported by this project, it will be on you to verify whether these languages work as intended.
 
 ## Contents
 
@@ -34,11 +34,11 @@ See [UPDATE.md](UPDATE.md) for how to update an installation to the latest relea
 
 ## Usage
 
-Everything is driven through one n8n form. To start a run: open the `d2v-workflow-main` workflow in the Docker n8n editor (`http://localhost:5678`) and click **📋 Execute** to open the form. The form walks you through picking a mode and filling in its fields one step at a time.
+Eggocado D2V can be operated using its built-in n8n form that guides the user to select mode, AI models, a PDF file, and other required data. To start a run: open the `d2v-workflow-main` workflow in the Docker n8n editor (`http://localhost:5678`) and click **📋 Execute** to open the form.
 
 ### Converting a new document
 
-Upload a new PDF and process every page start to finish. Requires a PDF file; converting over a document that was already converted requires confirming the overwrite.
+Upload a new PDF and process every page from start to finish. Requires a PDF file; converting over a document that was already converted requires confirming the overwrite.
 
 Each document gets its own folder: `temp/{document}/` for intermediate files, `output/{document}/final_video.mp4` for the finished video.
 
@@ -58,7 +58,7 @@ The workflow skips a page's stages when their output files already exist in `tem
 | Everything for one page | Delete all of that page's files in `temp/{document}/`, then run this mode |
 | Everything for the whole document | Delete `temp/{document}/`, then run this mode |
 
-> Deleting a page's narration audio also regenerates its timestamps and word map, since Kokoro produces all three from one call.
+> Deleting a page's narration audio also regenerates its timestamps and word map.
 
 ### Knitting pages together
 
@@ -202,7 +202,7 @@ curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
 
 Returns `{"jobId":"sample-1234","mode":"sample","executionId":"1234"}`, where `1234` is the n8n execution ID — each sample request gets its own job, so concurrent calls never collide.
 
-A request with a missing or invalid required parameter, e.g. `knit` without `leftPage`/`rightPage`, returns `400` instead of starting a job:
+A request with a missing or invalid required parameter, e.g., `knit` without `leftPage`/`rightPage`, returns `400` instead of starting a job:
 
 ```bash
 curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
@@ -214,7 +214,7 @@ curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
 # 400 {"error":"leftPage and rightPage are required for knit mode"}
 ```
 
-Checking status, for any of the above:
+Checking status for any of the above:
 
 ```bash
 curl "$D2V_BASE_URL/webhook/d2v-headless-status?jobId=my-document" \
@@ -243,7 +243,7 @@ A job that was running when n8n stopped reports `failed` once n8n starts again: 
 
 ## Testing
 
-`d2v-headless-api-tests/` is a Rust integration test suite that exercises the headless API above end to end against a running instance: every mode's happy path, Continue mode, and every one of the API's documented failure cases, both the synchronous `400` ones and the asynchronous `failed` ones. There's no mocking: each test calls the real endpoints, polling the live status endpoint for the cases that run as a background job.
+`d2v-headless-api-tests/` is a Rust integration test suite that exercises the headless API above end-to-end against a running instance: every mode's happy path, Continue mode, and every one of the API's documented failure cases, both the synchronous `400` ones and the asynchronous `failed` ones. There's no mocking: each test calls the real endpoints, polling the live status endpoint for the cases that run as a background job.
 
 Set the four required environment variables, then run `cargo test` from that directory:
 
