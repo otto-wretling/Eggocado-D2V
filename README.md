@@ -38,9 +38,9 @@ Eggocado D2V can be operated using its built-in n8n form that guides the user to
 
 ### Converting a new document
 
-Upload a new PDF and process every page from start to finish. Requires a PDF file; converting over a document that was already converted requires confirming the overwrite.
+Upload a new PDF and process every page from start to finish.
 
-Each document gets its own folder: `temp/{document}/` for intermediate files, `output/{document}/final_video.mp4` for the finished video.
+Each document gets its own folder: `temp/{document}/` for intermediate files, and `output/{document}/` for the finished video. Converting a document with the same file name more than once overwrites output files in those folders.
 
 ### Continuing a conversion
 
