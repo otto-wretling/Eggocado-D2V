@@ -52,7 +52,7 @@ This mode looks at what already exists in the `temp/{document}/` folder and skip
 
 | What you want to recreate | How |
 |---|---|
-| The final video, its subtitles, or its chapters | Run this mode; finalization always rebuilds these files on each run |
+| The final video, its subtitles, or its chapters | Run this mode; it always rebuilds these files on each run |
 | A page's clip | Delete `temp/{document}/{page}_clip.mp4`, then run this mode |
 | A page's narration audio | Delete `temp/{document}/{page}_audio.wav` and `temp/{document}/{page}_clip.mp4`, then run this mode |
 | The normalized text a page's narration audio is read from | Delete `temp/{document}/{page}_transcription_normalized.txt`, `temp/{document}/{page}_audio.wav`, and `temp/{document}/{page}_clip.mp4`, then run this mode |
