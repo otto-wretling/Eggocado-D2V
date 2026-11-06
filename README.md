@@ -11,16 +11,16 @@ Eggocado D2V converts a PDF document into a narrated video. Each page is transcr
 - [Installation](#installation)
 - [Updating](#updating)
 - [Usage](#usage)
-  - [Converting a new document](#converting-a-new-document)
-  - [Continuing a conversion](#continuing-a-conversion)
-  - [Knitting pages together](#knitting-pages-together)
-  - [Convert single page](#convert-single-page)
-  - [Creating a sample video](#creating-a-sample-video)
-  - [File glossary](#file-glossary)
+  - [Converting a New Document](#converting-a-new-document)
+  - [Continuing a Conversion](#continuing-a-conversion)
+  - [Knitting Pages Together](#knitting-pages-together)
+  - [Convert Single Page](#convert-single-page)
+  - [Creating a Sample Video](#creating-a-sample-video)
+  - [File Glossary](#file-glossary)
   - [Headless API](#headless-api)
 - [Testing](#testing)
 - [Architecture](#architecture)
-  - [Security note](#security-note)
+  - [Security Note](#security-note)
 - [Credits](#credits)
 - [License](#license)
 
@@ -36,7 +36,7 @@ See [UPDATE.md](UPDATE.md) for how to update an installation to the latest relea
 
 Eggocado D2V can be operated using its built-in n8n form that guides the user to select mode, AI models, a PDF file, and other required data. To start a run: open the `d2v-workflow-main` workflow in the Docker n8n editor (`http://localhost:5678`) and click **📋 Execute** to open the form.
 
-### Converting a new document
+### Converting a New Document
 
 Use this mode to upload a new PDF and process every page from start to finish.
 
@@ -44,7 +44,7 @@ Each document gets its own folder: `temp/{document}/` for intermediate files, an
 
 If you would like to stop the conversion and continue later (e.g. a conversion overnight that hasn't finished by the time you want to use the computer for other things), you can simply use the [continue mode](#continuing-a-conversion) to pick up the conversion from the same point where you left it.
 
-### Continuing a conversion
+### Continuing a Conversion
 
 Use this mode to resume an in-progress document, make small changes to a video, or pick up after an interruption. This mode requires that you have started a [new conversion](#converting-a-new-document) or [converted a single page](#convert-single-page) of a PDF.
 
@@ -62,17 +62,17 @@ This mode looks at what already exists in the `temp/{document}/` folder and skip
 
 > Deleting a page's narration audio also regenerates its timestamps and word map.
 
-### Knitting pages together
+### Knitting Pages Together
 
 Merge two adjacent pages (e.g., a two-page spread) into a single narrated unit. The two pages are combined into one double-width image, and their transcriptions are merged into one, reordered to read naturally across the full spread (image and chart descriptions move to the end, noting where they appear). The merged text is narrated once, producing a single clip that replaces the two individual page clips. Requires both pages to already be converted first, via New conversion or Continue — knitting a document with no processed pages yet, or a pair where one page hasn't been processed, fails.
 
 Every page's clip, knitted or not, renders on the same double-width canvas: a blurred, stretched copy of the page fills the width a knit would otherwise need, behind the sharp page centered on top. That keeps the whole video one consistent width throughout, so a knitted pair's naturally double-width clip drops in without resizing anything else.
 
-### Convert single page
+### Convert Single Page
 
 Re-narrate one page (or knitted pair) in a different voice: the whole page, or just a selected phrase. Requires the target page to already be converted; re-narrating a selected phrase additionally requires that exact phrase to appear in the page's transcript.
 
-### Creating a sample video
+### Creating a Sample Video
 
 Generate a short demo clip for every available TTS voice, useful for picking one. Doesn't depend on any document, just the phrase each voice reads. Per-voice files live in `temp/sample/`.
 
@@ -80,7 +80,7 @@ Generate a short demo clip for every available TTS voice, useful for picking one
 
 Any mode can be combined with any other: knit two pages, then change voice on that pair, then resume and re-finalize, and it all stays consistent.
 
-### File glossary
+### File Glossary
 
 Every file type the modes above create, in one place. Paths below are relative to the repo's main folder. Every per-page file lives in `temp/{document}/`, prefixed with its page number (or `{a}-{b}_knit_` for a knitted pair). The finished video's files live in `output/{document}/`.
 
@@ -112,7 +112,7 @@ All required parameters are checked before the job starts: if one is missing or 
 <details>
 <summary>Parameters and example requests for every mode</summary>
 
-Each example sends `D2V_BASE_URL=http://localhost:5678` and `SECRET` set to the shared webhook secret. `engineModel` takes the form `<engine>:<model>`, matching whichever engine and model you have available (see [Transcription engines](INSTALL.md#transcription-engines)).
+Each example sends `D2V_BASE_URL=http://localhost:5678` and `SECRET` set to the shared webhook secret. `engineModel` takes the form `<engine>:<model>`, matching whichever engine and model you have available (see [Transcription Engines](INSTALL.md#transcription-engines)).
 
 | Parameter | Used by | Required | If missing/invalid | What it does |
 |---|---|---|---|---|
@@ -258,7 +258,7 @@ D2V_ENGINE_MODEL=<engine>:<model> \
 cargo test
 ```
 
-`D2V_ENGINE_MODEL` is whichever transcription engine and model you have available (see [Transcription engines](INSTALL.md#transcription-engines)), for example `codex:gpt-5.6-sol`, `claude:claude-sonnet-5`, or `ollama:gemma4:31b`. The suite never hardcodes one, so it runs the same way regardless of which engine you use.
+`D2V_ENGINE_MODEL` is whichever transcription engine and model you have available (see [Transcription Engines](INSTALL.md#transcription-engines)), for example `codex:gpt-5.6-sol`, `claude:claude-sonnet-5`, or `ollama:gemma4:31b`. The suite never hardcodes one, so it runs the same way regardless of which engine you use.
 
 Before its first test, each test file runs `ffprobe -version` and `ffmpeg -version`, which the tests use to inspect every finished video, and checks the credentials through the headless API itself: a status request with `D2V_WEBHOOK_SECRET` has to answer `200`, which passes the main workflow's status webhook, its `Check Job State` call and the bare-metal webhook that call reaches, and an empty start request has to answer the API's own `400`. A missing program or a refused credential on those paths fails every test in that file within a second. A job that reaches any other node with a missing credential reports `failed` at that node, and the test fails as soon as it sees that status. A test waiting on a job fails once the status endpoint stays unreachable for a minute.
 
@@ -284,7 +284,7 @@ The Docker/host-process split exists because GPU-accelerated tools (ffmpeg hardw
 
 **The hardware is chosen per run as well**: Use platform default, Automatic, or CPU. Automatic uses the GPU wherever a stage supports it: Ollama, Kokoro-FastAPI, and VA-API, VideoToolbox, or NVENC video encoding. CPU runs Ollama on the CPU, starts the CPU Kokoro-FastAPI instance, and encodes with libx264. When an accelerated stage fails, the conversion retries that stage on the CPU and keeps every later stage on the CPU.
 
-### Security note
+### Security Note
 
 The bare-metal n8n instance executes shell commands (ffmpeg, Ollama calls) sent to it by the Docker instance over HTTP. Both sides are gated by a shared-secret header (see [INSTALL.md](INSTALL.md) for setup): every request must include the matching secret to be accepted. That said, **this is a local single-user tool by design.** The security model blocks casual or opportunistic access: whoever holds the secret can run arbitrary shell commands on the host. If you choose to host the bare-metal service somewhere reachable beyond your own machine, that's possible, but the security implications are entirely your own responsibility.
 

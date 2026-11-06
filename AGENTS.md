@@ -1,6 +1,6 @@
 # D2V Agent Guidelines
 
-## Code style
+## Code Style
 
 - No code comments. Name functions, variables, and types so the code explains itself; a reader should never need a comment to understand what something does or why.
 - A self-documenting name states what it actually checks or does, not a generic verb. `verify_srt` tells a reader unfamiliar with the project nothing; `assert_srt_has_well_formed_cues` does. Prefer the specific claim over the generic action every time.
@@ -24,8 +24,9 @@
 - In the browser, open the Docker n8n at `http://127.0.0.1:5678` and the bare-metal n8n at `http://localhost:5679`. Browsers scope cookies by host and ignore the port, and both instances use the same session cookie, so two instances on one host name sign each other out. Separate host names keep both signed in at once.
 - When inspecting files, read them directly with the Read tool. Do not use commands or scripts (e.g. python3, grep, jq) to parse them.
 
-## Writing style
+## Writing Style
 
+- Every title and heading in a markdown file uses title case: capitalize the first and last word and every major word; keep articles, coordinating conjunctions, and short prepositions (a, an, the, and, but, or, nor, for, so, yet, as, at, by, in, of, on, to, up, off, out, via) lowercase unless they open or close the title, or follow a colon. Leave established casing for product and technical names alone (n8n, ffmpeg, macOS, iOS) rather than force-capitalizing them. Leave verbatim quoted text (e.g. an exact error message) untouched.
 - No em dashes (—) in user-facing messages (form descriptions, error messages, labels, dropdown option text, etc.), or in GitHub issues, pull requests, or comments. Use a comma, period, colon, or plain hyphen instead, whichever reads most naturally.
 - In documentation, commit messages, or any other written content, never state what something doesn't do, doesn't contain, or isn't. This includes comparative phrasing that implies the same thing, like "rather than X", "instead of X", "without X", "not just X", or "no X". State only what it actually is or does.
 - Never use "real", "actual", "genuine", "tested" or similar meaningless emphasis as a qualifier, in documentation, commit messages, or any other written content. If something needs distinguishing, name what it's being distinguished from; otherwise drop the word entirely.
@@ -33,16 +34,16 @@
 - Don't list self-evident or trivial options as if they were meaningful guidance (e.g. "run it in a terminal tab" as a way to keep a service running). Only state specifics that are actually non-obvious or that this repo itself provides.
 - Instructions tell the user what to do, never what not to do or what they don't need to do. If a row/step has no action, state the action that applies instead of noting the absence of one (e.g. "Run Continue mode again", not "Nothing to delete").
 
-## Installation instructions
+## Installation Instructions
 
 - For installing anything not part of this repo (not a Nix config, script, or other file checked in here), prefer linking to that thing's own official documentation over spelling out exact install commands, to the greatest extent possible. Official docs stay current as install methods change; hardcoded steps here don't. Don't add the install command alongside the link either, even as a convenience: it's just as likely to go stale, and there's no one keeping this file updated as each dependency's install instructions change.
 - Link text should match the linked page's own title or main heading, not a paraphrase of it.
 
-## Dockerfile package pins
+## Dockerfile Package Pins
 
 - `nemo-normalizer/Dockerfile` pins `gcc` and `python3-dev` to exact apt versions for build reproducibility. When `python:3.10-slim`'s Debian release moves on and the pinned versions stop resolving, run `docker run --rm python:3.10-slim bash -c "apt-get update -qq && apt-cache policy gcc python3-dev"` against the current base image and update the pins to the versions it reports as `Candidate`.
 
-## Commit messages
+## Commit Messages
 
 - Base commit messages and pull request descriptions only on the diff itself. Read the actual code changes and describe those; never factor in anything from the conversation that produced them (what was investigated, which approach was tried first, why a change was made, who asked for it). If the diff doesn't show it, it doesn't belong in the message.
 - Only include sections the user actually asked for. A pull request description needs a summary of the change; add a test plan, checklist, or any other section only when the user asks for one, not by default.

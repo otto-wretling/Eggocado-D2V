@@ -87,7 +87,7 @@ Whichever models you've pulled are fetched live and offered in the engine/model 
 
 If you install Ollama, it must be running and listening on `http://127.0.0.1:11434` when the workflow executes.
 
-### Transcription engines
+### Transcription Engines
 Page transcription can use any of three engines, selected at the start of each conversion (the first form field in the main workflow). Ollama (above) always works out of the box; the other two need their CLI installed and logged in once before they'll work:
 
 - **Local Ollama model**: covered by the Ollama section above.
@@ -96,7 +96,7 @@ Page transcription can use any of three engines, selected at the start of each c
 
 Both CLIs cache their login after the first run, so this is a one-time step per machine. Available models for each engine are fetched live (same pattern as the Kokoro voice picker), so whatever your account has access to shows up in the model dropdown.
 
-### n8n (bare-metal)
+### n8n (Bare-Metal)
 A second n8n instance runs directly on the host at port 5679, separate from the Docker one. This is what actually runs ffmpeg, calls Ollama's API, and shells out to the Claude Code/Codex CLIs, so it needs host access. See ["Host n8n"](https://docs.n8n.io/hosting/installation/) for the current method.
 
 Start it from the project directory so that relative paths (`temp/`, `output/`) resolve correctly:
@@ -108,7 +108,7 @@ N8N_PORT=5679 n8n start
 
 This service is required to use D2V. `nix/mac.nix` has a launchd example if you use nix-darwin, or on NixOS, `nix/nixos.nix`'s `n8n-d2v-baremetal` systemd user service, wired into the system configuration and confirmed working end to end on a full document conversion.
 
-### Kokoro-FastAPI (native, for GPU acceleration where available)
+### Kokoro-FastAPI (Native, for GPU Acceleration Where Available)
 Text-to-speech runs as a separate, native service on port 8881, so it can use the GPU where available, plus a CPU-only instance on port 8882 that the bare-metal n8n starts on demand through its `D2V_START_CPU_TTS_COMMAND` environment variable. Like bare-metal n8n, this service is required to use D2V. Kokoro selects MPS, CUDA, or CPU in that order of availability.
 
 On NixOS, `nix/nixos.nix`'s `kokoro-fastapi` and `kokoro-fastapi-cpu` systemd user services run [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI) entirely from this flake: its source is the pinned `kokoro-fastapi` flake input, Nix builds its Python environment from Kokoro-FastAPI's own `uv.lock`, and Nix downloads the model weights with fixed hashes. The environment uses CPU PyTorch by default. For an NVIDIA GPU, set the CUDA 12.6 build in your configuration:
@@ -119,7 +119,7 @@ eggocado-d2v.kokoro.torchVariant = "gpu";
 
 On macOS, clone Kokoro-FastAPI as a sibling of this repo and set it up following [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI)'s Apple Silicon (MPS) instructions. `nix/mac.nix` has a launchd example if you use nix-darwin (optional), which runs the checkout at `eggocado-d2v.kokoroRoot` (by default `~/Documents/GitHub/Kokoro-FastAPI`).
 
-## Docker services
+## Docker Services
 
 The remaining services are defined in `docker-compose.yml` and start with:
 
@@ -137,7 +137,7 @@ This starts:
 
 The nemo-normalizer image is built from `./nemo-normalizer/` on first run. This takes several minutes as it installs NeMo text processing dependencies inside the container.
 
-## Importing the workflows
+## Importing the Workflows
 
 1. Open Docker n8n at `http://localhost:5678`, complete the one-time owner account setup if prompted
 2. Import `d2v-workflow-main.json` and save it
@@ -145,7 +145,7 @@ The nemo-normalizer image is built from `./nemo-normalizer/` on first run. This 
 4. Import `d2v-workflow-bare-metal-services.json` and save it
 5. Continue with [Securing the bare-metal webhook](#securing-the-bare-metal-webhook), which ends with publishing both workflows. n8n publishes a workflow once every node has its credential.
 
-## Securing the bare-metal webhook
+## Securing the Bare-Metal Webhook
 
 The bare-metal instance runs arbitrary shell commands sent to it by the main workflow, so both sides need a shared secret before anything will work. Without it, every call from the main workflow to the bare-metal one is rejected with a 403.
 
@@ -196,7 +196,7 @@ To recover:
 2. Run `wsl --shutdown` in PowerShell.
 3. Start Docker Desktop.
 
-### Windows: empty project folder in the Docker n8n
+### Windows: Empty Project Folder in the Docker n8n
 
 When Docker Desktop restarts while the NixOS-WSL distribution keeps running, the `n8n` container can come back with an empty `/home/node/project`, and conversions fail to find their files. Recreate the Docker services inside the distribution:
 

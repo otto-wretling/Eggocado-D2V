@@ -2,13 +2,13 @@
 
 How to pull in later changes to an existing install. See [INSTALL.md](INSTALL.md) for setting up a new one.
 
-## Pull the repo
+## Pull the Repo
 
 ```bash
 git pull
 ```
 
-## Nix-managed dependencies (NixOS, macOS, WSL)
+## Nix-Managed Dependencies (NixOS, macOS, WSL)
 
 If your system config imports this repo's flake modules (`nixosModules.packages`, `nixosModules.services`, `darwinModules.homebrew`/`darwinModules.services`), a plain system rebuild (`sudo nixos-rebuild switch`, `darwin-rebuild switch`, or your home-manager equivalent) picks up any change to this repo automatically — these modules are consumed as a `path:` flake input, so a rebuild always reads the repo's current contents, with no separate `flake.lock` update needed for this input specifically.
 
@@ -16,7 +16,7 @@ If your system's own flake pins other inputs this repo depends on (nixpkgs, etc.
 
 If you're not using the Nix modules, re-check [Prerequisites](INSTALL.md#prerequisites) for anything that changed: Docker, ffmpeg/espeak-ng, the transcription engine CLIs, Kokoro-FastAPI's own dependencies.
 
-## Docker services
+## Docker Services
 
 ```bash
 docker compose pull
@@ -25,7 +25,7 @@ docker compose up -d --build
 
 `--build` picks up changes to `nemo-normalizer`, which builds from source rather than a published image. If `docker-compose.yml` itself changed (a new image version, a new service), `git pull` already brought that in — the commands above just apply it.
 
-## Re-importing the n8n workflows
+## Re-Importing the n8n Workflows
 
 Only needed when `d2v-workflow-main.json` or `d2v-workflow-bare-metal-services.json` changed (check `git log` for the files, or your diff against the previous version).
 
@@ -38,4 +38,4 @@ Only needed when `d2v-workflow-main.json` or `d2v-workflow-bare-metal-services.j
 
 If publishing fails with a webhook path conflict even though the old workflow is archived and inactive: archiving and deactivating aren't enough to clear n8n's webhook-path registration for the old workflow. Go back to the archived workflow's **⋯** menu and **Delete** it (now a permanent action, unlike archiving) — that clears the stale registration, and the new workflow will publish.
 
-Re-check [Securing the bare-metal webhook](INSTALL.md#securing-the-bare-metal-webhook) if the new JSON added nodes that call across instances; newly added nodes need their Header Auth credential attached same as during initial install.
+Re-check [Securing the Bare-Metal Webhook](INSTALL.md#securing-the-bare-metal-webhook) if the new JSON added nodes that call across instances; newly added nodes need their Header Auth credential attached same as during initial install.
