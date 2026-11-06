@@ -7491,6 +7491,183 @@
           "name": "D2V Webhook Shared Secret"
         }
       }
+    },
+    {
+      "parameters": {
+        "events": [
+          "init"
+        ]
+      },
+      "id": "55974d71-c9c7-4241-8a79-a4214ec7893f",
+      "name": "n8n Instance Started",
+      "type": "n8n-nodes-base.n8nTrigger",
+      "typeVersion": 1,
+      "position": [
+        -13584,
+        -864
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://host.docker.internal:5679/webhook/clip",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "command",
+              "value": "for started in output/*/.started; do [ -f \"$started\" ] && printf '%s %s\\n' \"$(basename \"$(dirname \"$started\")\")\" \"$(sed -n 's/^execution //p' \"$started\")\"; done; true"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "d3201af6-7fb8-4d8a-8763-f5294848ac14",
+      "name": "List Started Jobs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -13360,
+        -864
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dT2rDdHX1TfPrVi1",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "psj-1",
+              "name": "startedJobs",
+              "type": "array",
+              "value": "={{ ($json.stdout || '').split('\\n').map(line => line.trim().split(' ')).filter(words => words.length === 2).map(([jobId, executionId]) => ({ jobId, executionId })) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8a8e6bde-1926-47b4-89b8-e55394c838f9",
+      "name": "Parse Started Jobs",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -13136,
+        -864
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "startedJobs",
+        "options": {}
+      },
+      "id": "c69e3dde-2489-46a5-a35e-150a3b431b96",
+      "name": "Split Started Jobs",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -12912,
+        -864
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5678/webhook/d2v-headless-status",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "jobId",
+              "value": "={{ $json.jobId }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "5bd49bd3-5b07-4a9e-b6cf-b156a70f75c0",
+      "name": "Check Started Job Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -12688,
+        -864
+      ],
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dT2rDdHX1TfPrVi1",
+          "name": "D2V Webhook Shared Secret"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "sp-1",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "processing",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b5534ef6-6129-4194-8a8d-2e8aa0de39df",
+      "name": "Still Processing?",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        -12464,
+        -864
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "desr-1",
+              "name": "execution",
+              "type": "object",
+              "value": "={{ { id: $('Split Started Jobs').item.json.executionId, error: { message: 'n8n restarted while this conversion was running, which stopped it. Start the conversion again.' } } }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c827edc7-f19d-4402-b2aa-297d7d4c5cb0",
+      "name": "Describe Execution Stopped by Restart",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -12240,
+        -864
+      ]
     }
   ],
   "pinData": {},
@@ -10833,6 +11010,83 @@
       ]
     },
     "Conversion Failed": {
+      "main": [
+        [
+          {
+            "node": "Record Failure and Stop CPU Text-to-Speech",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "n8n Instance Started": {
+      "main": [
+        [
+          {
+            "node": "List Started Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List Started Jobs": {
+      "main": [
+        [
+          {
+            "node": "Parse Started Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Started Jobs": {
+      "main": [
+        [
+          {
+            "node": "Split Started Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Started Jobs": {
+      "main": [
+        [
+          {
+            "node": "Check Started Job Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Started Job Status": {
+      "main": [
+        [
+          {
+            "node": "Still Processing?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Still Processing?": {
+      "main": [
+        [
+          {
+            "node": "Describe Execution Stopped by Restart",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Describe Execution Stopped by Restart": {
       "main": [
         [
           {

@@ -163,6 +163,8 @@ curl "$D2V_BASE_URL/webhook/d2v-headless-status?jobId=my-document" \
 {"jobId": "my-document", "status": "failed", "message": "This document has no processed pages yet, so this mode cannot run."}
 ```
 
+A job that was running when n8n stopped reports `failed` once n8n starts again: the main workflow's `n8n Instance Started` trigger checks every started job through the status endpoint and records each one still `processing` as failed. While n8n is down, every status request fails to connect, and a test waiting on a job fails after a minute of that.
+
 </details>
 
 ## Architecture
