@@ -361,9 +361,11 @@ impl Config {
 }
 
 fn assert_status_request_passes_every_credential_on_its_path(config: &Config) {
-    let status_response = send_status_request(config, PREFLIGHT_PROBE_JOB_ID).unwrap_or_else(|e| {
-        panic!("failed to reach the status endpoint on {}: {e}", config.base_url)
-    });
+    let status_response = wait_for(
+        &format!("the status endpoint on {} to answer", config.base_url),
+        STATUS_UNREACHABLE_TIMEOUT,
+        || send_status_request(config, PREFLIGHT_PROBE_JOB_ID).ok(),
+    );
     let http_status = status_response.status();
     let response_body_text = status_response.text().unwrap_or_default();
     assert_eq!(
