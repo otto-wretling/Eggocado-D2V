@@ -48,7 +48,7 @@ If you would like to stop the conversion and continue later (e.g. a conversion o
 
 Use this mode to resume an in-progress document, make small changes to a video, or pick up after an interruption. This mode requires that you have started a [new conversion](#converting-a-new-document) or [converted a single page](#convert-single-page) of a PDF.
 
-This mode looks at what already exists in the `temp/{document}/` folder and skips anything that has already been created, thus allowing you to pick up from where you left off, or redoing one or more parts of a page (or multiple). To regenerate a specific part of a page's video, delete the appropriate files according to the table below and run this mode:
+This mode looks at what already exists in the `temp/{document}/` folder and skips anything that has already been created, thus allowing you to pick up from where you left off, or redo one or more parts of a page (or multiple). To regenerate a specific part of a page's video, delete the appropriate files according to the table below and run this mode:
 
 | What you want to recreate | How |
 |---|---|
@@ -62,9 +62,9 @@ This mode looks at what already exists in the `temp/{document}/` folder and skip
 
 ### Knitting Pages Together
 
-Merge two adjacent pages (e.g., a two-page spread) into a single narrated unit. The two pages are combined into one double-width image, and their transcriptions are merged into one, reordered to read naturally across the full spread (image and chart descriptions move to the end, noting where they appear). The merged text is narrated once, producing a single clip that replaces the two individual page clips. Requires both pages to already be converted first, via New conversion or Continue — knitting a document with no processed pages yet, or a pair where one page hasn't been processed, fails.
+Use this mode to merge two pages (e.g., a two-page spread) into a single page, and then convert it into video as one double-width page. The two pages' transcriptions are merged into one, reordered to read naturally across the full spread, producing a single clip that replaces the two individual page clips. This mode requires both pages you want to knit to already be converted first, via one of the modes [new conversion](#converting-a-new-document), [continuing mode](#continuing-a-conversion) or [converting a single page](#convert-single-page).
 
-Every page's clip, knitted or not, renders on the same double-width canvas: a blurred, stretched copy of the page fills the width a knit would otherwise need, behind the sharp page centered on top. That keeps the whole video one consistent width throughout, so a knitted pair's naturally double-width clip drops in without resizing anything else.
+After the first pair has been knitted, all page clips in the final video render on the same double-width canvas to keep the whole video in one consistent width. Single/"un-knitted" pages are centered in the video and use blurred background fill to fill out the extra space.
 
 ### Convert Single Page
 
@@ -258,7 +258,7 @@ cargo test
 
 `D2V_ENGINE_MODEL` is whichever transcription engine and model you have available (see [Transcription Engines](INSTALL.md#transcription-engines)), for example `codex:gpt-5.6-sol`, `claude:claude-sonnet-5`, or `ollama:gemma4:31b`. The suite never hardcodes one, so it runs the same way regardless of which engine you use.
 
-Before its first test, each test file runs `ffprobe -version` and `ffmpeg -version`, which the tests use to inspect every finished video, and checks the credentials through the headless API itself: a status request with `D2V_WEBHOOK_SECRET` has to answer `200`, which passes the main workflow's status webhook, its `Check Job State` call and the bare-metal webhook that call reaches, and an empty start request has to answer the API's own `400`. A missing program or a refused credential on those paths fails every test in that file within a second. A job that reaches any other node with a missing credential reports `failed` at that node, and the test fails as soon as it sees that status. A test waiting on a job fails once the status endpoint stays unreachable for a minute.
+Before its first test, each test file runs `ffprobe -version` and `ffmpeg -version`, which the tests use to inspect every finished video, and checks the credentials through the headless API itself: a status request with `D2V_WEBHOOK_SECRET` has to answer `200`, which passes the main workflow's status webhook, its `Check Job State` call, and the bare-metal webhook that call reaches, and an empty start request has to answer the API's own `400`. A missing program or a refused credential on those paths fails every test in that file within a second. A job that reaches any other node with a missing credential reports `failed` at that node, and the test fails as soon as it sees that status. A test waiting on a job fails once the status endpoint stays unreachable for a minute.
 
 Tests run one at a time, enforced via that directory's own `.cargo/config.toml`, since they share the same `temp/`/`output/` folders and the single-worker Kokoro TTS service a real conversion would use. The same file builds the test binaries one at a time, so linking fits alongside the running services on a machine with 8 GB of memory, such as a default WSL distribution on a 16 GB PC. A full run takes a while: several tests wait for a multi-minute video conversion to complete.
 
