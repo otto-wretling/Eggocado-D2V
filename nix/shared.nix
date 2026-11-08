@@ -24,12 +24,6 @@ let
         };
 
         acceleration = {
-          platformDefault = lib.mkOption {
-            type = lib.types.enum [ "automatic" "cpu" ];
-            default = "automatic";
-            description = "Acceleration a conversion uses when its preference is Use platform default.";
-          };
-
           kokoroDevice = lib.mkOption {
             type = lib.types.nullOr (lib.types.enum [ "cuda" "mps" ]);
             default = null;
@@ -67,7 +61,6 @@ let
       inherit ports;
 
       n8nEnvironment = { startCpuTtsCommand, stopCpuTtsCommand }: {
-        D2V_PLATFORM_DEFAULT_ACCELERATION = cfg.acceleration.platformDefault;
         D2V_START_CPU_TTS_COMMAND = startCpuTtsCommand;
         D2V_STOP_CPU_TTS_COMMAND = stopCpuTtsCommand;
         N8N_PORT = toString ports.n8n;
