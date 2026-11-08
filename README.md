@@ -72,7 +72,7 @@ Re-narrate one page (or knitted pair) in a different voice: the whole page, or j
 
 ### Creating a Sample Video
 
-Generate a short demo clip for every available TTS voice, useful for picking one. Doesn't depend on any document, just the phrase each voice reads. Per-voice files live in `temp/sample/`.
+Use this mode to generate a demo video for every available TTS voice, so you can listen to what they sound like before you pick which one to use.
 
 ---
 
