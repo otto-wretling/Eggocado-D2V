@@ -34,9 +34,10 @@ See [UPDATE.md](UPDATE.md) for how to update an installation to the latest relea
 
 ## Usage
 
-Eggocado D2V can be operated using its built-in n8n form that guides the user to select a mode, AI models, a PDF file, and other required data. To start a run: open the `d2v-workflow-main` workflow in the Docker n8n editor (`http://localhost:5678`) and click **📋 Execute** to open the form.
+Eggocado D2V can be operated using its built-in n8n form that guides the user to select a mode, AI models, a PDF file, and other required data. To start a run, open the `d2v-workflow-main` workflow in the Docker n8n editor (`http://localhost:5678`) and click **📋 Execute** to open the form.
 
-A PDF can be converted into video with one of the modes [new conversion](#converting-a-new-document), [continuing mode](#continuing-a-conversion), or [converting a single page](#convert-single-page), and then be iterated upon without overwriting all previous changes. E.g., you can convert a PDF, knit two pages together, then change voice on that pair, then change the wording or pronunciation of a word, re-finalize, using [continuing mode](#continuing-a-conversion), and all changes stay consistent in the final video.
+There are many options to choose from in this tool, so here is a short example of how you can use the different modes to craft the video to your liking:
+You can convert a PDF to video and then iterate on it without overwriting previous changes. E.g., you can convert a PDF to video using [new conversion](#converting-a-new-document), or [converting a single page](#convert-single-page), knit two pages together using [knit mode](#knitting-pages-together), then change voice on a specific part of that double-page using [single page mode](#convert-single-page), then change the wording or pronunciation of a word, and re-finalize the video using [continuing mode](#continuing-a-conversion), and all those changes will stay consistent in the final video.
 
 ### Converting a New Document
 
