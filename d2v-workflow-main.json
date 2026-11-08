@@ -2611,7 +2611,7 @@
     {
       "parameters": {
         "defineForm": "json",
-        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"Which engine and model should transcribe document pages?\",\n    fieldName: \"engineModel\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: (() => {\n        const opts = [];\n        const ollama = $('Fetch Ollama Models').isExecuted ? $('Fetch Ollama Models').item.json : null;\n        if (ollama && ollama.models && ollama.models.length) {\n          ollama.models.forEach(m => opts.push({ option: \"🦙 Local Gemma (Ollama) - \" + m }));\n        }\n        const claude = $('Fetch Claude Models').isExecuted ? $('Fetch Claude Models').item.json : null;\n        const claudeReleases = (claude && claude.result && claude.result.releases) ? claude.result.releases.filter(x => x.isMaintained).map(x => x.name) : null;\n        if (claudeReleases && claudeReleases.length) {\n          claudeReleases.forEach(m => opts.push({ option: \"🟣 Claude Code - \" + m }));\n        }\n        const codex = $('Fetch Codex Models').isExecuted ? $('Fetch Codex Models').item.json : null;\n        if (codex && codex.models && codex.models.length) {\n          codex.models.forEach(m => opts.push({ option: \"⚪ OpenAI Codex - \" + m }));\n        }\n        return opts;\n      })()\n    },\n    requiredField: true,\n    defaultValue: ($('Carry Forward Previous Answers').isExecuted ? $('Carry Forward Previous Answers').item.json.prevEngineModel : undefined)\n  },\n  {\n    fieldLabel: \"Which hardware should process this conversion?\",\n    fieldName: \"acceleration\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: [\n        { option: \"Use platform default\" },\n        { option: \"Automatic - GPU Preferred (faster)\" },\n        { option: \"CPU (slower)\" }\n      ]\n    },\n    requiredField: true,\n    defaultValue: ($('Carry Forward Previous Answers').isExecuted ? $('Carry Forward Previous Answers').item.json.prevAcceleration : \"Use platform default\")\n  },\n  {\n    fieldLabel: \"Select Mode\",\n    fieldName: \"Select Mode\",\n    fieldType: \"radio\",\n    fieldOptions: {\n      values: [\n        { option: $('Populate Variables').item.json.modeNewConversion },\n        { option: $('Populate Variables').item.json.modeContinue },\n        { option: $('Populate Variables').item.json.modeKnit },\n        { option: $('Populate Variables').item.json.modeChangeVoice },\n        { option: $('Populate Variables').item.json.modeSample }\n      ]\n    },\n    requiredField: true,\n    defaultValue: ($('Carry Forward Previous Answers').isExecuted ? $('Carry Forward Previous Answers').item.json.prevMode : undefined)\n  },\n  {\n    fieldLabel: \"🔁🧶🎙️ Which document? (Continue, Knit, Change Voice only)\",\n    fieldName: \"document\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: $('Aggregate Document List').item.json.documents.filter(d => d.doc && d.doc.docFolder).map(d => ({ option: d.doc.originalFilename }))\n    },\n    defaultValue: ($('Carry Forward Previous Answers').isExecuted ? $('Carry Forward Previous Answers').item.json.prevDocument : undefined)\n  },\n  {\n    fieldLabel: \"🔊 Sample Video only: phrase for the voice to say\",\n    fieldName: \"samplePhrase\",\n    fieldType: \"textarea\",\n    defaultValue: ($('Carry Forward Previous Answers').isExecuted ? $('Carry Forward Previous Answers').item.json.prevSamplePhrase : \"This is what {voice} sounds like. The North Wind and the Sun were disputing which was the stronger, when a traveler came along wrapped in a warm cloak. They agreed that the one who first succeeded in making the traveler take his cloak off should be considered stronger than the other. Then the North Wind blew as hard as he could, but the more he blew the more closely did the traveler fold his cloak around him; and at last the North Wind gave up the attempt. Then the Sun shone out warmly, and immediately the traveler took off his cloak. And so the North Wind was obliged to confess that the Sun was the stronger of the two.\")\n  }\n] }}",
+        "jsonOutput": "={{ [\n  {\n    fieldLabel: \"Which engine and model should transcribe document pages?\",\n    fieldName: \"engineModel\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: (() => {\n        const opts = [];\n        const ollama = $('Fetch Ollama Models').isExecuted ? $('Fetch Ollama Models').item.json : null;\n        if (ollama && ollama.models && ollama.models.length) {\n          ollama.models.forEach(m => opts.push({ option: \"🦙 Local Gemma (Ollama) - \" + m }));\n        }\n        const claude = $('Fetch Claude Models').isExecuted ? $('Fetch Claude Models').item.json : null;\n        const claudeReleases = (claude && claude.result && claude.result.releases) ? claude.result.releases.filter(x => x.isMaintained).map(x => x.name) : null;\n        if (claudeReleases && claudeReleases.length) {\n          claudeReleases.forEach(m => opts.push({ option: \"🟣 Claude Code - \" + m }));\n        }\n        const codex = $('Fetch Codex Models').isExecuted ? $('Fetch Codex Models').item.json : null;\n        if (codex && codex.models && codex.models.length) {\n          codex.models.forEach(m => opts.push({ option: \"⚪ OpenAI Codex - \" + m }));\n        }\n        return opts;\n      })()\n    },\n    requiredField: true,\n    defaultValue: ($('Carry Forward Previous Answers').isExecuted ? $('Carry Forward Previous Answers').item.json.prevEngineModel : undefined)\n  },\n  {\n    fieldLabel: \"Which hardware should process this conversion?\",\n    fieldName: \"acceleration\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: [\n        { option: \"Automatic - GPU Preferred (faster)\" },\n        { option: \"CPU (slower)\" }\n      ]\n    },\n    requiredField: true,\n    defaultValue: ($('Carry Forward Previous Answers').isExecuted ? $('Carry Forward Previous Answers').item.json.prevAcceleration : \"Automatic - GPU Preferred (faster)\")\n  },\n  {\n    fieldLabel: \"Select Mode\",\n    fieldName: \"Select Mode\",\n    fieldType: \"radio\",\n    fieldOptions: {\n      values: [\n        { option: $('Populate Variables').item.json.modeNewConversion },\n        { option: $('Populate Variables').item.json.modeContinue },\n        { option: $('Populate Variables').item.json.modeKnit },\n        { option: $('Populate Variables').item.json.modeChangeVoice },\n        { option: $('Populate Variables').item.json.modeSample }\n      ]\n    },\n    requiredField: true,\n    defaultValue: ($('Carry Forward Previous Answers').isExecuted ? $('Carry Forward Previous Answers').item.json.prevMode : undefined)\n  },\n  {\n    fieldLabel: \"🔁🧶🎙️ Which document? (Continue, Knit, Change Voice only)\",\n    fieldName: \"document\",\n    fieldType: \"dropdown\",\n    fieldOptions: {\n      values: $('Aggregate Document List').item.json.documents.filter(d => d.doc && d.doc.docFolder).map(d => ({ option: d.doc.originalFilename }))\n    },\n    defaultValue: ($('Carry Forward Previous Answers').isExecuted ? $('Carry Forward Previous Answers').item.json.prevDocument : undefined)\n  },\n  {\n    fieldLabel: \"🔊 Sample Video only: phrase for the voice to say\",\n    fieldName: \"samplePhrase\",\n    fieldType: \"textarea\",\n    defaultValue: ($('Carry Forward Previous Answers').isExecuted ? $('Carry Forward Previous Answers').item.json.prevSamplePhrase : \"This is what {voice} sounds like. The North Wind and the Sun were disputing which was the stronger, when a traveler came along wrapped in a warm cloak. They agreed that the one who first succeeded in making the traveler take his cloak off should be considered stronger than the other. Then the North Wind blew as hard as he could, but the more he blew the more closely did the traveler fold his cloak around him; and at last the North Wind gave up the attempt. Then the Sun shone out warmly, and immediately the traveler took off his cloak. And so the North Wind was obliged to confess that the Sun was the stronger of the two.\")\n  }\n] }}",
         "options": {}
       },
       "id": "acce9165-d58d-4f15-9ea4-1b95bf19e3b1",
@@ -4176,7 +4176,7 @@
             {
               "id": "cfpa-5",
               "name": "prevAcceleration",
-              "value": "={{ ({ platformDefault: 'Use platform default', automatic: 'Automatic - GPU Preferred (faster)', cpu: 'CPU (slower)' })[$('Select Mode').item.json.acceleration] }}",
+              "value": "={{ ({ automatic: 'Automatic - GPU Preferred (faster)', cpu: 'CPU (slower)' })[$('Select Mode').item.json.acceleration] }}",
               "type": "string"
             }
           ]
@@ -4263,13 +4263,13 @@
               "id": "hl-sm-5",
               "name": "acceleration",
               "type": "string",
-              "value": "={{ $('Receive Headless API Request').isExecuted ? ($('Receive Headless API Request').item.json.body.acceleration || 'platformDefault') : ({ 'Use platform default': 'platformDefault', 'Automatic - GPU Preferred (faster)': 'automatic', 'CPU (slower)': 'cpu' })[$json.acceleration] }}"
+              "value": "={{ $('Receive Headless API Request').isExecuted ? ($('Receive Headless API Request').item.json.body.acceleration || 'automatic') : ({ 'Automatic - GPU Preferred (faster)': 'automatic', 'CPU (slower)': 'cpu' })[$json.acceleration] }}"
             },
             {
               "id": "hl-sm-6",
               "name": "resolvedAcceleration",
               "type": "string",
-              "value": "={{ (() => { const preference = $('Receive Headless API Request').isExecuted ? ($('Receive Headless API Request').item.json.body.acceleration || 'platformDefault') : ({ 'Use platform default': 'platformDefault', 'Automatic - GPU Preferred (faster)': 'automatic', 'CPU (slower)': 'cpu' })[$json.acceleration]; if (preference !== 'platformDefault') return preference; const platformDefault = ($('Read Platform Default Acceleration').item.json.stdout || '').trim(); return platformDefault === 'cpu' ? 'cpu' : 'automatic'; })() }}"
+              "value": "={{ $('Receive Headless API Request').isExecuted ? ($('Receive Headless API Request').item.json.body.acceleration || 'automatic') : ({ 'Automatic - GPU Preferred (faster)': 'automatic', 'CPU (slower)': 'cpu' })[$json.acceleration] }}"
             }
           ]
         },
@@ -6738,7 +6738,7 @@
               "id": "vrp-1",
               "name": "validationError",
               "type": "string",
-              "value": "={{ $('Receive Headless API Request').isExecuted ? (() => { const body = $('Receive Headless API Request').item.json.body; const mode = body.mode; const hasFile = Object.keys($('Receive Headless API Request').item.binary || {}).length > 0; if (!['new', 'continue', 'knit', 'changeVoice', 'sample'].includes(mode)) { return 'mode is required and must be one of: new, continue, knit, changeVoice, sample'; } if (body.acceleration && !['platformDefault', 'automatic', 'cpu'].includes(body.acceleration)) { return 'acceleration must be one of: platformDefault, automatic, cpu'; } if (mode === 'sample') { return body.samplePhrase ? '' : 'samplePhrase is required for sample mode'; } if (!body.voice) return 'voice is required'; if (['new', 'continue', 'knit'].includes(mode) && !body.engineModel) return 'engineModel is required'; if (mode === 'new') { if (!hasFile) return 'a file upload is required for new mode'; } else if (!body.document) { return 'document is required for this mode'; } if (mode === 'knit' && (!body.leftPage || !body.rightPage)) { return 'leftPage and rightPage are required for knit mode'; } if (mode === 'changeVoice') { if (!body.pageSelection || !body.target) return 'pageSelection and target are required for changeVoice mode'; if (body.target === 'selectedText' && !body.textToChange) return 'textToChange is required when target is selectedText'; } return ''; })() : '' }}"
+              "value": "={{ $('Receive Headless API Request').isExecuted ? (() => { const body = $('Receive Headless API Request').item.json.body; const mode = body.mode; const hasFile = Object.keys($('Receive Headless API Request').item.binary || {}).length > 0; if (!['new', 'continue', 'knit', 'changeVoice', 'sample'].includes(mode)) { return 'mode is required and must be one of: new, continue, knit, changeVoice, sample'; } if (body.acceleration && !['automatic', 'cpu'].includes(body.acceleration)) { return 'acceleration must be one of: automatic, cpu'; } if (mode === 'sample') { return body.samplePhrase ? '' : 'samplePhrase is required for sample mode'; } if (!body.voice) return 'voice is required'; if (['new', 'continue', 'knit'].includes(mode) && !body.engineModel) return 'engineModel is required'; if (mode === 'new') { if (!hasFile) return 'a file upload is required for new mode'; } else if (!body.document) { return 'document is required for this mode'; } if (mode === 'knit' && (!body.leftPage || !body.rightPage)) { return 'leftPage and rightPage are required for knit mode'; } if (mode === 'changeVoice') { if (!body.pageSelection || !body.target) return 'pageSelection and target are required for changeVoice mode'; if (body.target === 'selectedText' && !body.textToChange) return 'textToChange is required when target is selectedText'; } return ''; })() : '' }}"
             }
           ]
         },
@@ -6824,40 +6824,6 @@
         608,
         -160
       ]
-    },
-    {
-      "parameters": {
-        "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/clip",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "command",
-              "value": "printf '%s' \"$D2V_PLATFORM_DEFAULT_ACCELERATION\""
-            }
-          ]
-        },
-        "options": {
-          "timeout": 30000
-        }
-      },
-      "id": "9e037cdc-b1c9-4887-b413-a5122e4ab9e6",
-      "name": "Read Platform Default Acceleration",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        -10672,
-        -288
-      ],
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "dT2rDdHX1TfPrVi1",
-          "name": "D2V Webhook Shared Secret"
-        }
-      },
-      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -10728,17 +10694,6 @@
       ]
     },
     "Store Video Encoding Configuration": {
-      "main": [
-        [
-          {
-            "node": "Read Platform Default Acceleration",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Read Platform Default Acceleration": {
       "main": [
         [
           {

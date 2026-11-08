@@ -125,7 +125,7 @@ Each example sends `D2V_BASE_URL=http://localhost:5678` and `SECRET` set to the 
 | `target` | `changeVoice` | Yes | `400` | `wholePage` or `selectedText` |
 | `textToChange` | `changeVoice` | Yes, when `target` is `selectedText` | `400` | The exact phrase to re-narrate |
 | `samplePhrase` | `sample` | Yes | `400` | The phrase every voice sample speaks |
-| `acceleration` | every request | No | Missing: `platformDefault`. Invalid: `400` | Which hardware processes the conversion: `platformDefault` (the `eggocado-d2v.acceleration.platformDefault` option, `automatic` unless set), `automatic`, or `cpu` |
+| `acceleration` | every request | No | Missing: `automatic`. Invalid: `400` | Which hardware processes the conversion: `automatic` or `cpu` |
 
 Convert entire document:
 
@@ -280,7 +280,7 @@ The Docker/host-process split exists because GPU-accelerated tools (ffmpeg hardw
 
 **The transcription engine is chosen per run**, from a dropdown at the start of each conversion: a local vision-capable Ollama model (any model you've pulled), Claude Code, or OpenAI Codex.
 
-**The hardware is chosen per run as well**: Use platform default, Automatic - GPU Preferred, or CPU. Automatic uses the GPU wherever a stage supports it: Ollama, Kokoro-FastAPI, and VA-API, VideoToolbox, or NVENC video encoding. CPU runs Ollama on the CPU, starts the CPU Kokoro-FastAPI instance, and encodes with libx264. When an accelerated stage fails, the conversion retries that stage on the CPU and keeps every later stage on the CPU.
+**The hardware is chosen per run as well**: Automatic - GPU Preferred (faster) or CPU (slower). Automatic uses the GPU wherever a stage supports it: Ollama, Kokoro-FastAPI, and VA-API, VideoToolbox, or NVENC video encoding. CPU runs Ollama on the CPU, starts the CPU Kokoro-FastAPI instance, and encodes with libx264. When an accelerated stage fails, the conversion retries that stage on the CPU and keeps every later stage on the CPU.
 
 ### Security Note
 
