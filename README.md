@@ -79,7 +79,7 @@ Use this mode to generate a demo video for every available TTS voice, so you can
 
 ### File Glossary
 
-Every file type the modes above create, in one place. Paths below are relative to the repo's main folder. Every per-page file lives in `temp/{document}/`, prefixed with its page number (or `{a}-{b}_knit_` for a knitted pair). The finished video's files live in `output/{document}/`.
+This table explains all the categories of files created by the modes above. The paths are relative to the repo's main folder (e.g., `/home/otto/Documents/GitHub/Eggocado-D2V`). Every per-page file lives in `temp/{document}/`, prefixed with its page number (or `{a}-{b}_knit_` for a knitted pair). The finished video's files live in `output/{document}/`.
 
 | Term | File | What it is |
 |---|---|---|
