@@ -34,7 +34,9 @@ See [UPDATE.md](UPDATE.md) for how to update an installation to the latest relea
 
 ## Usage
 
-Eggocado D2V can be operated using its built-in n8n form that guides the user to select mode, AI models, a PDF file, and other required data. To start a run: open the `d2v-workflow-main` workflow in the Docker n8n editor (`http://localhost:5678`) and click **📋 Execute** to open the form.
+Eggocado D2V can be operated using its built-in n8n form that guides the user to select a mode, AI models, a PDF file, and other required data. To start a run: open the `d2v-workflow-main` workflow in the Docker n8n editor (`http://localhost:5678`) and click **📋 Execute** to open the form.
+
+A PDF can be converted into video with one of the modes [new conversion](#converting-a-new-document), [continuing mode](#continuing-a-conversion), or [converting a single page](#convert-single-page), and then be iterated upon without overwriting all previous changes. E.g., you can convert a PDF, knit two pages together, then change voice on that pair, then change the wording or pronunciation of a word, re-finalize, using [continuing mode](#continuing-a-conversion), and all changes stay consistent in the final video.
 
 ### Converting a New Document
 
@@ -62,7 +64,7 @@ This mode looks at what already exists in the `temp/{document}/` folder and skip
 
 ### Knitting Pages Together
 
-Use this mode to merge two pages (e.g., a two-page spread) into a single page, and then convert it into video as one double-width page. The two pages' transcriptions are merged into one, reordered to read naturally across the full spread, producing a single clip that replaces the two individual page clips. This mode requires both pages you want to knit to already be converted first, via one of the modes [new conversion](#converting-a-new-document), [continuing mode](#continuing-a-conversion) or [converting a single page](#convert-single-page).
+Use this mode to merge two pages (e.g., a two-page spread) into a single page, and then convert it into video as one double-width page. The two pages' transcriptions are merged into one, reordered to read naturally across the full spread, producing a single clip that replaces the two individual page clips. This mode requires both pages you want to knit to already be converted first, via one of the modes [new conversion](#converting-a-new-document), [continuing mode](#continuing-a-conversion), or [converting a single page](#convert-single-page).
 
 After the first pair has been knitted, all page clips in the final video render on the same double-width canvas to keep the whole video in one consistent width. Single/"un-knitted" pages are centered in the video and use blurred background fill to fill out the extra space.
 
@@ -73,10 +75,6 @@ Re-narrate one page (or knitted pair) in a different voice: the whole page, or j
 ### Creating a Sample Video
 
 Use this mode to generate a demo video for every available TTS voice, so you can listen to what they sound like before you pick which one to use.
-
----
-
-Any mode can be combined with any other: knit two pages, then change voice on that pair, then resume and re-finalize, and it all stays consistent.
 
 ### File Glossary
 
