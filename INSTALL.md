@@ -4,7 +4,7 @@ macOS (Apple Silicon), Linux/NixOS, and Windows through NixOS-WSL. On Windows, s
 
 ## Windows
 
-On Windows, D2V runs in a [NixOS-WSL](https://github.com/nix-community/NixOS-WSL) distribution. Its NixOS configuration provides bare-metal n8n, Kokoro-FastAPI, ffmpeg, and espeak-ng from [Prerequisites](#prerequisites), and step 6 adds the transcription engine CLIs. Docker Desktop on Windows runs the [Docker services](#docker-services). Ollama runs natively on Windows with the full system memory and GPU, and the distribution reaches it at `http://127.0.0.1:11434`. Kokoro-FastAPI uses an NVIDIA GPU through the Windows driver when one is present.
+On Windows, D2V runs in a [NixOS-WSL](https://github.com/nix-community/NixOS-WSL) distribution. Its NixOS configuration provides bare-metal n8n, Kokoro-FastAPI, ffmpeg, and espeak-ng from [Prerequisites](#prerequisites), and step 7 adds the transcription engine CLIs. Docker Desktop on Windows runs the [Docker services](#docker-services). Ollama runs natively on Windows with the full system memory and GPU, and the distribution reaches it at `http://127.0.0.1:11434`. Kokoro-FastAPI uses an NVIDIA GPU through the Windows driver when one is present.
 
 1. Download [`.config/configuration.winget`](.config/configuration.winget), review it, and apply it in PowerShell from the folder you saved it to, accepting the UAC prompts:
 
@@ -38,9 +38,11 @@ On Windows, D2V runs in a [NixOS-WSL](https://github.com/nix-community/NixOS-WSL
 
    The `d2v-docker-services` user service then starts the [Docker services](#docker-services) from that checkout as soon as Docker Desktop's integration answers, and recreates them each time the distribution starts so the `n8n` container mounts the checkout after the distribution's files are available. The first start builds the nemo-normalizer image, which takes several minutes.
 
-6. Install the CLIs for the engines you plan to use from [Transcription engines](#transcription-engines) inside the distribution, and pull an Ollama model in PowerShell as shown in [Ollama](#ollama).
+6. On Windows itself, enable Developer Mode (**Settings > Privacy & security > For developers > Developer Mode**), then clone this repo again, this time to the same relative path under your Windows user profile: `C:\Users\<you>\Documents\GitHub\Eggocado-D2V` (GitHub Desktop or a plain `git clone` both work). This is a separate, ordinary Windows-side checkout for browsing and editing the code; the distribution's own checkout from step 5 is what the services actually run against. Its `temp` and `output` folders start out empty: the next time the form or the headless API runs, it checks whether they still exist and, if not, recreates them as Windows directory symlinks into the distribution's real `temp`/`output` folders, so files appear there natively as soon as they're produced. Deleting a specific file, or a whole `temp/{document}/` subfolder, from the Windows side genuinely deletes it on the distribution side too, matching [Continuing a Conversion](README.md#continuing-a-conversion)'s recreate instructions. Deleting the entire top-level `temp` or `output` folder only removes the symlink itself, not its contents; the next run recreates it automatically.
 
-7. Continue with [Importing the workflows](#importing-the-workflows).
+7. Install the CLIs for the engines you plan to use from [Transcription engines](#transcription-engines) inside the distribution, and pull an Ollama model in PowerShell as shown in [Ollama](#ollama).
+
+8. Continue with [Importing the workflows](#importing-the-workflows).
 
 Run the commands in the rest of this guide inside the distribution. From PowerShell, address the services as `127.0.0.1`, for example `curl.exe http://127.0.0.1:5679/healthz`.
 

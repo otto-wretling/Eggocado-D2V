@@ -2203,6 +2203,40 @@
     },
     {
       "parameters": {
+        "url": "={{ $('Populate Variables').item.json.bareMetalBaseUrl }}/webhook/clip",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "command",
+              "value": "set -e\nif ! grep -qi microsoft /proc/version 2>/dev/null; then\n  echo \"not running under WSL, skipping Windows symlink check\"\n  exit 0\nfi\nWIN_USER=$(cmd.exe /c \"echo %USERNAME%\" 2>/dev/null | tr -d '\\r\\n')\nDISTRO_NAME=\"${WSL_DISTRO_NAME:-}\"\nif [ -z \"$WIN_USER\" ] || [ -z \"$DISTRO_NAME\" ]; then\n  echo \"could not determine the Windows username or WSL distro name, skipping Windows symlink check\"\n  exit 0\nfi\nWSL_PROJECT_ROOT=$(pwd)\nRELATIVE_PROJECT_PATH=$(echo \"$WSL_PROJECT_ROOT\" | sed -E 's#^/home/[^/]+/##')\nWIN_RELATIVE_PATH=$(echo \"$RELATIVE_PROJECT_PATH\" | tr '/' '\\\\')\nWIN_PROJECT_DIR=\"/mnt/c/Users/$WIN_USER/$RELATIVE_PROJECT_PATH\"\nWSL_UNC_RELATIVE_PATH=$(echo \"$WSL_PROJECT_ROOT\" | sed -E 's#^/##' | tr '/' '\\\\')\nfor folder in temp output; do\n  if [ ! -e \"$WIN_PROJECT_DIR/$folder\" ]; then\n    powershell.exe -NoProfile -Command \"New-Item -ItemType SymbolicLink -Path 'C:\\\\Users\\\\$WIN_USER\\\\$WIN_RELATIVE_PATH\\\\$folder' -Target '\\\\\\\\wsl.localhost\\\\$DISTRO_NAME\\\\$WSL_UNC_RELATIVE_PATH\\\\$folder'\" || echo \"failed to create the $folder symlink on Windows (Developer Mode or admin rights may be required)\"\n  fi\ndone"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "f3b6a9b1-8e52-4d2b-9d3a-7c6e4a2f91ab",
+      "name": "Ensure Windows Symlinks Exist",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -11904,
+        100
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "dT2rDdHX1TfPrVi1",
+          "name": "D2V Webhook Shared Secret"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
         "assignments": {
           "assignments": [
             {
@@ -9001,7 +9035,7 @@
       "main": [
         [
           {
-            "node": "Ensure Base Folders Exist",
+            "node": "Ensure Windows Symlinks Exist",
             "type": "main",
             "index": 0
           }
@@ -11046,6 +11080,17 @@
         [
           {
             "node": "Record Failure and Stop CPU Text-to-Speech",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ensure Windows Symlinks Exist": {
+      "main": [
+        [
+          {
+            "node": "Ensure Base Folders Exist",
             "type": "main",
             "index": 0
           }
