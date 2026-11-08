@@ -280,7 +280,7 @@ The Docker/host-process split exists because GPU-accelerated tools (ffmpeg hardw
 
 **The transcription engine is chosen per run**, from a dropdown at the start of each conversion: a local vision-capable Ollama model (any model you've pulled), Claude Code, or OpenAI Codex.
 
-**The hardware is chosen per run as well**: Use platform default, Automatic, or CPU. Automatic uses the GPU wherever a stage supports it: Ollama, Kokoro-FastAPI, and VA-API, VideoToolbox, or NVENC video encoding. CPU runs Ollama on the CPU, starts the CPU Kokoro-FastAPI instance, and encodes with libx264. When an accelerated stage fails, the conversion retries that stage on the CPU and keeps every later stage on the CPU.
+**The hardware is chosen per run as well**: Use platform default, Automatic - GPU Preferred, or CPU. Automatic uses the GPU wherever a stage supports it: Ollama, Kokoro-FastAPI, and VA-API, VideoToolbox, or NVENC video encoding. CPU runs Ollama on the CPU, starts the CPU Kokoro-FastAPI instance, and encodes with libx264. When an accelerated stage fails, the conversion retries that stage on the CPU and keeps every later stage on the CPU.
 
 ### Security Note
 
