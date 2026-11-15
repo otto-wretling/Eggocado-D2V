@@ -155,6 +155,8 @@ This starts:
 
 The nemo-normalizer image is built from `./nemo-normalizer/` on first run. This takes several minutes as it installs NeMo text processing dependencies inside the container.
 
+The n8n service's `D2V_` environment variables in `docker-compose.yml` define the settings every workflow node shares: the project directory, the `temp` and `output` folder names, the command timeouts, and the addresses and ports of bare-metal n8n and the services the status endpoint health-checks. `N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"` lets workflow expressions read them through `$env`.
+
 ## Starting the Services
 
 `darwinModules.services`, `nixosModules.services`, and `nixosModules.wsl` provide one command, `d2v`, that controls Kokoro-FastAPI, bare-metal n8n, and the [Docker services](#docker-services) together:
