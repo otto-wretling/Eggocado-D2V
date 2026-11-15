@@ -1,3 +1,8 @@
+x-d2v-settings:
+  project-directory: &project_directory /home/node/project
+  nemo-normalizer-host-port: &nemo_normalizer_host_port 8765
+  stirling-pdf-host-port: &stirling_pdf_host_port 8080
+
 services:
   n8n:
     image: n8nio/n8n:2.45.4
@@ -6,21 +11,38 @@ services:
     ports:
       - "5678:5678"
     environment:
-      N8N_RESTRICT_FILE_ACCESS_TO: /home/node/project
+      N8N_RESTRICT_FILE_ACCESS_TO: *project_directory
       N8N_DEFAULT_BINARY_DATA_MODE: filesystem
       EXECUTIONS_DATA_SAVE_ON_SUCCESS: none
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
+      D2V_PROJECT_DIRECTORY: *project_directory
+      D2V_TEMP_FOLDER: temp
+      D2V_OUTPUT_FOLDER: output
+      D2V_CPU_TEXT_TO_SPEECH_USERS_FOLDER: .cpu-text-to-speech-users
+      D2V_QUICK_COMMAND_TIMEOUT_MILLISECONDS: 120000
+      D2V_CPU_TEXT_TO_SPEECH_START_TIMEOUT_MILLISECONDS: 300000
+      D2V_MAIN_N8N_URL: http://localhost:5678
+      D2V_BARE_METAL_N8N_URL: http://host.docker.internal:5679
+      D2V_BARE_METAL_HOST: 127.0.0.1
+      D2V_KOKORO_HOST_PORT: 8881
+      D2V_CPU_KOKORO_HOST_PORT: 8882
+      D2V_NEMO_NORMALIZER_HOST_PORT: *nemo_normalizer_host_port
+      D2V_STIRLING_PDF_HOST_PORT: *stirling_pdf_host_port
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
       - n8n_data:/home/node/.n8n
-      - .:/home/node/project
+      - type: bind
+        source: .
+        target: *project_directory
 
   nemo-normalizer:
     build: ./nemo-normalizer
     platform: linux/amd64
     container_name: nemo-normalizer
     ports:
-      - "8765:8000"
+      - target: 8000
+        published: *nemo_normalizer_host_port
     restart: unless-stopped
 
   stirling-pdf:
@@ -28,7 +50,8 @@ services:
     container_name: stirling-pdf
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - target: 8080
+        published: *stirling_pdf_host_port
     environment:
       SECURITY_ENABLELOGIN: "false"
       JAVA_TOOL_OPTIONS: "-Dcom.sun.net.ssl.checkRevocation=true -Dcom.sun.security.enableCRLDP=true"
