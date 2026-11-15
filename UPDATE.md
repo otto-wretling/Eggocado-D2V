@@ -10,7 +10,15 @@ git pull
 
 ## Nix-Managed Dependencies (NixOS, macOS, WSL)
 
-If your system config imports this repo's flake modules (`nixosModules.packages`, `nixosModules.services`, `darwinModules.homebrew`/`darwinModules.services`), a plain system rebuild (`sudo nixos-rebuild switch`, `darwin-rebuild switch`, or your home-manager equivalent) picks up any change to this repo automatically — these modules are consumed as a `path:` flake input, so a rebuild always reads the repo's current contents, with no separate `flake.lock` update needed for this input specifically.
+On NixOS and macOS, your system config imports this repo's flake modules (`nixosModules.packages`, `nixosModules.services`, `darwinModules.homebrew`, `darwinModules.packages`, `darwinModules.services`) through a `path:` flake input pointing at your checkout. A system rebuild (`sudo nixos-rebuild switch`, `darwin-rebuild switch`, or your home-manager equivalent) reads the checkout's current contents, so it picks up every change `git pull` brought in.
+
+The WSL distribution imports `nixosModules.wsl` through the `github:` input its `/etc/nixos/flake.nix` was created with. Update that input to the latest commit, then rebuild, inside the distribution:
+
+```bash
+cd /etc/nixos
+sudo nix flake update eggocado-d2v
+sudo nixos-rebuild switch --flake /etc/nixos#eggocado-d2v
+```
 
 If your system's own flake pins other inputs this repo depends on (nixpkgs, etc.) and those need bumping too, update them the normal way for your system's flake before rebuilding.
 

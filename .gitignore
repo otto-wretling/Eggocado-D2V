@@ -3,6 +3,8 @@
 .DS_Store
 /output/*
 !/output/.gitkeep
+/temp.lnk
+/output.lnk
 .env.mcp
 .env.mcp.baremetal
 .mcp.json

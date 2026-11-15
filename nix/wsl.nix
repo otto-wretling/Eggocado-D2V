@@ -4,6 +4,12 @@
 let
   shared = import ./shared.nix;
   cfg = config.eggocado-d2v;
+  windowsSystemDirectory = "${config.wsl.wslConf.automount.root}/c/Windows/System32";
+  windowsInteropDirectories = [
+    windowsSystemDirectory
+    "${windowsSystemDirectory}/WindowsPowerShell/v1.0"
+    "/bin"
+  ];
   linuxUserServices = nixos.linuxUserServices {
     inherit lib pkgs cfg;
     userExecutableDirectories = [ "${cfg.homeDirectory}/.local/share/npm/bin" ];
@@ -54,7 +60,7 @@ in
       (_: service: {
         inherit (service) description;
         environment = service.environment // lib.optionalAttrs (service.environment ? PATH) {
-          PATH = lib.mkForce service.environment.PATH;
+          PATH = lib.mkForce (lib.concatStringsSep ":" ([ service.environment.PATH ] ++ windowsInteropDirectories));
         };
         unitConfig.ConditionUser = cfg.user;
         serviceConfig = nixos.restartPolicy // {
