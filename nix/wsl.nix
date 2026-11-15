@@ -4,12 +4,24 @@
 let
   shared = import ./shared.nix;
   cfg = config.eggocado-d2v;
-  windowsSystemDirectory = "${config.wsl.wslConf.automount.root}/c/Windows/System32";
-  windowsInteropDirectories = [
-    windowsSystemDirectory
-    "${windowsSystemDirectory}/WindowsPowerShell/v1.0"
-    "/bin"
-  ];
+  windowsDriveMountRoot = lib.removeSuffix "/" config.wsl.wslConf.automount.root;
+  windowsSystemFolderInDrive = "Windows/System32";
+  windowsPowerShellFolderInSystemFolder = "WindowsPowerShell/v1.0";
+  windowsShellProgram = "cmd.exe";
+  wslInteropDirectory = "/bin";
+  runWithWindowsInteropPath = pkgs.writeShellApplication {
+    name = "run-with-windows-interop-path";
+    text = ''
+      for windows_system_folder in ${windowsDriveMountRoot}/*/${windowsSystemFolderInDrive}; do
+        if [ -x "$windows_system_folder/${windowsShellProgram}" ]; then
+          PATH="$PATH:$windows_system_folder:$windows_system_folder/${windowsPowerShellFolderInSystemFolder}"
+          break
+        fi
+      done
+      export PATH="$PATH:${wslInteropDirectory}"
+      exec "$@"
+    '';
+  };
   linuxUserServices = nixos.linuxUserServices {
     inherit lib pkgs cfg;
     userExecutableDirectories = [ "${cfg.homeDirectory}/.local/share/npm/bin" ];
@@ -57,14 +69,17 @@ in
     ];
 
     systemd.user.services = lib.mapAttrs
-      (_: service: {
+      (unit: service: {
         inherit (service) description;
         environment = service.environment // lib.optionalAttrs (service.environment ? PATH) {
-          PATH = lib.mkForce (lib.concatStringsSep ":" ([ service.environment.PATH ] ++ windowsInteropDirectories));
+          PATH = lib.mkForce service.environment.PATH;
         };
         unitConfig.ConditionUser = cfg.user;
         serviceConfig = nixos.restartPolicy // {
-          ExecStart = utils.escapeSystemdExecArgs service.command;
+          ExecStart = utils.escapeSystemdExecArgs (
+            lib.optional (unit == nixos.userServiceUnits.n8n) (lib.getExe runWithWindowsInteropPath)
+            ++ service.command
+          );
           WorkingDirectory = service.workingDirectory;
         };
       })
