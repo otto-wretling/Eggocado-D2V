@@ -20,6 +20,8 @@ sudo nix flake update eggocado-d2v
 sudo nixos-rebuild switch --flake /etc/nixos#eggocado-d2v
 ```
 
+On Windows, apply `.config/configuration.winget` again whenever it changed, the same way as in step 1 of [Windows](INSTALL.md#windows). Each resource checks its current state first and changes only what differs.
+
 If your system's own flake pins other inputs this repo depends on (nixpkgs, etc.) and those need bumping too, update them the normal way for your system's flake before rebuilding.
 
 If you're not using the Nix modules, re-check [Prerequisites](INSTALL.md#prerequisites) for anything that changed: Docker, ffmpeg/espeak-ng, the transcription engine CLIs, Kokoro-FastAPI's own dependencies.

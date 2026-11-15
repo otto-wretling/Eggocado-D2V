@@ -80,3 +80,33 @@ resources:
       }
   metadata:
     description: Set WSL to mirrored networking with host address loopback in .wslconfig
+
+- type: Microsoft.DSC.Transitional/WindowsPowerShellScript
+  name: D2vCommand
+  properties:
+    input:
+      commandFolder: Programs\Eggocado-D2V
+      commandFile: d2v.cmd
+      commandContent: |
+        @echo off
+        wsl.exe -d NixOS -- d2v %*
+    testScript: |
+      param($settings)
+      $folder = Join-Path $env:LOCALAPPDATA $settings.commandFolder
+      $command = Join-Path $folder $settings.commandFile
+      $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
+      (Test-Path $command) -and ([IO.File]::ReadAllText($command) -ceq $settings.commandContent) -and (($userPath -split ';') -contains $folder)
+    setScript: |
+      param($settings)
+      $ErrorActionPreference = 'Stop'
+      $folder = Join-Path $env:LOCALAPPDATA $settings.commandFolder
+      $command = Join-Path $folder $settings.commandFile
+      New-Item -ItemType Directory -Force -Path $folder | Out-Null
+      [IO.File]::WriteAllText($command, $settings.commandContent)
+      $userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
+      $userPathEntries = @($userPath -split ';' | Where-Object { $_ })
+      if ($userPathEntries -notcontains $folder) {
+        [Environment]::SetEnvironmentVariable('Path', (($userPathEntries + $folder) -join ';'), 'User')
+      }
+  metadata:
+    description: Install a d2v command that runs d2v in the NixOS-WSL distribution from PowerShell and cmd
