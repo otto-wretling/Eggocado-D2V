@@ -1,8 +1,6 @@
-/temp/*
-!/temp/.gitkeep
+/temp/
 .DS_Store
-/output/*
-!/output/.gitkeep
+/output/
 /temp.lnk
 /output.lnk
 .env.mcp
