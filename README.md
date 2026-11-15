@@ -238,6 +238,8 @@ curl "$D2V_BASE_URL/webhook/d2v-headless-status?jobId=my-document" \
 
 A job that was running when n8n stopped reports `failed` once n8n starts again: the main workflow's `n8n Instance Started` trigger checks every started job through the status endpoint and records each one still `processing` as failed. While n8n is down, every status request fails to connect, and a test waiting on a job fails after a minute of that.
 
+While a job is `processing`, each status request also checks the health endpoints of the NeMo normalizer and Stirling-PDF, plus the accelerated Kokoro-FastAPI instance for a job that narrates with it. A service that fails three checks in a row, a few seconds apart, marks the job `failed` with a message naming that service. A job on the CPU-only Kokoro instance waits for that instance's health check before each page, and fails when it stays unanswered.
+
 </details>
 
 ## Testing
