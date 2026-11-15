@@ -12,7 +12,7 @@ On Windows, D2V runs in a [NixOS-WSL](https://github.com/nix-community/NixOS-WSL
    winget configure -f configuration.winget --accept-configuration-agreements
    ```
 
-   It installs WSL, Docker Desktop, and Ollama, and sets `networkingMode=mirrored` and `hostAddressLoopback=true` in `%USERPROFILE%\.wslconfig` so the containers and the services in the distribution reach each other. Restart Windows if the WSL installation asks for it. If WSL was already running, run `wsl --shutdown` to apply the new `.wslconfig`.
+   It installs WSL, Docker Desktop, and Ollama, and sets `networkingMode=mirrored` and `hostAddressLoopback=true` in `%USERPROFILE%\.wslconfig` so the containers and the services in the distribution reach each other. It also adds a `d2v` command to PowerShell and cmd: `%LOCALAPPDATA%\Programs\Eggocado-D2V\d2v.cmd`, on your user `PATH`, runs [`d2v`](#starting-the-services) inside the distribution named `NixOS`, the name NixOS-WSL's installer gives it. If you name your distribution differently in step 2, change `NixOS` in the `D2vCommand` resource's `commandContent` before applying the file. Open a new PowerShell or cmd window afterwards so it picks up the updated `PATH`. Restart Windows if the WSL installation asks for it. If WSL was already running, run `wsl --shutdown` to apply the new `.wslconfig`.
 
 2. Install NixOS-WSL following its [Installation](https://nix-community.github.io/NixOS-WSL/install.html) guide.
 
@@ -166,6 +166,8 @@ d2v start
 d2v status
 d2v stop
 ```
+
+On Windows, run these in PowerShell or cmd, through the `d2v` command step 1 of [Windows](#windows) installs, or inside the distribution.
 
 `d2v start` starts the services on request, and each one then restarts itself after a failure. `d2v status` reports each service as running or stopped. `d2v stop` stops them in reverse order, including the CPU-only Kokoro instance that bare-metal n8n starts when a conversion needs it. On macOS and WSL, the Docker services start through a launcher that waits until Docker Desktop answers.
 
