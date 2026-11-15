@@ -6019,7 +6019,7 @@
           "parameters": [
             {
               "name": "command",
-              "value": "={{ 'mkdir -p output/' + $('Compute Job Info').item.json.jobId }}"
+              "value": "={{ 'mkdir -p temp output/' + $('Compute Job Info').item.json.jobId }}"
             }
           ]
         },
@@ -6028,7 +6028,7 @@
         }
       },
       "id": "d66e5bd5-2f7c-4070-9c65-5d3f1b9812df",
-      "name": "Ensure Job Output Folder Exists",
+      "name": "Ensure Job Folders Exist",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
@@ -6041,6 +6041,21 @@
           "name": "D2V Webhook Shared Secret"
         }
       }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "b03daa7c-7f66-4a27-aec8-aa5a34be0c64",
+      "name": "Merge After Ensuring Job Folders",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        224,
+        0
+      ]
     },
     {
       "parameters": {
@@ -9755,7 +9770,7 @@
         ],
         [
           {
-            "node": "Ensure Job Output Folder Exists",
+            "node": "Set Started Marker",
             "type": "main",
             "index": 0
           }
@@ -10248,11 +10263,22 @@
         ]
       ]
     },
-    "Ensure Job Output Folder Exists": {
+    "Ensure Job Folders Exist": {
       "main": [
         [
           {
-            "node": "Set Started Marker",
+            "node": "Merge After Ensuring Job Folders",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge After Ensuring Job Folders": {
+      "main": [
+        [
+          {
+            "node": "Has Uploaded File?",
             "type": "main",
             "index": 0
           }
@@ -10290,7 +10316,7 @@
       "main": [
         [
           {
-            "node": "Ensure Job Output Folder Exists",
+            "node": "Set Started Marker",
             "type": "main",
             "index": 0
           }
@@ -10709,7 +10735,12 @@
         ],
         [
           {
-            "node": "Has Uploaded File?",
+            "node": "Ensure Job Folders Exist",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge After Ensuring Job Folders",
             "type": "main",
             "index": 0
           }
