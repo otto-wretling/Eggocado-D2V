@@ -2,6 +2,7 @@
 { config, lib, pkgs, utils, ... }:
 
 let
+  shared = import ./shared.nix;
   cfg = config.eggocado-d2v;
   linuxUserServices = nixos.linuxUserServices {
     inherit lib pkgs cfg;
@@ -42,6 +43,13 @@ in
 
     users.users.${cfg.user}.linger = true;
 
+    environment.systemPackages = [
+      (shared.d2vCommand {
+        inherit lib pkgs;
+        controlsFor = nixos.systemdUserControls;
+      })
+    ];
+
     systemd.user.services = lib.mapAttrs
       (_: service: {
         inherit (service) description;
@@ -49,16 +57,13 @@ in
           PATH = lib.mkForce service.environment.PATH;
         };
         unitConfig.ConditionUser = cfg.user;
-        serviceConfig = {
+        serviceConfig = nixos.restartPolicy // {
           ExecStart = utils.escapeSystemdExecArgs service.command;
-          Restart = "on-failure";
-          RestartSec = 3;
           WorkingDirectory = service.workingDirectory;
         };
-        wantedBy = lib.optionals service.startsWithSession [ "default.target" ];
       })
       linuxUserServices.services // {
-      d2v-docker-services = {
+      ${nixos.userServiceUnits.dockerServices} = {
         description = "Eggocado D2V Docker Compose services on Docker Desktop";
         unitConfig = {
           ConditionUser = cfg.user;
@@ -71,11 +76,11 @@ in
           StateDirectory = dockerConfigurationStateDirectory;
           ExecStartPre = "${pkgs.coreutils}/bin/install -m 644 ${publicRegistryDockerConfiguration} %S/${dockerConfigurationStateDirectory}/config.json";
           ExecStart = "${dockerDesktopCli} compose up --detach --force-recreate";
+          ExecStop = "${dockerDesktopCli} compose stop";
           Restart = "on-failure";
           RestartSec = 5;
           WorkingDirectory = cfg.projectRoot;
         };
-        wantedBy = [ "default.target" ];
       };
     };
   };

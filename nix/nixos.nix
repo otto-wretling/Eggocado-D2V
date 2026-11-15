@@ -4,18 +4,40 @@ let
   shared = import ./shared.nix;
   lib = nixpkgs.lib;
 
-  hostPackages = pkgs: [
-    pkgs.cargo
-    pkgs.cmake
-    pkgs.espeak-ng
-    pkgs.ffmpeg-full
-    pkgs.gcc
-    pkgs.git
-    pkgs.gnumake
-    pkgs.nodejs
-    pkgs.rustc
-    pkgs.uv
-  ];
+  hostPackages = pkgs:
+    map (name: pkgs.${name}) shared.hostToolNames
+    ++ [
+      pkgs.cargo
+      pkgs.cmake
+      pkgs.gcc
+      pkgs.git
+      pkgs.gnumake
+      pkgs.nodejs
+      pkgs.rustc
+    ];
+
+  restartPolicy = {
+    Restart = "on-failure";
+    RestartSec = shared.restartDelaySeconds;
+  };
+
+  userServiceUnits = {
+    n8n = "n8n-d2v-baremetal";
+    kokoro = "kokoro-fastapi";
+    cpuKokoro = "kokoro-fastapi-cpu";
+    dockerServices = "d2v-docker-services";
+  };
+
+  systemdUserControls = service:
+    let
+      unit = userServiceUnits.${service.key};
+      stoppedUnits = [ unit ] ++ map (key: userServiceUnits.${key}) service.stopsWith;
+    in
+    {
+      start = [ "systemctl --user start ${unit}" ];
+      stop = map (stoppedUnit: "systemctl --user stop ${stoppedUnit}") stoppedUnits;
+      status = "systemctl --user is-active --quiet ${unit}";
+    };
 
   kokoroFor = system: torchVariant:
     let
@@ -116,7 +138,7 @@ let
       cfg = config.eggocado-d2v;
       d2vPkgs = import nixpkgs {
         system = pkgs.stdenv.hostPlatform.system;
-        config.allowUnfreePredicate = package: builtins.elem (pkgs.lib.getName package) [ "n8n" ];
+        config.allowUnfreePredicate = shared.isAllowedUnfree lib;
       };
     in
     {
@@ -170,7 +192,7 @@ let
         };
       };
       kokoroStateDirectory = "${cfg.homeDirectory}/.local/state/eggocado-d2v";
-      cpuKokoroUnit = "kokoro-fastapi-cpu.service";
+      cpuKokoroUnit = "${userServiceUnits.cpuKokoro}.service";
       executableSearchPath = lib.concatStringsSep ":" (
         userExecutableDirectories
         ++ [
@@ -183,8 +205,8 @@ let
         LD_LIBRARY_PATH = lib.concatStringsSep ":" acceleratorLibraryDirectories;
       };
 
-      kokoroService = { name, description, instance, startsWithSession }: {
-        inherit description startsWithSession;
+      kokoroService = { name, description, instance }: {
+        inherit description;
         environment = instance.environment // acceleratorLibraryEnvironment // {
           ESPEAK_DATA_PATH = "${pkgs.espeak-ng}/share/espeak-ng-data";
           HF_HUB_OFFLINE = "1";
@@ -199,9 +221,8 @@ let
       inherit (sharedServices) ports;
 
       services = {
-        n8n-d2v-baremetal = {
+        ${userServiceUnits.n8n} = {
           description = "Eggocado D2V bare-metal n8n instance";
-          startsWithSession = true;
           environment =
             sharedServices.n8nEnvironment {
               startCpuTtsCommand = "systemctl --user start ${cpuKokoroUnit}";
@@ -210,31 +231,28 @@ let
             // sharedServices.n8nCommandExecutionEnvironment
             // acceleratorLibraryEnvironment
             // {
-              N8N_USER_FOLDER = "${cfg.homeDirectory}/.n8n-d2v-baremetal";
               PATH = executableSearchPath;
             };
           command = [ "${pkgs.n8n}/bin/n8n" "start" ];
           workingDirectory = cfg.projectRoot;
         };
 
-        kokoro-fastapi = kokoroService {
-          name = "kokoro-fastapi";
+        ${userServiceUnits.kokoro} = kokoroService {
+          name = userServiceUnits.kokoro;
           description = "Kokoro-FastAPI text-to-speech (accelerated inference, CPU when no accelerator is available)";
           instance = sharedServices.acceleratedKokoro;
-          startsWithSession = true;
         };
 
-        kokoro-fastapi-cpu = kokoroService {
-          name = "kokoro-fastapi-cpu";
+        ${userServiceUnits.cpuKokoro} = kokoroService {
+          name = userServiceUnits.cpuKokoro;
           description = "Kokoro-FastAPI text-to-speech (CPU inference, started on demand)";
           instance = sharedServices.cpuKokoro;
-          startsWithSession = false;
         };
       };
     };
 in
 {
-  inherit kokoroFor linuxHost linuxUserServices;
+  inherit kokoroFor linuxHost linuxUserServices restartPolicy systemdUserControls userServiceUnits;
 
   packages = { username }: { ... }: {
     imports = [ linuxHost ];
@@ -259,6 +277,12 @@ in
       };
       systemdEnvironmentAssignment = name: value:
         if lib.hasInfix " " value then ''"${name}=${value}"'' else "${name}=${value}";
+      serviceControlOverrides = {
+        dockerServices = shared.dockerComposeControls {
+          dockerCommand = "docker";
+          projectRoot = cfg.projectRoot;
+        };
+      };
     in
     {
       imports = [ shared.options linuxOptions ];
@@ -282,26 +306,28 @@ in
           homeDirectory = lib.mkDefault config.home.homeDirectory;
         };
 
+        home.packages = [
+          (shared.d2vCommand {
+            inherit lib pkgs;
+            controlsFor = service:
+              serviceControlOverrides.${service.key} or (systemdUserControls service);
+          })
+        ];
+
         local.mcp.servers = {
-          n8n-baremetal.url = "http://localhost:5679/mcp-server/http";
-          n8n-d2v.url = "http://localhost:5678/mcp-server/http";
+          n8n-baremetal.url = "http://localhost:${toString userServices.ports.n8n}/mcp-server/http";
+          n8n-d2v.url = "http://localhost:${toString userServices.ports.mainN8n}/mcp-server/http";
         };
 
         systemd.user.services = lib.mapAttrs
-          (_: service:
-            {
-              Unit.Description = service.description;
-              Service = {
-                Environment = lib.mapAttrsToList systemdEnvironmentAssignment service.environment;
-                ExecStart = lib.concatStringsSep " " service.command;
-                Restart = "on-failure";
-                RestartSec = 3;
-                WorkingDirectory = service.workingDirectory;
-              };
-            }
-            // lib.optionalAttrs service.startsWithSession {
-              Install.WantedBy = [ "default.target" ];
-            })
+          (_: service: {
+            Unit.Description = service.description;
+            Service = restartPolicy // {
+              Environment = lib.mapAttrsToList systemdEnvironmentAssignment service.environment;
+              ExecStart = lib.concatStringsSep " " service.command;
+              WorkingDirectory = service.workingDirectory;
+            };
+          })
           userServices.services;
       };
     };
