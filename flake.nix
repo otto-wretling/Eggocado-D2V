@@ -36,9 +36,10 @@
       nixos = import ./nix/nixos.nix { inherit nixpkgs pyproject-nix uv2nix pyproject-build-systems kokoro-fastapi; };
       kokoroFor = nixos.kokoroFor;
       mac = import ./nix/mac.nix;
+      shared = import ./nix/shared.nix;
       checkUser = "d2v-check";
       checkSystemBaseline = {
-        nixpkgs.config.allowUnfreePredicate = package: builtins.elem (nixpkgs.lib.getName package) [ "n8n" ];
+        nixpkgs.config.allowUnfreePredicate = shared.isAllowedUnfree nixpkgs.lib;
         system.stateVersion = "26.05";
       };
     in
@@ -48,6 +49,7 @@
       nixosModules.wsl = moduleFrom ./nix/wsl.nix (import ./nix/wsl.nix { inherit nixos; });
 
       darwinModules.homebrew = moduleFrom ./nix/mac.nix mac.homebrew;
+      darwinModules.packages = moduleFrom ./nix/mac.nix mac.packages;
       darwinModules.services = moduleFrom ./nix/mac.nix mac.services;
 
       templates.wsl = {

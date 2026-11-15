@@ -36,7 +36,7 @@ On Windows, D2V runs in a [NixOS-WSL](https://github.com/nix-community/NixOS-WSL
    git clone https://github.com/otto-wretling/Eggocado-D2V.git ~/Documents/GitHub/Eggocado-D2V
    ```
 
-   The `d2v-docker-services` user service then starts the [Docker services](#docker-services) from that checkout as soon as Docker Desktop's integration answers, and recreates them each time the distribution starts so the `n8n` container mounts the checkout after the distribution's files are available. The first start builds the nemo-normalizer image, which takes several minutes.
+   The `d2v-docker-services` user service starts the [Docker services](#docker-services) from that checkout once Docker Desktop's integration answers (see [Starting the Services](#starting-the-services)), and recreates them on each start so the `n8n` container mounts the checkout after the distribution's files are available. The first start builds the nemo-normalizer image, which takes several minutes.
 
 6. On Windows itself, clone this repo again, this time to the same relative path under your Windows user profile: `C:\Users\<you>\Documents\GitHub\Eggocado-D2V` (GitHub Desktop or a plain `git clone` both work). This is a separate, ordinary Windows-side checkout for browsing and editing the code; the distribution's own checkout from step 5 is what the services actually run against. Its `temp` and `output` folders start out empty: the next time the form or the headless API runs, it checks whether `temp.lnk`/`output.lnk` shortcuts already exist there and, if not, creates them pointing at the distribution's real `temp`/`output` folders, so double-clicking either one opens the real, live folder, with files appearing there natively as soon as they're produced. No admin rights or Developer Mode needed: shortcuts are plain files, not privileged reparse points. Deleting a specific file, or a whole `temp/{document}/` subfolder, from inside one of these opened folders genuinely deletes it on the distribution side too, matching [Continuing a Conversion](README.md#continuing-a-conversion)'s recreate instructions. Deleting the shortcut itself just removes the shortcut; the next run recreates it automatically.
 
@@ -58,17 +58,33 @@ sudo nixos-rebuild switch --flake /etc/nixos#eggocado-d2v
 
 This section covers macOS and NixOS. On Windows, [Windows](#windows) covers it.
 
-On NixOS, this repo's `nixosModules.packages` flake output covers this entire section in one import: Docker, ffmpeg, espeak-ng, the bare-metal n8n package, Node.js and npm (for the transcription engine CLIs, with global installs on your `PATH`), `cargo`/`rustc` (for the Rust test suite, see [Testing](README.md#testing)), and the `nix-ld`/`uv`/`cmake`/`gcc`/`gnumake` build tools. The module pulls these packages from its own pinned nixpkgs (tracked in this repo's `flake.lock`), independent of your system's nixpkgs version, so a Node/Java security fix here doesn't wait on a full system nixpkgs bump. Add it as a flake input and import the module, passing your system username as a curried argument:
+On NixOS, this repo's `nixosModules.packages` flake output covers this entire section in one import: Docker, ffmpeg, espeak-ng, the bare-metal n8n package, Node.js and npm (for the transcription engine CLIs, with global installs on your `PATH`), `cargo`/`rustc` (for the Rust test suite, see [Testing](README.md#testing)), and the `nix-ld`/`uv`/`cmake`/`gcc`/`gnumake` build tools. The module pulls these packages from its own pinned nixpkgs (tracked in this repo's `flake.lock`), independent of your system's nixpkgs version, so a Node/Java security fix here doesn't wait on a full system nixpkgs bump. Add it as a flake input in `flake.nix`:
 
 ```nix
-# flake.nix
 inputs.eggocado-d2v.url = "path:/path/to/Eggocado-D2V";
+```
 
-# configuration.nix
+Then import the module in `configuration.nix`, passing your system username as a curried argument:
+
+```nix
 imports = [ (eggocado-d2v.nixosModules.packages { username = "yourusername"; }) ];
 ```
 
-The Docker, ffmpeg/espeak-ng, and n8n subsections below are the macOS (Homebrew) equivalent of what that import covers. Ollama, Claude Code, and Codex are the same steps on both platforms. On NixOS, Kokoro-FastAPI comes from this flake as well (see [Kokoro-FastAPI](#kokoro-fastapi-native-for-gpu-acceleration-where-available) below).
+On macOS with nix-darwin, three flake outputs cover the setup. `darwinModules.homebrew` declares Docker Desktop, ffmpeg, espeak-ng, Rust, uv, and the Ollama app. `darwinModules.packages` installs the bare-metal n8n package. `darwinModules.services` defines launchd agents for bare-metal n8n, for Kokoro-FastAPI (cloning it and downloading its model on the first start), and for `docker compose up -d`. Add this repo as a flake input in `flake.nix`:
+
+```nix
+inputs.eggocado-d2v.url = "git+file:///path/to/Eggocado-D2V";
+```
+
+Then import all three in your darwin configuration:
+
+```nix
+imports = with eggocado-d2v.darwinModules; [ homebrew packages services ];
+```
+
+After the first switch, open Docker Desktop once to accept its licence, start the services as described in [Starting the Services](#starting-the-services), then continue with [Importing the Workflows](#importing-the-workflows) and [Securing the Bare-Metal Webhook](#securing-the-bare-metal-webhook).
+
+The Docker, ffmpeg/espeak-ng, and n8n subsections below are the manual macOS (Homebrew) equivalent of what those imports cover. Ollama, Claude Code, and Codex are the same steps on both platforms. On NixOS, Kokoro-FastAPI comes from this flake as well (see [Kokoro-FastAPI](#kokoro-fastapi-native-for-gpu-acceleration-where-available) below).
 
 ### Docker
 Required to run the containerized services. See ["Get Docker"](https://docs.docker.com/get-started/get-docker/) for the current setup steps for your platform. Start Docker before proceeding.
@@ -138,6 +154,18 @@ This starts:
 | nemo-normalizer | 8765 | Text normalization for TTS (NeMo, built locally) |
 
 The nemo-normalizer image is built from `./nemo-normalizer/` on first run. This takes several minutes as it installs NeMo text processing dependencies inside the container.
+
+## Starting the Services
+
+`darwinModules.services`, `nixosModules.services`, and `nixosModules.wsl` provide one command, `d2v`, that controls Kokoro-FastAPI, bare-metal n8n, and the [Docker services](#docker-services) together:
+
+```bash
+d2v start
+d2v status
+d2v stop
+```
+
+`d2v start` starts the services on request, and each one then restarts itself after a failure. `d2v status` reports each service as running or stopped. `d2v stop` stops them in reverse order, including the CPU-only Kokoro instance that bare-metal n8n starts when a conversion needs it. On macOS and WSL, the Docker services start through a launcher that waits until Docker Desktop answers.
 
 ## Importing the Workflows
 
