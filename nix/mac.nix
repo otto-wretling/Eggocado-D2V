@@ -24,7 +24,10 @@ let
     mpsFallbackEnvironment = { PYTORCH_ENABLE_MPS_FALLBACK = "1"; };
   };
 
+  ollamaExecutable = "/Applications/Ollama.app/Contents/Resources/ollama";
+
   agents = {
+    ollama = { label = "io.github.eggocado.ollama"; logName = "ollama"; };
     n8n = { label = "io.n8n.n8n"; logName = "n8n"; };
     kokoro = { label = "io.github.remsky.kokoro-fastapi"; logName = "kokoro"; };
     cpuKokoro = { label = "io.github.remsky.kokoro-fastapi-cpu"; logName = "kokoro-cpu"; };
@@ -138,20 +141,26 @@ in
 
       startAgentCommand = agent: ''${launchctl} kickstart "gui/$(id -u)/${agent.label}"'';
 
+      stopAgentCommand = agent: ''${launchctl} stop "${agent.label}"'';
+
+      agentIsRunningCommand = agent: ''${launchctl} list "${agent.label}" 2>/dev/null | grep -q PID'';
+
       launchdControls = { agent, alsoStopAgents }: {
         start = [ (startAgentCommand agent) ];
-        stop = map (stoppedAgent: ''${launchctl} stop "${stoppedAgent.label}"'') ([ agent ] ++ alsoStopAgents);
-        status = ''${launchctl} list "${agent.label}" 2>/dev/null | grep -q PID'';
+        stop = map stopAgentCommand ([ agent ] ++ alsoStopAgents);
+        status = agentIsRunningCommand agent;
+      };
+
+      dockerComposeServiceControls = shared.dockerComposeControls {
+        dockerCommand = "${dockerCliDirectory}/docker";
+        projectRoot = cfg.projectRoot;
       };
 
       serviceControlOverrides = {
-        dockerServices = shared.dockerComposeControls
-          {
-            dockerCommand = "${dockerCliDirectory}/docker";
-            projectRoot = cfg.projectRoot;
-          }
-        // {
+        dockerServices = {
           start = [ (startAgentCommand agents.dockerServices) ];
+          stop = [ (stopAgentCommand agents.dockerServices) ] ++ dockerComposeServiceControls.stop;
+          status = "${agentIsRunningCommand agents.dockerServices} || ${dockerComposeServiceControls.status}";
         };
       };
 
@@ -181,6 +190,11 @@ in
       };
 
       config.environment.systemPackages = [ d2vCommand ];
+
+      config.launchd.user.agents.ollama = launchdAgent {
+        agent = agents.ollama;
+        command = [ ollamaExecutable "serve" ];
+      };
 
       config.launchd.user.agents.n8n = launchdAgent {
         agent = agents.n8n;

@@ -27,6 +27,18 @@ let
     userExecutableDirectories = [ "${cfg.homeDirectory}/.local/share/npm/bin" ];
     acceleratorLibraryDirectories = [ "/run/opengl-driver/lib" ];
   };
+  windowsPowerShellCommand = "powershell.exe";
+  windowsTaskKillCommand = "taskkill.exe";
+  windowsTaskListCommand = "tasklist.exe";
+  windowsOllamaServerProcess = "ollama.exe";
+  windowsOllamaTrayProcess = "ollama app.exe";
+  windowsOllamaControls = {
+    start = [ ''${windowsPowerShellCommand} -NoProfile -Command "Start-Process -WindowStyle Hidden ollama -ArgumentList serve"'' ];
+    stop = map
+      (process: ''${windowsTaskKillCommand} /F /IM "${process}"'')
+      [ windowsOllamaTrayProcess windowsOllamaServerProcess ];
+    status = ''${windowsTaskListCommand} /FI "IMAGENAME eq ${windowsOllamaServerProcess}" | grep -qi "${windowsOllamaServerProcess}"'';
+  };
   dockerDesktopIntegrationCommands = [ "chmod" "install" "mkdir" "mv" "rm" "stat" "test" ];
   dockerDesktopCli = "/usr/bin/docker";
   publicRegistryDockerConfiguration = pkgs.writeText "docker-config.json" "{}";
@@ -64,7 +76,8 @@ in
     environment.systemPackages = [
       (shared.d2vCommand {
         inherit lib pkgs;
-        controlsFor = nixos.systemdUserControls;
+        controlsFor = service:
+          if service.key == "ollama" then windowsOllamaControls else nixos.systemdUserControls service;
       })
     ];
 

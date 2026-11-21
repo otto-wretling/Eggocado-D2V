@@ -39,6 +39,16 @@ let
       status = "systemctl --user is-active --quiet ${unit}";
     };
 
+  ollamaSystemUnit = "ollama";
+
+  ollamaSystemControls = {
+    start = [ "systemctl start ${ollamaSystemUnit}" ];
+    stop = [ "systemctl stop ${ollamaSystemUnit}" ];
+    status = "systemctl is-active --quiet ${ollamaSystemUnit}";
+  };
+
+  polkitManageUnitsAction = "org.freedesktop.systemd1.manage-units";
+
   kokoroFor = system: torchVariant:
     let
       pkgs = nixpkgs.legacyPackages.${system};
@@ -254,10 +264,20 @@ in
 {
   inherit kokoroFor linuxHost linuxUserServices restartPolicy systemdUserControls userServiceUnits;
 
-  packages = { username }: { ... }: {
+  packages = { username }: { lib, ... }: {
     imports = [ linuxHost ];
 
     eggocado-d2v.user = username;
+
+    systemd.services.${ollamaSystemUnit}.wantedBy = lib.mkForce [ ];
+
+    security.polkit.extraConfig = ''
+      polkit.addRule(function (action, subject) {
+        if (action.id == "${polkitManageUnitsAction}" && action.lookup("unit") == "${ollamaSystemUnit}.service" && subject.user == "${username}") {
+          return polkit.Result.YES;
+        }
+      });
+    '';
 
     networking.firewall.trustedInterfaces = [ "docker0" "d2v-bridge" ];
 
@@ -278,6 +298,7 @@ in
       systemdEnvironmentAssignment = name: value:
         if lib.hasInfix " " value then ''"${name}=${value}"'' else "${name}=${value}";
       serviceControlOverrides = {
+        ollama = ollamaSystemControls;
         dockerServices = shared.dockerComposeControls {
           dockerCommand = "docker";
           projectRoot = cfg.projectRoot;

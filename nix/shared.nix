@@ -28,6 +28,7 @@ let
   };
 
   d2vServices = [
+    { key = "ollama"; name = "Ollama"; stopsWith = [ ]; }
     { key = "kokoro"; name = "Kokoro-FastAPI"; stopsWith = [ "cpuKokoro" ]; }
     { key = "n8n"; name = "Bare-metal n8n"; stopsWith = [ ]; }
     { key = "dockerServices"; name = "Docker services"; stopsWith = [ ]; }
