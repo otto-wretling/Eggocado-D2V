@@ -83,7 +83,7 @@ pub mod mode {
     pub(crate) const NEW: &str = "new";
     pub const CONTINUE: &str = "continue";
     pub(crate) const KNIT: &str = "knit";
-    pub(crate) const CHANGE_VOICE: &str = "changeVoice";
+    pub(crate) const CUSTOMIZE_SINGLE_PAGE: &str = "customizeSinglePage";
     pub const SAMPLE: &str = "sample";
 }
 
@@ -561,7 +561,7 @@ pub fn change_voice_fields(
     target: &str,
 ) -> Vec<Field> {
     let mut fields =
-        existing_document_fields(config, mode::CHANGE_VOICE, document_filename, ALTERNATE_VOICE);
+        existing_document_fields(config, mode::CUSTOMIZE_SINGLE_PAGE, document_filename, ALTERNATE_VOICE);
     fields.push(Field::text(field::PAGE_SELECTION, page_selection_label(page)));
     fields.push(Field::text(field::TARGET, target));
     fields

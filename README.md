@@ -14,7 +14,7 @@ Eggocado D2V converts a PDF document into a narrated video. Each page is transcr
   - [Converting a New Document](#converting-a-new-document)
   - [Continuing a Conversion](#continuing-a-conversion)
   - [Knitting Pages Together](#knitting-pages-together)
-  - [Convert Single Page](#convert-single-page)
+  - [Customize Single Page](#customize-single-page)
   - [Creating a Sample Video](#creating-a-sample-video)
   - [File Glossary](#file-glossary)
   - [Headless API](#headless-api)
@@ -37,7 +37,7 @@ See [UPDATE.md](UPDATE.md) for how to update an installation to the latest relea
 Eggocado D2V can be operated using its built-in n8n form that guides the user to select a mode, AI models, a PDF file, and other required data. To start a run, open the `d2v-workflow-main` workflow in the Docker n8n editor (`http://localhost:5678`) and click **📋 Execute** to open the form.
 
 There are many options to choose from in this tool, so here is a short example of how you can use the different modes to craft the video to your liking:
-You can convert a PDF to video and then iterate on it without overwriting previous changes. E.g., you can convert a PDF to video using [new conversion](#converting-a-new-document), or [converting a single page](#convert-single-page), knit two pages together using [knit mode](#knitting-pages-together), then change voice on a specific part of that double-page using [single page mode](#convert-single-page), then change the wording or pronunciation of a word, and re-finalize the video using [continuing mode](#continuing-a-conversion), and all those changes will stay consistent in the final video.
+You can convert a PDF to video and then iterate on it without overwriting previous changes. E.g., you can convert a PDF to video using [new conversion](#converting-a-new-document), knit two pages together using [knit mode](#knitting-pages-together), then customize the voice on a specific part of that double-page using [Customize Single Page](#customize-single-page), then change the wording or pronunciation of a word, and re-finalize the video using [continuing mode](#continuing-a-conversion), and all those changes will stay consistent in the final video.
 
 ### Converting a New Document
 
@@ -49,7 +49,7 @@ If you would like to stop the conversion and continue later (e.g. a conversion o
 
 ### Continuing a Conversion
 
-Use this mode to resume an in-progress document, make small changes to a video, or pick up after an interruption. This mode requires that you have started a [new conversion](#converting-a-new-document) or [converted a single page](#convert-single-page) of a PDF.
+Use this mode to resume an in-progress document, make small changes to a video, or pick up after an interruption. This mode requires that you have started a [new conversion](#converting-a-new-document) of a PDF.
 
 This mode looks at what already exists in the `temp/{document}/` folder and skips anything that has already been created, thus allowing you to pick up from where you left off, or redo one or more parts of a page (or multiple). To regenerate a specific part of a page's video, delete the appropriate files according to the table below and run this mode:
 
@@ -59,19 +59,19 @@ This mode looks at what already exists in the `temp/{document}/` folder and skip
 | Everything for one page | Delete all of that page's files in `temp/{document}/`, then run this mode |
 | A page's transcription (e.g., the transcription engine misread a word in the page image) | Delete the following files and run this mode:<ul><li>`temp/{document}/{page}_audio.wav`</li><li>`temp/{document}/{page}_clip.mp4`</li><li>`temp/{document}/{page}_transcription.txt`</li><li>`temp/{document}/{page}_transcription_normalized.txt`</li></ul> |
 | The normalized text a page's narration audio is read from (e.g., Kokoro mispronounces a correctly spelled word) | Delete the following files and run this mode:<ul><li>`temp/{document}/{page}_audio.wav`</li><li>`temp/{document}/{page}_clip.mp4`</li><li>`temp/{document}/{page}_transcription_normalized.txt`</li></ul> |
-| A page's narration audio (not necessary for changing the voice of a page or part of a page; use [Convert Single Page](#convert-single-page) for that). | Delete the following files and run this mode:<ul><li>`temp/{document}/{page}_audio.wav`</li><li>`temp/{document}/{page}_clip.mp4`</li></ul> Deleting a page's narration audio also regenerates its timestamps and word map.|
+| A page's narration audio (not necessary for customizing the voice of a page or part of a page; use [Customize Single Page](#customize-single-page) for that). | Delete the following files and run this mode:<ul><li>`temp/{document}/{page}_audio.wav`</li><li>`temp/{document}/{page}_clip.mp4`</li></ul> Deleting a page's narration audio also regenerates its timestamps and word map.|
 | A page's clip | Delete `temp/{document}/{page}_clip.mp4`, then run this mode |
 | The final video, its subtitles, or its chapters | Run this mode; it always rebuilds these files on each run |
 
 ### Knitting Pages Together
 
-Use this mode to merge two pages (e.g., a two-page spread) into a single page, and then convert it into video as one double-width page. The two pages' transcriptions are merged into one, reordered to read naturally across the full spread, producing a single clip that replaces the two individual page clips. This mode requires both pages you want to knit to already be converted first, via one of the modes [new conversion](#converting-a-new-document), [continuing mode](#continuing-a-conversion), or [converting a single page](#convert-single-page).
+Use this mode to merge two pages (e.g., a two-page spread) into a single page, and then convert it into video as one double-width page. The two pages' transcriptions are merged into one, reordered to read naturally across the full spread, producing a single clip that replaces the two individual page clips. This mode requires both pages you want to knit to already be converted first, via one of the modes [new conversion](#converting-a-new-document) or [continuing mode](#continuing-a-conversion).
 
 After the first pair has been knitted, all page clips in the final video render on the same double-width canvas to keep the whole video in one consistent width. Single/"un-knitted" pages are centered in the video and use blurred background fill to fill out the extra space.
 
-### Convert Single Page
+### Customize Single Page
 
-Re-narrate one page (or knitted pair) in a different voice: the whole page, or just a selected phrase. Requires the target page to already be converted; re-narrating a selected phrase additionally requires that exact phrase to appear in the page's transcript.
+Re-narrate one page (or knitted pair) in a different voice: the whole page, or just a selected phrase. Requires the target page to already be converted via [new conversion](#converting-a-new-document); re-narrating a selected phrase additionally requires that exact phrase to appear in the page's transcript.
 
 ### Creating a Sample Video
 
@@ -113,16 +113,16 @@ Each example sends `D2V_BASE_URL=http://localhost:5678` and `SECRET` set to the 
 
 | Parameter | Used by | Required | If missing/invalid | What it does |
 |---|---|---|---|---|
-| `mode` | every request | Yes | `400` | Which operation to run: `new`, `continue`, `knit`, `changeVoice`, or `sample` |
-| `document` | `new`, `continue`, `knit`, `changeVoice` | `new`: No. Others: Yes | `new`: falls back to the literal job ID `document`. Others: `400` | The document's name; also determines the job ID |
+| `mode` | every request | Yes | `400` | Which operation to run: `new`, `continue`, `knit`, `customizeSinglePage`, or `sample` |
+| `document` | `new`, `continue`, `knit`, `customizeSinglePage` | `new`: No. Others: Yes | `new`: falls back to the literal job ID `document`. Others: `400` | The document's name; also determines the job ID |
 | `data` | `new` | Yes | `400` | The PDF file to convert. Other modes use the document's already-saved PDF |
-| `engineModel` | `new`, `continue`, `knit` | Yes | `400` | Transcription engine and model, as `<engine>:<model>`. `changeVoice` only re-synthesizes narration, so it has no use for this field |
-| `voice` | `new`, `continue`, `knit`, `changeVoice` | Yes | `400` | Kokoro voice ID used for narration |
+| `engineModel` | `new`, `continue`, `knit` | Yes | `400` | Transcription engine and model, as `<engine>:<model>`. `customizeSinglePage` only re-synthesizes narration, so it has no use for this field |
+| `voice` | `new`, `continue`, `knit`, `customizeSinglePage` | Yes | `400` | Kokoro voice ID used for narration |
 | `overwrite` | `new` | No | Treated as refused; job starts but fails asynchronously if `document` already has a conversion | Confirms replacing an existing document's conversion |
 | `leftPage`, `rightPage` | `knit` | Yes | `400` | The two page numbers to knit together |
-| `pageSelection` | `changeVoice` | Yes | `400` | Which page to target, as `Page N` |
-| `target` | `changeVoice` | Yes | `400` | `wholePage` or `selectedText` |
-| `textToChange` | `changeVoice` | Yes, when `target` is `selectedText` | `400` | The exact phrase to re-narrate |
+| `pageSelection` | `customizeSinglePage` | Yes | `400` | Which page to target, as `Page N` |
+| `target` | `customizeSinglePage` | Yes | `400` | `wholePage` or `selectedText` |
+| `textToChange` | `customizeSinglePage` | Yes, when `target` is `selectedText` | `400` | The exact phrase to re-narrate |
 | `samplePhrase` | `sample` | Yes | `400` | The phrase every voice sample speaks |
 | `acceleration` | every request | No | Missing: `automatic`. Invalid: `400` | Which hardware processes the conversion: `automatic` or `cpu` |
 
@@ -165,24 +165,24 @@ curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
   -F "voice=af_heart"
 ```
 
-Convert single page, whole page (`changeVoice` only re-synthesizes narration, so it takes no `engineModel`):
+Customize single page, whole page (`customizeSinglePage` only re-synthesizes narration, so it takes no `engineModel`):
 
 ```bash
 curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
   -H "x-webhook-secret: $SECRET" \
-  -F "mode=changeVoice" \
+  -F "mode=customizeSinglePage" \
   -F "document=my-document.pdf" \
   -F "pageSelection=Page 1" \
   -F "target=wholePage" \
   -F "voice=af_bella"
 ```
 
-Convert single page, selected phrase:
+Customize single page, selected phrase:
 
 ```bash
 curl -X POST "$D2V_BASE_URL/webhook/d2v-headless" \
   -H "x-webhook-secret: $SECRET" \
-  -F "mode=changeVoice" \
+  -F "mode=customizeSinglePage" \
   -F "document=my-document.pdf" \
   -F "pageSelection=Page 2" \
   -F "target=selectedText" \
