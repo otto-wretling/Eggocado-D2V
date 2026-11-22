@@ -1,10 +1,74 @@
 # Installation
 
-macOS (Apple Silicon), Linux/NixOS, and Windows through NixOS-WSL. On Windows, start with [Windows](#windows).
+macOS (Apple Silicon), Linux/NixOS, and Windows through NixOS-WSL. Start with [macOS](#macos), [Linux/NixOS](#linuxnixos), or [Windows](#windows).
+
+- [macOS](#macos)
+- [Linux/NixOS](#linuxnixos)
+- [Windows](#windows)
+- [Prerequisites](#prerequisites)
+  - [Docker](#docker)
+  - [ffmpeg and espeak-ng](#ffmpeg-and-espeak-ng)
+  - [Ollama](#ollama)
+  - [Transcription Engines](#transcription-engines)
+  - [n8n (Bare-Metal)](#n8n-bare-metal)
+  - [Kokoro-FastAPI (Native, for GPU Acceleration Where Available)](#kokoro-fastapi-native-for-gpu-acceleration-where-available)
+- [Docker Services](#docker-services)
+- [Starting the Services](#starting-the-services)
+- [Importing the Workflows](#importing-the-workflows)
+- [Securing the Bare-Metal Webhook](#securing-the-bare-metal-webhook)
+- [Verification](#verification)
+- [Troubleshooting](#troubleshooting)
+  - [Docker Desktop: "WSL integration with distro unexpectedly stopped"](#docker-desktop-wsl-integration-with-distro-unexpectedly-stopped)
+  - [Windows: Empty Project Folder in the Docker n8n](#windows-empty-project-folder-in-the-docker-n8n)
+
+## macOS
+
+On macOS, D2V runs natively through Homebrew, declared through [nix-darwin](https://github.com/LnL7/nix-darwin) when you use it.
+
+1. With nix-darwin, add this repo as a flake input:
+
+   ```nix
+   inputs.eggocado-d2v.url = "git+file:///path/to/Eggocado-D2V";
+   ```
+
+2. Import all three darwin modules in your darwin configuration:
+
+   ```nix
+   imports = with eggocado-d2v.darwinModules; [ homebrew packages services ];
+   ```
+
+   `darwinModules.homebrew` declares Docker Desktop, ffmpeg, espeak-ng, Rust, uv, and the Ollama app (see [Docker](#docker), [ffmpeg and espeak-ng](#ffmpeg-and-espeak-ng), and [Ollama](#ollama) below). `darwinModules.packages` installs the bare-metal n8n package (see [n8n (Bare-Metal)](#n8n-bare-metal) below). `darwinModules.services` defines launchd agents for bare-metal n8n, for Kokoro-FastAPI (see [Kokoro-FastAPI](#kokoro-fastapi-native-for-gpu-acceleration-where-available) below), and for `docker compose up -d` (see [Docker Services](#docker-services) below).
+
+   Without nix-darwin, follow [Docker](#docker), [ffmpeg and espeak-ng](#ffmpeg-and-espeak-ng), [Ollama](#ollama), [n8n (Bare-Metal)](#n8n-bare-metal), and [Kokoro-FastAPI](#kokoro-fastapi-native-for-gpu-acceleration-where-available) below manually with Homebrew; those sections give the Homebrew equivalent of what the darwin modules install.
+
+3. After the first switch (or manual install), open Docker Desktop once to accept its licence.
+4. Install the CLIs for the engines you plan to use from [Transcription Engines](#transcription-engines), and pull an Ollama model as shown in [Ollama](#ollama).
+5. Continue with [Starting the Services](#starting-the-services), then [Importing the Workflows](#importing-the-workflows) and [Securing the Bare-Metal Webhook](#securing-the-bare-metal-webhook).
+
+## Linux/NixOS
+
+1. Add this repo as a flake input:
+
+   ```nix
+   inputs.eggocado-d2v.url = "path:/path/to/Eggocado-D2V";
+   ```
+
+2. Import the packages module in `configuration.nix`, passing your system username as a curried argument:
+
+   ```nix
+   imports = [ (eggocado-d2v.nixosModules.packages { username = "yourusername"; }) ];
+   ```
+
+   This flake output covers [Docker](#docker), [ffmpeg and espeak-ng](#ffmpeg-and-espeak-ng), the bare-metal n8n package (see [n8n (Bare-Metal)](#n8n-bare-metal) below), Node.js and npm (for the transcription engine CLIs, with global installs on your `PATH`), `cargo`/`rustc` (for the Rust test suite, see [Testing](README.md#testing)), and the `nix-ld`/`uv`/`cmake`/`gcc`/`gnumake` build tools. The module pulls these packages from its own pinned nixpkgs (tracked in this repo's `flake.lock`), independent of your system's nixpkgs version, so a Node/Java security fix here doesn't wait on a full system nixpkgs bump.
+
+3. Import `nixosModules.services` as well, for the `n8n-d2v-baremetal` and `kokoro-fastapi` systemd user services (see [Kokoro-FastAPI](#kokoro-fastapi-native-for-gpu-acceleration-where-available) below and [Starting the Services](#starting-the-services)).
+4. Switch your configuration.
+5. Install the CLIs for the engines you plan to use from [Transcription Engines](#transcription-engines), and pull an Ollama model as shown in [Ollama](#ollama).
+6. Continue with [Starting the Services](#starting-the-services), then [Importing the Workflows](#importing-the-workflows) and [Securing the Bare-Metal Webhook](#securing-the-bare-metal-webhook).
 
 ## Windows
 
-On Windows, D2V runs in a [NixOS-WSL](https://github.com/nix-community/NixOS-WSL) distribution. Its NixOS configuration provides bare-metal n8n, Kokoro-FastAPI, ffmpeg, and espeak-ng from [Prerequisites](#prerequisites), and step 7 adds the transcription engine CLIs. Docker Desktop on Windows runs the [Docker services](#docker-services). Ollama runs natively on Windows with the full system memory and GPU, and the distribution reaches it at `http://127.0.0.1:11434`. Kokoro-FastAPI uses an NVIDIA GPU through the Windows driver when one is present.
+On Windows, D2V runs in a [NixOS-WSL](https://github.com/nix-community/NixOS-WSL) distribution. Its NixOS configuration provides bare-metal n8n, Kokoro-FastAPI, ffmpeg, and espeak-ng the same way as [Linux/NixOS](#linuxnixos), and step 7 adds the transcription engine CLIs. Docker Desktop on Windows runs the [Docker services](#docker-services). Ollama runs natively on Windows with the full system memory and GPU, and the distribution reaches it at `http://127.0.0.1:11434`. Kokoro-FastAPI uses an NVIDIA GPU through the Windows driver when one is present.
 
 1. Download [`.config/configuration.winget`](.config/configuration.winget), review it, and apply it in PowerShell from the folder you saved it to, accepting the UAC prompts:
 
@@ -56,35 +120,7 @@ sudo nixos-rebuild switch --flake /etc/nixos#eggocado-d2v
 
 ## Prerequisites
 
-This section covers macOS and NixOS. On Windows, [Windows](#windows) covers it.
-
-On NixOS, this repo's `nixosModules.packages` flake output covers this entire section in one import: Docker, ffmpeg, espeak-ng, the bare-metal n8n package, Node.js and npm (for the transcription engine CLIs, with global installs on your `PATH`), `cargo`/`rustc` (for the Rust test suite, see [Testing](README.md#testing)), and the `nix-ld`/`uv`/`cmake`/`gcc`/`gnumake` build tools. The module pulls these packages from its own pinned nixpkgs (tracked in this repo's `flake.lock`), independent of your system's nixpkgs version, so a Node/Java security fix here doesn't wait on a full system nixpkgs bump. Add it as a flake input in `flake.nix`:
-
-```nix
-inputs.eggocado-d2v.url = "path:/path/to/Eggocado-D2V";
-```
-
-Then import the module in `configuration.nix`, passing your system username as a curried argument:
-
-```nix
-imports = [ (eggocado-d2v.nixosModules.packages { username = "yourusername"; }) ];
-```
-
-On macOS with nix-darwin, three flake outputs cover the setup. `darwinModules.homebrew` declares Docker Desktop, ffmpeg, espeak-ng, Rust, uv, and the Ollama app. `darwinModules.packages` installs the bare-metal n8n package. `darwinModules.services` defines launchd agents for bare-metal n8n, for Kokoro-FastAPI (cloning it and downloading its model on the first start), and for `docker compose up -d`. Add this repo as a flake input in `flake.nix`:
-
-```nix
-inputs.eggocado-d2v.url = "git+file:///path/to/Eggocado-D2V";
-```
-
-Then import all three in your darwin configuration:
-
-```nix
-imports = with eggocado-d2v.darwinModules; [ homebrew packages services ];
-```
-
-After the first switch, open Docker Desktop once to accept its licence, start the services as described in [Starting the Services](#starting-the-services), then continue with [Importing the Workflows](#importing-the-workflows) and [Securing the Bare-Metal Webhook](#securing-the-bare-metal-webhook).
-
-The Docker, ffmpeg/espeak-ng, and n8n subsections below are the manual macOS (Homebrew) equivalent of what those imports cover. Ollama, Claude Code, and Codex are the same steps on both platforms. On NixOS, Kokoro-FastAPI comes from this flake as well (see [Kokoro-FastAPI](#kokoro-fastapi-native-for-gpu-acceleration-where-available) below).
+[macOS](#macos), [Linux/NixOS](#linuxnixos), and [Windows](#windows) above link into the relevant subsections below for the manual (non-Nix) equivalent and for troubleshooting detail.
 
 ### Docker
 Required to run the containerized services. See ["Get Docker"](https://docs.docker.com/get-started/get-docker/) for the current setup steps for your platform. Start Docker before proceeding.
@@ -95,7 +131,7 @@ Required by the bare-metal n8n instance (video assembly) and Kokoro-FastAPI (fal
 ### Ollama
 Optional: one of three transcription engines (see "Transcription engines" below). Skip this section entirely if you only plan to use Claude Code or Codex. If you do want a local model, any vision-capable Ollama model works, so pick whichever fits your hardware and documents.
 
-On NixOS, `nixosModules.packages` (see [Prerequisites](#prerequisites) above) provides Ollama as a service that `d2v start` runs, listening on `http://127.0.0.1:11434`. On Windows, `configuration.winget` installs it (see [Windows](#windows) above). On macOS, `darwinModules.homebrew` installs the Ollama app and `d2v start` runs its server. Elsewhere, download from https://ollama.com and run it yourself. Either way, pull a model, for example:
+On NixOS, `nixosModules.packages` (see [Linux/NixOS](#linuxnixos) above) provides Ollama as a service that `d2v start` runs, listening on `http://127.0.0.1:11434`. On Windows, `configuration.winget` installs it (see [Windows](#windows) above). On macOS, `darwinModules.homebrew` installs the Ollama app and `d2v start` runs its server. Elsewhere, download from https://ollama.com and run it yourself. Either way, pull a model, for example:
 
 ```bash
 ollama pull gemma4:31b
