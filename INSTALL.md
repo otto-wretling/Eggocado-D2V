@@ -23,9 +23,9 @@ macOS (Apple Silicon), Linux/NixOS, and Windows through NixOS-WSL. Start with [m
 
 ## macOS
 
-On macOS, D2V runs natively through Homebrew, declared through [nix-darwin](https://github.com/LnL7/nix-darwin) when you use it.
+On macOS, D2V runs natively through Homebrew, declared through [nix-darwin](https://github.com/LnL7/nix-darwin).
 
-1. With nix-darwin, add this repo as a flake input:
+1. Add this repo as a flake input:
 
    ```nix
    inputs.eggocado-d2v.url = "git+file:///path/to/Eggocado-D2V";
@@ -39,9 +39,7 @@ On macOS, D2V runs natively through Homebrew, declared through [nix-darwin](http
 
    `darwinModules.homebrew` declares Docker Desktop, ffmpeg, espeak-ng, Rust, uv, and the Ollama app (see [Docker](#docker), [ffmpeg and espeak-ng](#ffmpeg-and-espeak-ng), and [Ollama](#ollama) below). `darwinModules.packages` installs the bare-metal n8n package (see [n8n (Bare-Metal)](#n8n-bare-metal) below). `darwinModules.services` defines launchd agents for bare-metal n8n, for Kokoro-FastAPI (see [Kokoro-FastAPI](#kokoro-fastapi-native-for-gpu-acceleration-where-available) below), and for `docker compose up -d` (see [Docker Services](#docker-services) below).
 
-   Without nix-darwin, follow [Docker](#docker), [ffmpeg and espeak-ng](#ffmpeg-and-espeak-ng), [Ollama](#ollama), [n8n (Bare-Metal)](#n8n-bare-metal), and [Kokoro-FastAPI](#kokoro-fastapi-native-for-gpu-acceleration-where-available) below manually with Homebrew; those sections give the Homebrew equivalent of what the darwin modules install.
-
-3. After the first switch (or manual install), open Docker Desktop once to accept its licence.
+3. After the first switch, open Docker Desktop once to accept its licence.
 4. Install the CLIs for the engines you plan to use from [Transcription Engines](#transcription-engines), and pull an Ollama model as shown in [Ollama](#ollama).
 5. Continue with [Starting the Services](#starting-the-services), then [Importing the Workflows](#importing-the-workflows) and [Securing the Bare-Metal Webhook](#securing-the-bare-metal-webhook).
 
@@ -120,7 +118,7 @@ sudo nixos-rebuild switch --flake /etc/nixos#eggocado-d2v
 
 ## Prerequisites
 
-[macOS](#macos), [Linux/NixOS](#linuxnixos), and [Windows](#windows) above link into the relevant subsections below for the manual (non-Nix) equivalent and for troubleshooting detail.
+[macOS](#macos), [Linux/NixOS](#linuxnixos), and [Windows](#windows) above link into the relevant subsections below for implementation detail and troubleshooting.
 
 ### Docker
 Required to run the containerized services. See ["Get Docker"](https://docs.docker.com/get-started/get-docker/) for the current setup steps for your platform. Start Docker before proceeding.
