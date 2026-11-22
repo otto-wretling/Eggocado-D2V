@@ -89,7 +89,8 @@ macOS (Apple Silicon), Linux/NixOS, and Windows through NixOS-WSL. Start with [m
 > [!NOTE]
 > The template's `configuration.nix` sets `wsl.defaultUser = "nixos"`, NixOS-WSL's default user. If your distribution uses a different user name, set it there before running `nixos-rebuild`. On a machine with a CPU only, also set `eggocado-d2v.kokoro.torchVariant = "cpu";` there for a smaller Kokoro-FastAPI environment.
 
-5. In Docker Desktop, open **Settings > Resources > WSL Integration**, turn on the NixOS-WSL distribution, and select **Apply**. See [Docker Desktop WSL 2 backend on Windows](https://docs.docker.com/desktop/features/wsl/) for details. Once integration is on, `/usr/bin/docker` exists inside the distribution. If it is still missing a minute later, follow [Docker Desktop: "WSL integration with distro unexpectedly stopped"](#docker-desktop-wsl-integration-with-distro-unexpectedly-stopped).
+5. In Docker Desktop, open **Settings > Resources > WSL Integration**, turn on the NixOS-WSL distribution, and select **Apply**. See [Docker Desktop WSL 2 backend on Windows](https://docs.docker.com/desktop/features/wsl/) for details. Once integration is on, `/usr/bin/docker` exists inside the distribution.
+   - If `/usr/bin/docker` is still missing a minute later, follow [Docker Desktop: "WSL integration with distro unexpectedly stopped"](#docker-desktop-wsl-integration-with-distro-unexpectedly-stopped).
 
 6. Inside the distribution, clone this repo to `~/Documents/GitHub/Eggocado-D2V`, where the services run from:
 
