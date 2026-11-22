@@ -23,9 +23,7 @@ macOS (Apple Silicon), Linux/NixOS, and Windows through NixOS-WSL. Start with [m
 
 ## macOS
 
-On macOS, D2V runs natively through Homebrew, declared through [nix-darwin](https://github.com/LnL7/nix-darwin).
-
-1. Add this repo as a flake input:
+1. Set up [nix-darwin](https://github.com/LnL7/nix-darwin) if you haven't already, then add this repo as a flake input:
 
    ```nix
    inputs.eggocado-d2v.url = "git+file:///path/to/Eggocado-D2V";
@@ -65,8 +63,6 @@ On macOS, D2V runs natively through Homebrew, declared through [nix-darwin](http
 8. Secure the bare-metal webhook as described in [Securing the Bare-Metal Webhook](#securing-the-bare-metal-webhook).
 
 ## Windows
-
-On Windows, D2V runs in a [NixOS-WSL](https://github.com/nix-community/NixOS-WSL) distribution. Its NixOS configuration provides bare-metal n8n, Kokoro-FastAPI, ffmpeg, and espeak-ng the same way as [Linux/NixOS](#linuxnixos), and step 7 adds the transcription engine CLIs. Docker Desktop on Windows runs the [Docker services](#docker-services). Ollama runs natively on Windows with the full system memory and GPU, and the distribution reaches it at `http://127.0.0.1:11434`. Kokoro-FastAPI uses an NVIDIA GPU through the Windows driver when one is present.
 
 1. Download [`.config/configuration.winget`](.config/configuration.winget), review it, and apply it in PowerShell from the folder you saved it to, accepting the UAC prompts:
 
