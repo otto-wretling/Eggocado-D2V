@@ -64,13 +64,13 @@ macOS (Apple Silicon), Linux/NixOS, and Windows through NixOS-WSL. Start with [m
 
 ## Windows
 
-1. Download [`.config/configuration.winget`](.config/configuration.winget), review it, and apply it in PowerShell from the folder you saved it to, accepting the UAC prompts:
+1. Download [`.config/configuration.winget`](.config/configuration.winget) and apply it in PowerShell from the folder you saved it to, accepting the UAC prompts:
 
    ```powershell
    winget configure -f configuration.winget --accept-configuration-agreements
    ```
 
-   It installs WSL, Docker Desktop, and Ollama, and sets `networkingMode=mirrored` and `hostAddressLoopback=true` in `%USERPROFILE%\.wslconfig` so the containers and the services in the distribution reach each other. It also adds a `d2v` command to PowerShell and cmd: `%LOCALAPPDATA%\Programs\Eggocado-D2V\d2v.cmd`, on your user `PATH`, runs [`d2v`](#starting-the-services) inside the distribution named `NixOS`, the name NixOS-WSL's installer gives it. If you name your distribution differently in step 2, change `NixOS` in the `D2vCommand` resource's `commandContent` before applying the file. Open a new PowerShell or cmd window afterwards so it picks up the updated `PATH`. Restart Windows if the WSL installation asks for it. If WSL was already running, run `wsl --shutdown` to apply the new `.wslconfig`.
+   Open a new PowerShell or cmd window afterwards so it picks up the updated `PATH`. Restart Windows if the WSL installation asks for it. If WSL was already running, run `wsl --shutdown` to apply the new `.wslconfig`.
 
 2. Install NixOS-WSL following its [Installation](https://nix-community.github.io/NixOS-WSL/install.html) guide.
 
