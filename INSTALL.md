@@ -37,11 +37,12 @@ On macOS, D2V runs natively through Homebrew, declared through [nix-darwin](http
    imports = with eggocado-d2v.darwinModules; [ homebrew packages services ];
    ```
 
-   `darwinModules.homebrew` declares Docker Desktop, ffmpeg, espeak-ng, Rust, uv, and the Ollama app (see [Docker](#docker), [ffmpeg and espeak-ng](#ffmpeg-and-espeak-ng), and [Ollama](#ollama) below). `darwinModules.packages` installs the bare-metal n8n package (see [n8n (Bare-Metal)](#n8n-bare-metal) below). `darwinModules.services` defines launchd agents for bare-metal n8n, for Kokoro-FastAPI (see [Kokoro-FastAPI](#kokoro-fastapi-native-for-gpu-acceleration-where-available) below), and for `docker compose up -d` (see [Docker Services](#docker-services) below).
+   `darwinModules.homebrew` declares Docker Desktop, ffmpeg, espeak-ng, Rust, uv, and the Ollama app. `darwinModules.packages` installs the bare-metal n8n package. `darwinModules.services` defines launchd agents for bare-metal n8n, for Kokoro-FastAPI, and for `docker compose up -d` (see [Docker Services](#docker-services) below).
 
-3. After the first switch, open Docker Desktop once to accept its licence.
-4. Install the CLIs for the engines you plan to use from [Transcription Engines](#transcription-engines), and pull an Ollama model as shown in [Ollama](#ollama).
-5. Continue with [Starting the Services](#starting-the-services), then [Importing the Workflows](#importing-the-workflows) and [Securing the Bare-Metal Webhook](#securing-the-bare-metal-webhook).
+3. Clone [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI) as a sibling of this repo and set it up following its Apple Silicon (MPS) instructions; the launchd agent from step 2 runs the checkout at `eggocado-d2v.kokoroRoot` (by default `~/Documents/GitHub/Kokoro-FastAPI`).
+4. After the first switch, open Docker Desktop once to accept its licence.
+5. Install the CLIs for the engines you plan to use from [Transcription Engines](#transcription-engines), and pull an Ollama model as shown in [Ollama](#ollama).
+6. Continue with [Starting the Services](#starting-the-services), then [Importing the Workflows](#importing-the-workflows) and [Securing the Bare-Metal Webhook](#securing-the-bare-metal-webhook).
 
 ## Linux/NixOS
 
