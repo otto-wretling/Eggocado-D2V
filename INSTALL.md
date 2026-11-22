@@ -70,15 +70,13 @@ macOS (Apple Silicon), Linux/NixOS, and Windows through NixOS-WSL. Start with [m
    winget configure -f configuration.winget --accept-configuration-agreements
    ```
 
-2. Open a new PowerShell or cmd window so it picks up the updated `PATH`.
+2. Restart the terminal and WSL to pick up the changes, or restart Windows if the WSL installation asks for it, which covers both on its own. If you don't restart Windows:
+   - Open a new PowerShell or cmd window for the updated `PATH`.
+   - Run `wsl --shutdown` if WSL was already running, to apply the new `.wslconfig`.
 
-3. Restart Windows if the WSL installation asks for it.
+3. Install NixOS-WSL following its [Installation](https://nix-community.github.io/NixOS-WSL/install.html) guide.
 
-4. If WSL was already running, run `wsl --shutdown` to apply the new `.wslconfig`.
-
-5. Install NixOS-WSL following its [Installation](https://nix-community.github.io/NixOS-WSL/install.html) guide.
-
-6. Inside the distribution, replace `/etc/nixos` with this repo's NixOS-WSL template and build it:
+4. Inside the distribution, replace `/etc/nixos` with this repo's NixOS-WSL template and build it:
 
    ```bash
    sudo mv /etc/nixos /etc/nixos.original
@@ -90,9 +88,9 @@ macOS (Apple Silicon), Linux/NixOS, and Windows through NixOS-WSL. Start with [m
 
    The template's `configuration.nix` sets `wsl.defaultUser = "nixos"`, NixOS-WSL's default user. If your distribution uses a different user name, set it there before running `nixos-rebuild`. On a machine with a CPU only, also set `eggocado-d2v.kokoro.torchVariant = "cpu";` there for a smaller Kokoro-FastAPI environment.
 
-7. In Docker Desktop, open **Settings > Resources > WSL Integration**, turn on the NixOS-WSL distribution, and select **Apply**. See [Docker Desktop WSL 2 backend on Windows](https://docs.docker.com/desktop/features/wsl/) for details. Once integration is on, `/usr/bin/docker` exists inside the distribution. If it is still missing a minute later, follow [Docker Desktop: "WSL integration with distro unexpectedly stopped"](#docker-desktop-wsl-integration-with-distro-unexpectedly-stopped).
+5. In Docker Desktop, open **Settings > Resources > WSL Integration**, turn on the NixOS-WSL distribution, and select **Apply**. See [Docker Desktop WSL 2 backend on Windows](https://docs.docker.com/desktop/features/wsl/) for details. Once integration is on, `/usr/bin/docker` exists inside the distribution. If it is still missing a minute later, follow [Docker Desktop: "WSL integration with distro unexpectedly stopped"](#docker-desktop-wsl-integration-with-distro-unexpectedly-stopped).
 
-8. Inside the distribution, clone this repo to `~/Documents/GitHub/Eggocado-D2V`, where the services run from:
+6. Inside the distribution, clone this repo to `~/Documents/GitHub/Eggocado-D2V`, where the services run from:
 
    ```bash
    git clone https://github.com/otto-wretling/Eggocado-D2V.git ~/Documents/GitHub/Eggocado-D2V
@@ -100,11 +98,11 @@ macOS (Apple Silicon), Linux/NixOS, and Windows through NixOS-WSL. Start with [m
 
    The `d2v-docker-services` user service starts the [Docker services](#docker-services) from that checkout once Docker Desktop's integration answers (see [Starting the Services](#starting-the-services)), and recreates them on each start so the `n8n` container mounts the checkout after the distribution's files are available. The first start builds the nemo-normalizer image, which takes several minutes.
 
-9. On Windows itself, clone this repo again, this time to the same relative path under your Windows user profile: `C:\Users\<you>\Documents\GitHub\Eggocado-D2V` (GitHub Desktop or a plain `git clone` both work). This is a separate, ordinary Windows-side checkout for browsing and editing the code; the distribution's own checkout from step 8 is what the services actually run against. The next time the form or the headless API runs, it checks whether `temp.lnk`/`output.lnk` shortcuts already exist in this checkout and, if not, creates them pointing at the distribution's real `temp`/`output` folders, so double-clicking either one opens the real, live folder, with files appearing there natively as soon as they're produced. No admin rights or Developer Mode needed: shortcuts are plain files, not privileged reparse points. Deleting a specific file, or a whole `temp/{document}/` subfolder, from inside one of these opened folders genuinely deletes it on the distribution side too, matching [Continuing a Conversion](README.md#continuing-a-conversion)'s recreate instructions. Deleting the shortcut itself just removes the shortcut; the next run recreates it automatically.
+7. On Windows itself, clone this repo again, this time to the same relative path under your Windows user profile: `C:\Users\<you>\Documents\GitHub\Eggocado-D2V` (GitHub Desktop or a plain `git clone` both work). This is a separate, ordinary Windows-side checkout for browsing and editing the code; the distribution's own checkout from step 6 is what the services actually run against. The next time the form or the headless API runs, it checks whether `temp.lnk`/`output.lnk` shortcuts already exist in this checkout and, if not, creates them pointing at the distribution's real `temp`/`output` folders, so double-clicking either one opens the real, live folder, with files appearing there natively as soon as they're produced. No admin rights or Developer Mode needed: shortcuts are plain files, not privileged reparse points. Deleting a specific file, or a whole `temp/{document}/` subfolder, from inside one of these opened folders genuinely deletes it on the distribution side too, matching [Continuing a Conversion](README.md#continuing-a-conversion)'s recreate instructions. Deleting the shortcut itself just removes the shortcut; the next run recreates it automatically.
 
-10. Install the CLI for the transcription engine you plan to use from [Transcription Engines](#transcription-engines) inside the distribution, or pull an Ollama model in PowerShell as shown in [Ollama](#ollama).
+8. Install the CLI for the transcription engine you plan to use from [Transcription Engines](#transcription-engines) inside the distribution, or pull an Ollama model in PowerShell as shown in [Ollama](#ollama).
 
-11. Continue with [Importing the Workflows](#importing-the-workflows).
+9. Continue with [Importing the Workflows](#importing-the-workflows).
 
 Run the commands in the rest of this guide inside the distribution. From PowerShell, address the services as `127.0.0.1`, for example `curl.exe http://127.0.0.1:5679/healthz`.
 
