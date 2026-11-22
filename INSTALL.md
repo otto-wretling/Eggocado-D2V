@@ -37,11 +37,11 @@ On macOS, D2V runs natively through Homebrew, declared through [nix-darwin](http
    imports = with eggocado-d2v.darwinModules; [ homebrew packages services ];
    ```
 
-   `darwinModules.homebrew` declares Docker Desktop, ffmpeg, espeak-ng, Rust, uv, and the Ollama app. `darwinModules.packages` installs the bare-metal n8n package. `darwinModules.services` defines launchd agents for bare-metal n8n, for Kokoro-FastAPI, and for `docker compose up -d` (see [Docker Services](#docker-services) below).
-
 3. After the first switch, open Docker Desktop once to accept its licence.
-4. Install the CLIs for the engines you plan to use from [Transcription Engines](#transcription-engines), and pull an Ollama model as shown in [Ollama](#ollama).
-5. Continue with [Starting the Services](#starting-the-services), then [Importing the Workflows](#importing-the-workflows) and [Securing the Bare-Metal Webhook](#securing-the-bare-metal-webhook).
+4. Install the CLI for the transcription engine you plan to use from [Transcription Engines](#transcription-engines), or pull an Ollama model as shown in [Ollama](#ollama).
+5. Start the services as described in [Starting the Services](#starting-the-services).
+6. Import the workflows as described in [Importing the Workflows](#importing-the-workflows).
+7. Secure the bare-metal webhook as described in [Securing the Bare-Metal Webhook](#securing-the-bare-metal-webhook).
 
 ## Linux/NixOS
 
@@ -57,12 +57,12 @@ On macOS, D2V runs natively through Homebrew, declared through [nix-darwin](http
    imports = [ (eggocado-d2v.nixosModules.packages { username = "yourusername"; }) ];
    ```
 
-   This flake output covers [Docker](#docker), [ffmpeg and espeak-ng](#ffmpeg-and-espeak-ng), the bare-metal n8n package (see [n8n (Bare-Metal)](#n8n-bare-metal) below), Node.js and npm (for the transcription engine CLIs, with global installs on your `PATH`), `cargo`/`rustc` (for the Rust test suite, see [Testing](README.md#testing)), and the `nix-ld`/`uv`/`cmake`/`gcc`/`gnumake` build tools. The module pulls these packages from its own pinned nixpkgs (tracked in this repo's `flake.lock`), independent of your system's nixpkgs version, so a Node/Java security fix here doesn't wait on a full system nixpkgs bump.
-
-3. Import `nixosModules.services` as well, for the `n8n-d2v-baremetal` and `kokoro-fastapi` systemd user services (see [Kokoro-FastAPI](#kokoro-fastapi-native-for-gpu-acceleration-where-available) below and [Starting the Services](#starting-the-services)).
+3. Import `nixosModules.services` as well, for the bare-metal n8n and Kokoro-FastAPI services (see [Kokoro-FastAPI](#kokoro-fastapi-native-for-gpu-acceleration-where-available) below).
 4. Switch your configuration.
-5. Install the CLIs for the engines you plan to use from [Transcription Engines](#transcription-engines), and pull an Ollama model as shown in [Ollama](#ollama).
-6. Continue with [Starting the Services](#starting-the-services), then [Importing the Workflows](#importing-the-workflows) and [Securing the Bare-Metal Webhook](#securing-the-bare-metal-webhook).
+5. Install the CLI for the transcription engine you plan to use from [Transcription Engines](#transcription-engines), or pull an Ollama model as shown in [Ollama](#ollama).
+6. Start the services as described in [Starting the Services](#starting-the-services).
+7. Import the workflows as described in [Importing the Workflows](#importing-the-workflows).
+8. Secure the bare-metal webhook as described in [Securing the Bare-Metal Webhook](#securing-the-bare-metal-webhook).
 
 ## Windows
 
@@ -102,9 +102,9 @@ On Windows, D2V runs in a [NixOS-WSL](https://github.com/nix-community/NixOS-WSL
 
 6. On Windows itself, clone this repo again, this time to the same relative path under your Windows user profile: `C:\Users\<you>\Documents\GitHub\Eggocado-D2V` (GitHub Desktop or a plain `git clone` both work). This is a separate, ordinary Windows-side checkout for browsing and editing the code; the distribution's own checkout from step 5 is what the services actually run against. The next time the form or the headless API runs, it checks whether `temp.lnk`/`output.lnk` shortcuts already exist in this checkout and, if not, creates them pointing at the distribution's real `temp`/`output` folders, so double-clicking either one opens the real, live folder, with files appearing there natively as soon as they're produced. No admin rights or Developer Mode needed: shortcuts are plain files, not privileged reparse points. Deleting a specific file, or a whole `temp/{document}/` subfolder, from inside one of these opened folders genuinely deletes it on the distribution side too, matching [Continuing a Conversion](README.md#continuing-a-conversion)'s recreate instructions. Deleting the shortcut itself just removes the shortcut; the next run recreates it automatically.
 
-7. Install the CLIs for the engines you plan to use from [Transcription engines](#transcription-engines) inside the distribution, and pull an Ollama model in PowerShell as shown in [Ollama](#ollama).
+7. Install the CLI for the transcription engine you plan to use from [Transcription Engines](#transcription-engines) inside the distribution, or pull an Ollama model in PowerShell as shown in [Ollama](#ollama).
 
-8. Continue with [Importing the workflows](#importing-the-workflows).
+8. Continue with [Importing the Workflows](#importing-the-workflows).
 
 Run the commands in the rest of this guide inside the distribution. From PowerShell, address the services as `127.0.0.1`, for example `curl.exe http://127.0.0.1:5679/healthz`.
 
