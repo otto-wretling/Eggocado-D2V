@@ -7,7 +7,7 @@
       url = "github:nix-community/NixOS-WSL/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    eggocado-d2v.url = "github:otto-wretling/Eggocado-D2V";
+    eggocado-d2v.url = "git+file:///home/nixos/Documents/GitHub/Eggocado-D2V";
   };
 
   outputs = { nixpkgs, nixos-wsl, eggocado-d2v, ... }: {
