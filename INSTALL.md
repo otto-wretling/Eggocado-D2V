@@ -39,10 +39,9 @@ On macOS, D2V runs natively through Homebrew, declared through [nix-darwin](http
 
    `darwinModules.homebrew` declares Docker Desktop, ffmpeg, espeak-ng, Rust, uv, and the Ollama app. `darwinModules.packages` installs the bare-metal n8n package. `darwinModules.services` defines launchd agents for bare-metal n8n, for Kokoro-FastAPI, and for `docker compose up -d` (see [Docker Services](#docker-services) below).
 
-3. Clone [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI) as a sibling of this repo and set it up following its Apple Silicon (MPS) instructions; the launchd agent from step 2 runs the checkout at `eggocado-d2v.kokoroRoot` (by default `~/Documents/GitHub/Kokoro-FastAPI`).
-4. After the first switch, open Docker Desktop once to accept its licence.
-5. Install the CLIs for the engines you plan to use from [Transcription Engines](#transcription-engines), and pull an Ollama model as shown in [Ollama](#ollama).
-6. Continue with [Starting the Services](#starting-the-services), then [Importing the Workflows](#importing-the-workflows) and [Securing the Bare-Metal Webhook](#securing-the-bare-metal-webhook).
+3. After the first switch, open Docker Desktop once to accept its licence.
+4. Install the CLIs for the engines you plan to use from [Transcription Engines](#transcription-engines), and pull an Ollama model as shown in [Ollama](#ollama).
+5. Continue with [Starting the Services](#starting-the-services), then [Importing the Workflows](#importing-the-workflows) and [Securing the Bare-Metal Webhook](#securing-the-bare-metal-webhook).
 
 ## Linux/NixOS
 
@@ -159,18 +158,16 @@ cd /path/to/Eggocado-D2V
 N8N_PORT=5679 n8n start
 ```
 
-This service is required to use D2V. `nix/mac.nix` has a launchd example if you use nix-darwin, or on NixOS, `nix/nixos.nix`'s `n8n-d2v-baremetal` systemd user service, wired into the system configuration and confirmed working end to end on a full document conversion.
+This service is required to use D2V.
 
 ### Kokoro-FastAPI (Native, for GPU Acceleration Where Available)
 Text-to-speech runs as a separate, native service on port 8881, so it can use the GPU where available, plus a CPU-only instance on port 8882 that the bare-metal n8n starts on demand through its `D2V_START_CPU_TTS_COMMAND` environment variable. Like bare-metal n8n, this service is required to use D2V. Kokoro selects MPS, CUDA, or CPU in that order of availability.
 
-On NixOS, `nix/nixos.nix`'s `kokoro-fastapi` and `kokoro-fastapi-cpu` systemd user services run [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI) entirely from this flake: its source is the pinned `kokoro-fastapi` flake input, Nix builds its Python environment from Kokoro-FastAPI's own `uv.lock`, and Nix downloads the model weights with fixed hashes. The environment uses CPU PyTorch by default. For an NVIDIA GPU, set the CUDA 12.6 build in your configuration:
+On NixOS, for an NVIDIA GPU, set the CUDA 12.6 build in your configuration:
 
 ```nix
 eggocado-d2v.kokoro.torchVariant = "gpu";
 ```
-
-On macOS, clone Kokoro-FastAPI as a sibling of this repo and set it up following [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI)'s Apple Silicon (MPS) instructions. `nix/mac.nix` has a launchd example if you use nix-darwin (optional), which runs the checkout at `eggocado-d2v.kokoroRoot` (by default `~/Documents/GitHub/Kokoro-FastAPI`).
 
 ## Docker Services
 

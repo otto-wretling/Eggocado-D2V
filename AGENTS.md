@@ -33,6 +33,7 @@
 - Don't frame a requirement as a choice between two options when only one side is real (e.g. "keep this running in the background" falsely implies a meaningful "foreground" alternative exists). State the actual requirement directly instead.
 - Don't list self-evident or trivial options as if they were meaningful guidance (e.g. "run it in a terminal tab" as a way to keep a service running). Only state specifics that are actually non-obvious or that this repo itself provides.
 - Instructions tell the user what to do, never what not to do or what they don't need to do. If a row/step has no action, state the action that applies instead of noting the absence of one (e.g. "Run Continue mode again", not "Nothing to delete").
+- Any instructions anywhere in this repo (installation steps, usage guides, troubleshooting, code comments that walk through a procedure) tell the reader what to do to get something running or working, not how it works internally. When a Nix module or service already handles a component fully on its own, omit that component from the instructions entirely rather than explaining the mechanism (what it clones, builds, or downloads) or noting that no action is needed.
 
 ## Installation Instructions
 
