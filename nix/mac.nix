@@ -7,6 +7,9 @@ let
   dockerCliDirectory = "/Applications/${dockerAppName}.app/Contents/Resources/bin";
   openCommand = "/usr/bin/open";
   launchctl = "/bin/launchctl";
+  launchdUserDomain = "gui/$(id -u)";
+  launchctlRunningField = "PID";
+  userExecutablesFolderName = ".local/bin";
   logDirectory = "/tmp";
   dockerPollIntervalSeconds = 5;
   dockerComposeRetryDelaySeconds = 60;
@@ -24,10 +27,10 @@ let
     mpsFallbackEnvironment = { PYTORCH_ENABLE_MPS_FALLBACK = "1"; };
   };
 
-  ollamaExecutable = "/Applications/Ollama.app/Contents/Resources/ollama";
+  ollamaAppName = "Ollama";
+  ollamaExecutable = "/Applications/${ollamaAppName}.app/Contents/Resources/ollama";
 
   agents = {
-    ollama = { label = "io.github.eggocado.ollama"; logName = "ollama"; };
     n8n = { label = "io.n8n.n8n"; logName = "n8n"; };
     kokoro = { label = "io.github.remsky.kokoro-fastapi"; logName = "kokoro"; };
     cpuKokoro = { label = "io.github.remsky.kokoro-fastapi-cpu"; logName = "kokoro-cpu"; };
@@ -57,7 +60,7 @@ in
       cfg = config.eggocado-d2v;
       hostSearchPath = lib.concatStringsSep ":" [
         "${homebrewPrefix}/bin"
-        "${cfg.homeDirectory}/.local/bin"
+        "${cfg.homeDirectory}/${userExecutablesFolderName}"
         "/nix/var/nix/profiles/system/sw/bin"
         "/usr/bin"
         "/bin"
@@ -139,13 +142,13 @@ in
         environment = instance.environment // kokoro.mpsFallbackEnvironment;
       };
 
-      startAgentCommand = agent: ''${launchctl} kickstart "gui/$(id -u)/${agent.label}"'';
+      startAgentCommand = agent: ''${launchctl} kickstart "${launchdUserDomain}/${agent.label}"'';
 
       stopAgentCommand = agent: ''${launchctl} stop "${agent.label}"'';
 
-      agentIsRunningCommand = agent: ''${launchctl} list "${agent.label}" 2>/dev/null | grep -q PID'';
+      agentIsRunningCommand = agent: ''${launchctl} list "${agent.label}" 2>/dev/null | grep -q ${launchctlRunningField}'';
 
-      launchdControls = { agent, alsoStopAgents }: {
+      launchdControls = { agent, alsoStopAgents ? [ ] }: {
         start = [ (startAgentCommand agent) ];
         stop = map stopAgentCommand ([ agent ] ++ alsoStopAgents);
         status = agentIsRunningCommand agent;
@@ -157,10 +160,15 @@ in
       };
 
       serviceControlOverrides = {
+        ollama = {
+          start = [ "${openCommand} -ga ${ollamaAppName}" ];
+          stop = [ ];
+          status = "${ollamaExecutable} ps > /dev/null 2>&1";
+        };
         dockerServices = {
           start = [ (startAgentCommand agents.dockerServices) ];
           stop = [ (stopAgentCommand agents.dockerServices) ] ++ dockerComposeServiceControls.stop;
-          status = "${agentIsRunningCommand agents.dockerServices} || ${dockerComposeServiceControls.status}";
+          status = dockerComposeServiceControls.status;
         };
       };
 
@@ -191,19 +199,14 @@ in
 
       config.environment.systemPackages = [ d2vCommand ];
 
-      config.launchd.user.agents.ollama = launchdAgent {
-        agent = agents.ollama;
-        command = [ ollamaExecutable "serve" ];
-      };
-
       config.launchd.user.agents.n8n = launchdAgent {
         agent = agents.n8n;
-        command = [ "${pkgs.n8n}/bin/n8n" "start" ];
+        command = shared.n8nServerCommand pkgs;
         workingDirectory = cfg.projectRoot;
         environment =
           sharedServices.n8nEnvironment {
             startCpuTtsCommand = "${launchctl} start ${agents.cpuKokoro.label}";
-            stopCpuTtsCommand = "${launchctl} stop ${agents.cpuKokoro.label}";
+            stopCpuTtsCommand = stopAgentCommand agents.cpuKokoro;
           }
           // sharedServices.n8nCommandExecutionEnvironment;
       };

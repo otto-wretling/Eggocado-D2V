@@ -125,7 +125,7 @@ Required by the bare-metal n8n instance (video assembly) and Kokoro-FastAPI (fal
 ### Ollama
 Optional: one of three transcription engines (see "Transcription engines" below). Skip this section entirely if you only plan to use Claude Code or Codex. If you do want a local model, any vision-capable Ollama model works, so pick whichever fits your hardware and documents.
 
-On NixOS, `nixosModules.packages` (see [Linux/NixOS](#linuxnixos) above) provides Ollama as a service that `d2v start` runs, listening on `http://127.0.0.1:11434`. On Windows, `configuration.winget` installs it (see [Windows](#windows) above). On macOS, `darwinModules.homebrew` installs the Ollama app and `d2v start` runs its server. Elsewhere, download from https://ollama.com and run it yourself. Either way, pull a model, for example:
+On NixOS, `nixosModules.packages` (see [Linux/NixOS](#linuxnixos) above) provides Ollama as a service that `d2v start` runs, listening on `http://127.0.0.1:11434`. On Windows, `configuration.winget` installs it (see [Windows](#windows) above). On macOS, `darwinModules.homebrew` installs the Ollama app and `d2v start` opens it. Elsewhere, download from https://ollama.com and run it yourself. Either way, pull a model, for example:
 
 ```bash
 ollama pull gemma4:31b
@@ -187,7 +187,7 @@ The n8n service's `D2V_` environment variables in `docker-compose.yml` define th
 
 ## Starting the Services
 
-`darwinModules.services`, `nixosModules.services`, and `nixosModules.wsl` provide one command, `d2v`, that controls Kokoro-FastAPI, bare-metal n8n, and the [Docker services](#docker-services) together. It also controls Ollama, which listens on `http://127.0.0.1:11434` (on Windows, `d2v` starts and stops the Windows Ollama installation):
+`darwinModules.services`, `nixosModules.services`, and `nixosModules.wsl` provide one command, `d2v`, that controls Kokoro-FastAPI, bare-metal n8n, and the [Docker services](#docker-services) together. It also controls Ollama, which listens on `http://127.0.0.1:11434` (`d2v start` starts it and `d2v stop` leaves it running):
 
 ```bash
 d2v start

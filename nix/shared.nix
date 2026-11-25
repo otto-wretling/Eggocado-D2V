@@ -112,8 +112,10 @@ let
     {
       start = [ "${compose} up --detach" ];
       stop = [ "${compose} stop" ];
-      status = "${compose} ps --status running --quiet | grep -q .";
+      status = "${compose} ps --status running --quiet 2>/dev/null | grep -q .";
     };
+
+  n8nServerCommand = pkgs: [ "${pkgs.n8n}/bin/n8n" "start" ];
 
   d2vCommand = { lib, pkgs, controlsFor }:
     let
@@ -131,7 +133,7 @@ let
           echo "Stopping ${service.name}"
           ${lib.concatMapStringsSep "\n" (command: "${command} || true") service.stop}
         '')
-        (lib.reverseList services);
+        (lib.filter (service: service.stop != [ ]) (lib.reverseList services));
       reportAll = eachService
         (service: ''
           if ${service.status}; then
@@ -164,5 +166,5 @@ let
     };
 in
 {
-  inherit absolutePath d2vCommand dockerComposeControls hostToolNames isAllowedUnfree options repositoriesFolderName restartDelaySeconds services;
+  inherit absolutePath d2vCommand dockerComposeControls hostToolNames isAllowedUnfree n8nServerCommand options repositoriesFolderName restartDelaySeconds services;
 }

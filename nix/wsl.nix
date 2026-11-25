@@ -24,25 +24,27 @@ let
   };
   linuxUserServices = nixos.linuxUserServices {
     inherit lib pkgs cfg;
-    userExecutableDirectories = [ "${cfg.homeDirectory}/.local/share/npm/bin" ];
+    userExecutableDirectories = [ "${cfg.homeDirectory}/${nixos.npmGlobalPrefixFolder}/bin" ];
     acceleratorLibraryDirectories = [ "/run/opengl-driver/lib" ];
   };
   windowsPowerShellCommand = "powershell.exe";
-  windowsTaskKillCommand = "taskkill.exe";
   windowsTaskListCommand = "tasklist.exe";
-  windowsOllamaServerProcess = "ollama.exe";
-  windowsOllamaTrayProcess = "ollama app.exe";
+  windowsOllamaServerProcess = "${windowsOllamaCommand}.exe";
+  windowsOllamaCommand = "ollama";
+  windowsOllamaServeArgument = "serve";
   windowsOllamaControls = {
-    start = [ ''${windowsPowerShellCommand} -NoProfile -Command "Start-Process -WindowStyle Hidden ollama -ArgumentList serve"'' ];
-    stop = map
-      (process: ''${windowsTaskKillCommand} /F /IM "${process}"'')
-      [ windowsOllamaTrayProcess windowsOllamaServerProcess ];
+    start = [ ''${windowsPowerShellCommand} -NoProfile -Command "Start-Process -WindowStyle Hidden ${windowsOllamaCommand} -ArgumentList ${windowsOllamaServeArgument}"'' ];
+    stop = [ ];
     status = ''${windowsTaskListCommand} /FI "IMAGENAME eq ${windowsOllamaServerProcess}" | grep -qi "${windowsOllamaServerProcess}"'';
+  };
+  serviceControlOverrides = {
+    ollama = windowsOllamaControls;
   };
   dockerDesktopIntegrationCommands = [ "chmod" "install" "mkdir" "mv" "rm" "stat" "test" ];
   dockerDesktopCli = "/usr/bin/docker";
   publicRegistryDockerConfiguration = pkgs.writeText "docker-config.json" "{}";
   dockerConfigurationStateDirectory = "eggocado-d2v-docker";
+  dockerRestartDelaySeconds = 5;
 in
 {
   imports = [ nixos.linuxHost ];
@@ -77,7 +79,7 @@ in
       (shared.d2vCommand {
         inherit lib pkgs;
         controlsFor = service:
-          if service.key == "ollama" then windowsOllamaControls else nixos.systemdUserControls service;
+          serviceControlOverrides.${service.key} or (nixos.systemdUserControls service);
       })
     ];
 
@@ -112,7 +114,7 @@ in
           ExecStart = "${dockerDesktopCli} compose up --detach --force-recreate";
           ExecStop = "${dockerDesktopCli} compose stop";
           Restart = "on-failure";
-          RestartSec = 5;
+          RestartSec = dockerRestartDelaySeconds;
           WorkingDirectory = cfg.projectRoot;
         };
       };

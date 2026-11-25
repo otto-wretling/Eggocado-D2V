@@ -28,24 +28,29 @@ let
     dockerServices = "d2v-docker-services";
   };
 
-  systemdUserControls = service:
-    let
-      unit = userServiceUnits.${service.key};
-      stoppedUnits = [ unit ] ++ map (key: userServiceUnits.${key}) service.stopsWith;
-    in
-    {
-      start = [ "systemctl --user start ${unit}" ];
-      stop = map (stoppedUnit: "systemctl --user stop ${stoppedUnit}") stoppedUnits;
-      status = "systemctl --user is-active --quiet ${unit}";
-    };
+  systemctlControls = { systemctl, unit, alsoStoppedUnits ? [ ] }: {
+    start = [ "${systemctl} start ${unit}" ];
+    stop = map (stoppedUnit: "${systemctl} stop ${stoppedUnit}") ([ unit ] ++ alsoStoppedUnits);
+    status = "${systemctl} is-active --quiet ${unit}";
+  };
+
+  userSystemctl = "systemctl --user";
+
+  systemSystemctl = "systemctl";
+
+  systemdUserControls = service: systemctlControls {
+    systemctl = userSystemctl;
+    unit = userServiceUnits.${service.key};
+    alsoStoppedUnits = map (key: userServiceUnits.${key}) service.stopsWith;
+  };
 
   ollamaSystemUnit = "ollama";
 
-  ollamaSystemControls = {
-    start = [ "systemctl start ${ollamaSystemUnit}" ];
-    stop = [ "systemctl stop ${ollamaSystemUnit}" ];
-    status = "systemctl is-active --quiet ${ollamaSystemUnit}";
+  ollamaSystemControls = systemctlControls { systemctl = systemSystemctl; unit = ollamaSystemUnit; } // {
+    stop = [ ];
   };
+
+  npmGlobalPrefixFolder = ".local/share/npm";
 
   polkitManageUnitsAction = "org.freedesktop.systemd1.manage-units";
 
@@ -166,10 +171,10 @@ let
 
         programs.nix-ld.enable = true;
 
-        environment.variables.NPM_CONFIG_PREFIX = "${cfg.homeDirectory}/.local/share/npm";
+        environment.variables.NPM_CONFIG_PREFIX = "${cfg.homeDirectory}/${npmGlobalPrefixFolder}";
 
         environment.extraInit = ''
-          export PATH="${cfg.homeDirectory}/.local/share/npm/bin:$PATH"
+          export PATH="${cfg.homeDirectory}/${npmGlobalPrefixFolder}/bin:$PATH"
         '';
 
         environment.systemPackages = hostPackages d2vPkgs ++ [ pkgs.n8n ];
@@ -243,7 +248,7 @@ let
             // {
               PATH = executableSearchPath;
             };
-          command = [ "${pkgs.n8n}/bin/n8n" "start" ];
+          command = shared.n8nServerCommand pkgs;
           workingDirectory = cfg.projectRoot;
         };
 
@@ -262,7 +267,7 @@ let
     };
 in
 {
-  inherit kokoroFor linuxHost linuxUserServices restartPolicy systemdUserControls userServiceUnits;
+  inherit kokoroFor linuxHost linuxUserServices npmGlobalPrefixFolder restartPolicy systemdUserControls userServiceUnits;
 
   packages = { username }: { lib, ... }: {
     imports = [ linuxHost ];
