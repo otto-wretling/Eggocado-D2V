@@ -244,9 +244,9 @@ While a job is `processing`, each status request also checks the health endpoint
 
 ## Testing
 
-`d2v-headless-api-tests/` is a Rust integration test suite that exercises the headless API above end-to-end against a running instance: every mode's happy path, Continue mode, and every one of the API's documented failure cases, both the synchronous `400` ones and the asynchronous `failed` ones. There's no mocking: each test calls the real endpoints, polling the live status endpoint for the cases that run as a background job.
+`d2v-headless-api-tests/` is a Rust integration test suite that exercises the headless API above end-to-end against a running instance, including every mode's happy path and every one of the API's documented failure cases, both the synchronous `400` ones and the asynchronous `failed` ones.
 
-Set the four required environment variables, then run `cargo test` from that directory:
+To use it, set the four required environment variables, then run `cargo test` from that directory:
 
 ```bash
 cd d2v-headless-api-tests
