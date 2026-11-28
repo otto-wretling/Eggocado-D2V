@@ -79,7 +79,7 @@ Use this mode to generate a demo video for every available TTS voice, so you can
 
 ### File Glossary
 
-This table explains all the categories of files created by the modes above. The paths are relative to the repo's main folder (e.g., `/home/user/Documents/GitHub/Eggocado-D2V`, or `\\wsl.localhost\NixOS\home\nixos\Documents\GitHub\Eggocado-D2V` from Windows on WSL). Every per-page file lives in `temp/{document}/`, prefixed with its page number (or `{a}-{b}_knit_` for a knitted pair). The finished video's files live in `output/{document}/`. On the Windows-side checkout from [step 6](INSTALL.md#windows), `temp` and `output` are `temp.lnk` and `output.lnk` shortcuts; opening either one opens the real, live folder, which still has `temp`/`output` in the paths below.
+This table explains all the categories of files created by the modes above. The paths are relative to the repo's main folder (e.g., `/home/user/Documents/GitHub/Eggocado-D2V`, or `\\wsl.localhost\NixOS\home\nixos\Documents\GitHub\Eggocado-D2V` on Windows/WSL). Every per-page file lives in `temp/{document}/`, prefixed with its page number (or `{a}-{b}_knit_` for a knitted pair). The finished video's files live in `output/{document}/`. On Windows, `temp` and `output` are shortcuts to `\\wsl.localhost\NixOS\home\nixos\Documents\GitHub\Eggocado-D2V\temp` and `output`; opening either will display as a Windows path, but use the WSL one.
 
 | Term | File | What it is |
 |---|---|---|
