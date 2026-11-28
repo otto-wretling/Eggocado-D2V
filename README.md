@@ -271,7 +271,7 @@ Tests run one at a time, enforced via that directory's own `.cargo/config.toml`,
 | stirling-pdf | `8080` | Docker | Converts PDF pages to PNG images |
 | nemo-normalizer | `8765` | Docker | Normalizes transcribed text for speech |
 | Bare-metal n8n | `5679` | Host process | Runs ffmpeg, shells out to the Claude Code/Codex CLIs, manages job folders, starts and stops the CPU Kokoro-FastAPI instance, and calls Ollama, directly on the host so these can use the GPU and the CLIs' own host-level logins |
-| Kokoro-FastAPI | `8881` | Host process | Text-to-speech, running natively: Apple Silicon GPU (MPS) acceleration on macOS, CPU inference on Linux and Windows |
+| Kokoro-FastAPI | `8881` | Host process | Text-to-speech, running natively: Apple Silicon GPU (MPS) acceleration on macOS, NVIDIA GPU (CUDA) acceleration on Linux and Windows when `torchVariant = "gpu"` is set, CPU inference on every other GPU and when `torchVariant` is left as `"cpu"` |
 | Kokoro-FastAPI (CPU) | `8882` | Host process | Text-to-speech on the CPU, started for conversions that run on the CPU and stopped after the final video |
 | Ollama | `11434` | Host process | One of three transcription engines (optional, only if you use it), running natively so it can use the GPU |
 
